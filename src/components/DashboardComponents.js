@@ -1,0 +1,592 @@
+import React, { useState } from 'react';
+import { 
+  Box, 
+  Typography, 
+  Paper, 
+  Button, 
+  TextField, 
+  InputAdornment,
+  IconButton,
+  Avatar,
+  AvatarGroup,
+  Chip,
+  LinearProgress,
+  Card,
+  CardContent,
+  Divider,
+  Stack,
+  Menu,
+  MenuItem,
+  Badge,
+  Popover,
+  List,
+  ListItem,
+  ListItemText,
+  Drawer,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  Notifications as NotificationsIcon,
+  KeyboardArrowDown as ArrowDownIcon,
+  Home as HomeIcon,
+  Folder as FolderIcon,
+  CalendarMonth as CalendarIcon,
+  Description as ReportsIcon,
+  Settings as SettingsIcon,
+  FilterList as FilterIcon,
+  Menu as MenuIcon
+} from '@mui/icons-material';
+import { useAuth } from '../contexts/AuthContext';
+import { styles } from '../pages/dashboardStyles';
+
+// Sidebar Content Component (reusable for both desktop and mobile)
+const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick }) => {
+  const getRoleMenuItems = (role) => {
+    const menus = {
+      client: [
+        { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
+        { id: 'projects', label: 'My Productions', icon: FolderIcon },
+        { id: 'files', label: 'Asset Library', icon: ReportsIcon },
+        { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
+        { id: 'settings', label: 'Settings', icon: SettingsIcon }
+      ],
+      staff: [
+        { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
+        { id: 'tasks', label: 'My Tasks', icon: FolderIcon },
+        { id: 'projects', label: 'All Projects', icon: CalendarIcon },
+        { id: 'files', label: 'Asset Library', icon: ReportsIcon },
+        { id: 'settings', label: 'Settings', icon: SettingsIcon }
+      ],
+      admin: [
+        { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
+        { id: 'projects', label: 'All Projects', icon: FolderIcon },
+        { id: 'clients', label: 'Clients', icon: CalendarIcon },
+        { id: 'team', label: 'Team Management', icon: ReportsIcon },
+        { id: 'analytics', label: 'Analytics', icon: SettingsIcon },
+        { id: 'settings', label: 'Settings', icon: SettingsIcon }
+      ]
+    };
+    return menus[role] || menus.client;
+  };
+
+  const menuItems = getRoleMenuItems(userRole);
+
+  const handleMenuClick = (itemId) => {
+    onMenuItemClick(itemId);
+    if (onItemClick) onItemClick(); // Close mobile drawer
+  };
+
+  return (
+    <>
+      <Box sx={styles.logo}>
+        <Box sx={styles.logoIcon}>S</Box>
+      </Box>
+      
+      <Typography variant="caption" sx={styles.menuLabel}>
+        Main Menu
+      </Typography>
+      
+      <Stack spacing={0.5} sx={{ px: 2, flex: 1 }}>
+        {menuItems.map(item => {
+          const Icon = item.icon;
+          const isActive = item.id === activeItem;
+          return (
+            <Button
+              key={item.id}
+              startIcon={<Icon />}
+              sx={styles.menuItem(isActive)}
+              fullWidth
+              onClick={() => handleMenuClick(item.id)}
+            >
+              {item.label}
+            </Button>
+          );
+        })}
+      </Stack>
+      
+      <Paper sx={styles.desktopAppCard}>
+        <Typography variant="subtitle2" gutterBottom>
+          StoryVid Mobile App
+        </Typography>
+        <Typography variant="caption" color="text.secondary" display="block" mb={2}>
+          Review and approve videos on the go
+        </Typography>
+        <Button variant="contained" fullWidth sx={styles.downloadButton}>
+          Download
+        </Button>
+      </Paper>
+    </>
+  );
+};
+
+// Sidebar Component with Mobile Drawer
+export const Sidebar = ({ activeItem, onMenuItemClick, userRole, mobileOpen, onMobileClose }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  if (isMobile) {
+    return (
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onMobileClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          '& .MuiDrawer-paper': {
+            ...styles.mobileSidebar,
+          },
+        }}
+      >
+        <SidebarContent 
+          activeItem={activeItem} 
+          onMenuItemClick={onMenuItemClick} 
+          userRole={userRole}
+          onItemClick={onMobileClose}
+        />
+      </Drawer>
+    );
+  }
+
+  return (
+    <Box sx={styles.sidebar}>
+      <SidebarContent 
+        activeItem={activeItem} 
+        onMenuItemClick={onMenuItemClick} 
+        userRole={userRole}
+      />
+    </Box>
+  );
+};
+
+// Header Component
+export const Header = ({ user, notifications, onMobileMenuClick }) => {
+  const { logout } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [teamMenuAnchor, setTeamMenuAnchor] = useState(null);
+  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
+  const [notificationAnchor, setNotificationAnchor] = useState(null);
+  const [searchValue, setSearchValue] = useState('');
+
+  const unreadNotifications = notifications?.filter(n => n.unread).length || 0;
+
+  const handleTeamMenuClick = (event) => {
+    setTeamMenuAnchor(event.currentTarget);
+  };
+
+  const handleUserMenuClick = (event) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+
+  const handleNotificationClick = (event) => {
+    setNotificationAnchor(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setTeamMenuAnchor(null);
+    setUserMenuAnchor(null);
+    setNotificationAnchor(null);
+  };
+
+  const handleSearch = (event) => {
+    setSearchValue(event.target.value);
+    console.log('Searching for:', event.target.value);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    handleClose();
+  };
+
+  return (
+    <Box sx={styles.header}>
+      <Stack direction="row" alignItems="center" spacing={isMobile ? 1 : 3}>
+        <IconButton 
+          size="small" 
+          onClick={onMobileMenuClick}
+          sx={{ display: { xs: 'block', md: 'none' } }}
+        >
+          <MenuIcon />
+        </IconButton>
+        
+        <Paper 
+          sx={{
+            ...styles.teamSelector,
+            display: { xs: isMobile ? 'none' : 'flex', sm: 'flex' }
+          }} 
+          onClick={handleTeamMenuClick}
+        >
+          <Avatar sx={styles.teamAvatar}>S</Avatar>
+          <Typography variant="body2" fontWeight={500} sx={{ display: { xs: 'none', sm: 'block' } }}>
+            StoryVid
+          </Typography>
+          <ArrowDownIcon fontSize="small" />
+        </Paper>
+
+        <Menu
+          anchorEl={teamMenuAnchor}
+          open={Boolean(teamMenuAnchor)}
+          onClose={handleClose}
+        >
+          <MenuItem onClick={handleClose}>Switch Workspace</MenuItem>
+          <MenuItem onClick={handleClose}>Production Settings</MenuItem>
+          <MenuItem onClick={handleClose}>Invite Collaborators</MenuItem>
+        </Menu>
+      </Stack>
+      
+      <Stack direction="row" alignItems="center" spacing={isMobile ? 1 : 2}>
+        <TextField
+          placeholder="Search"
+          size="small"
+          value={searchValue}
+          onChange={handleSearch}
+          sx={{
+            ...styles.searchField,
+            display: { xs: 'none', sm: 'block' }
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+        />
+        
+        <IconButton onClick={handleSearch} sx={{ display: { xs: 'block', sm: 'none' } }}>
+          <SearchIcon />
+        </IconButton>
+        
+        <IconButton onClick={handleNotificationClick}>
+          <Badge badgeContent={unreadNotifications} color="primary">
+            <NotificationsIcon />
+          </Badge>
+        </IconButton>
+
+        <Popover
+          open={Boolean(notificationAnchor)}
+          anchorEl={notificationAnchor}
+          onClose={handleClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <Box sx={{ width: 320, maxHeight: 400 }}>
+            <Typography variant="h6" sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+              Notifications
+            </Typography>
+            <List>
+              {notifications?.map((notification) => (
+                <ListItem
+                  key={notification.id}
+                  sx={{
+                    bgcolor: notification.unread ? 'action.hover' : 'transparent',
+                    borderLeft: notification.unread ? 3 : 0,
+                    borderColor: 'primary.main'
+                  }}
+                >
+                  <ListItemText
+                    primary={notification.title}
+                    secondary={
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {notification.message}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {notification.time}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        </Popover>
+        
+        <Button sx={styles.userButton} onClick={handleUserMenuClick}>
+          <Avatar src={user.avatar} sx={{ width: 32, height: 32 }} />
+          <Box sx={{ textAlign: 'left', ml: 1 }}>
+            <Typography variant="caption" display="block" fontWeight={500}>
+              {user.company}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {user.accountType}
+            </Typography>
+          </Box>
+          <ArrowDownIcon fontSize="small" />
+        </Button>
+
+        <Menu
+          anchorEl={userMenuAnchor}
+          open={Boolean(userMenuAnchor)}
+          onClose={handleClose}
+        >
+          <MenuItem onClick={handleClose}>Profile</MenuItem>
+          <MenuItem onClick={handleClose}>Account Settings</MenuItem>
+          <MenuItem onClick={handleClose}>Billing</MenuItem>
+          <Divider />
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
+        </Menu>
+      </Stack>
+    </Box>
+  );
+};
+
+// Stats Card Component
+export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAllClick }) => {
+  return (
+    <Card sx={styles.statsCard}>
+      <CardContent>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Box sx={styles.statsIcon}>
+              <Icon fontSize="small" />
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              {title}
+            </Typography>
+          </Stack>
+          {seeAll && (
+            <Button size="small" sx={styles.seeAllButton} onClick={onSeeAllClick}>
+              See all
+            </Button>
+          )}
+        </Stack>
+        
+        <Stack direction="row" alignItems="baseline" spacing={0.5}>
+          <Typography variant="h4" fontWeight={600}>
+            {value}
+          </Typography>
+          {subtitle && (
+            <Typography variant="body2" color="text.secondary">
+              /{subtitle}
+            </Typography>
+          )}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Project Card Component
+export const ProjectCard = ({ project }) => {
+  const statusColors = {
+    'in-review': {
+      bg: 'warning.50',
+      color: 'warning.dark',
+      label: 'Client Review'
+    },
+    'in-production': {
+      bg: 'info.50',
+      color: 'info.dark',
+      label: 'In Production'
+    }
+  };
+  
+  const status = statusColors[project.status] || statusColors['in-production'];
+  
+  return (
+    <Card sx={styles.projectCard}>
+      <CardContent>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
+          <Box flex={1}>
+            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+              {project.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              for {project.client}
+            </Typography>
+          </Box>
+          <Chip 
+            label={status.label} 
+            size="small"
+            sx={{
+              bgcolor: status.bg,
+              color: status.color,
+              fontWeight: 500
+            }}
+          />
+        </Stack>
+        
+        <Box mb={2}>
+          <Stack direction="row" justifyContent="space-between" mb={0.5}>
+            <Typography variant="body2" fontWeight={500}>
+              {project.progress}%
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              done
+            </Typography>
+          </Stack>
+          <LinearProgress 
+            variant="determinate" 
+            value={project.progress} 
+            sx={styles.progressBar}
+          />
+        </Box>
+        
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography variant="caption" color="text.secondary">
+              Due:
+            </Typography>
+            <Typography variant="caption" fontWeight={500}>
+              {project.nextMilestone}
+            </Typography>
+          </Stack>
+          
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <AvatarGroup max={3} sx={styles.avatarGroup}>
+              {project.team.map(member => (
+                <Avatar
+                  key={member.id}
+                  src={member.avatar}
+                  sx={{ width: 24, height: 24 }}
+                />
+              ))}
+            </AvatarGroup>
+            <Button size="small" variant="text" sx={styles.actionButton}>
+              {project.action}
+            </Button>
+          </Stack>
+        </Stack>
+        
+        {project.notStarted && (
+          <Typography 
+            variant="caption" 
+            color="text.secondary" 
+            display="block" 
+            textAlign="center" 
+            mt={2}
+          >
+            Not started yet
+          </Typography>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Milestone Card Component
+export const MilestoneCard = ({ milestone }) => {
+  const typeColors = {
+    draft: 'grey.100',
+    review: 'warning.100',
+    final: 'success.100'
+  };
+  
+  return (
+    <Paper sx={styles.milestoneCard(typeColors[milestone.type])}>
+      <Typography variant="body2" fontWeight={500} gutterBottom>
+        {milestone.title}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+        on {milestone.project} project
+      </Typography>
+      <Typography variant="caption" fontWeight={500}>
+        {milestone.time}
+      </Typography>
+    </Paper>
+  );
+};
+
+// Team Section Component
+export const TeamSection = ({ title, items, type }) => {
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  const handleFilter = () => {
+    setFilterOpen(!filterOpen);
+    console.log('Filter clicked for:', type);
+  };
+
+  const handleItemClick = (item) => {
+    console.log('Item clicked:', item);
+  };
+
+  return (
+    <Box mb={3}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="subtitle1" fontWeight={600}>
+          {title}
+        </Typography>
+        {type === 'projects' && (
+          <Button 
+            size="small" 
+            startIcon={<FilterIcon fontSize="small" />}
+            sx={styles.filterButton}
+            onClick={handleFilter}
+          >
+            Filter
+          </Button>
+        )}
+      </Stack>
+      
+      <Stack spacing={1}>
+        {type === 'projects' ? (
+          items.map(project => (
+            <Box 
+              key={project.id} 
+              sx={styles.teamItem}
+              onClick={() => handleItemClick(project)}
+            >
+              <Typography fontSize={24}>{project.logo}</Typography>
+              <Box flex={1}>
+                <Typography variant="body2" fontWeight={500}>
+                  {project.name}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {project.members} team members
+                </Typography>
+              </Box>
+            </Box>
+          ))
+        ) : (
+          items.map(crewMember => (
+            <Box 
+              key={crewMember.id} 
+              sx={styles.teamItem}
+              onClick={() => handleItemClick(crewMember)}
+            >
+              <Avatar src={crewMember.avatar} sx={{ width: 40, height: 40 }} />
+              <Box flex={1}>
+                <Typography variant="body2" fontWeight={500}>
+                  {crewMember.name}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {crewMember.role}
+                </Typography>
+              </Box>
+            </Box>
+          ))
+        )}
+      </Stack>
+    </Box>
+  );
+};
+
+// Activity Item Component
+export const ActivityItem = ({ activity }) => {
+  return (
+    <Box sx={styles.activityItem}>
+      <Avatar src={activity.user.avatar} sx={{ width: 32, height: 32 }} />
+      <Box flex={1}>
+        <Typography variant="body2">
+          {activity.action}{' '}
+          <Box component="span" fontWeight={600}>
+            {activity.target}
+          </Box>
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {activity.time}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
