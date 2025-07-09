@@ -1,72 +1,177 @@
-# Getting Started with Create React App
+# StoryVid Client Portal
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A professional video production client portal built with React and Material UI. This web application provides role-based dashboards for clients, staff, and administrators to manage video production projects, milestones, and deliverables.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+### Authentication & Authorization
+- Mock authentication system with three user roles
+- Protected routes and role-based access control
+- Session persistence with localStorage
+
+### Role-Based Dashboards
+- **Client Dashboard**: View projects, approve milestones, access deliverables
+- **Staff Dashboard**: Manage assigned tasks, upload files, track deadlines
+- **Admin Dashboard**: Full system overview, client management, team oversight
+
+### Key Components
+- Project cards with progress tracking
+- Milestone management system
+- Activity feed with real-time updates
+- File upload and management (UI ready)
+- Responsive design for all devices
+- Professional StoryVid branding
+
+## 🛠️ Tech Stack
+
+- **Frontend**: React 18
+- **UI Framework**: Material UI v5
+- **Routing**: React Router v6
+- **State Management**: React Context API
+- **Styling**: Material UI Theme + Custom Styles
+- **Build Tool**: Create React App
+- **Deployment**: Vercel
+
+## 📦 Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Christopher-I/storyvid.git
+cd storyvid
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm start
+```
+
+The app will open at [http://localhost:3000](http://localhost:3000)
+
+## 🔐 Demo Accounts
+
+Use these credentials to test different user roles:
+
+- **Client**: `client@test.com` / `password`
+- **Staff**: `staff@test.com` / `password`
+- **Admin**: `admin@test.com` / `password`
+
+## 📱 Available Scripts
 
 ### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Runs the app in development mode
 
 ### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Launches the test runner
 
 ### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Builds the app for production to the `build` folder
 
 ### `npm run eject`
-
 **Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🚀 Deployment
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Vercel Deployment
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+1. Install Vercel CLI:
+```bash
+npm install -g vercel
+```
 
-## Learn More
+2. Build the project:
+```bash
+npm run build
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+3. Deploy to Vercel:
+```bash
+vercel --prod
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Manual Vercel Setup
 
-### Code Splitting
+When deploying through Vercel's dashboard:
+- **Framework Preset**: Create React App
+- **Build Command**: `npm run build`
+- **Output Directory**: `build`
+- **Install Command**: `npm install`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Environment Variables
 
-### Analyzing the Bundle Size
+For production deployment, set these environment variables in Vercel:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```
+REACT_APP_FIREBASE_API_KEY=your_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_auth_domain
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+```
 
-### Making a Progressive Web App
+## 🏗️ Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```
+src/
+├── components/          # Reusable UI components
+├── contexts/           # React Context providers
+├── data/              # Mock data and configurations
+├── pages/             # Page components
+├── services/          # Service layer (Firebase ready)
+└── App.js             # Main application component
+```
 
-### Advanced Configuration
+## 🔄 Firebase Migration
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+The app is built with a service layer abstraction that allows easy migration from mock data to Firebase:
 
-### Deployment
+1. Update Firebase configuration in `src/services/firebase/firebaseConfig.js`
+2. Toggle `useMockData` flag in `src/services/firebase/firebaseService.js`
+3. Follow the migration guide in `FIREBASE_MIGRATION_GUIDE.md`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 📊 Week 2 Completion Status
 
-### `npm run build` fails to minify
+✅ **Completed Features:**
+- Authentication system with role-based access
+- Responsive dashboard with all required components
+- Project cards with progress tracking
+- Activity feed and notifications
+- Mobile-responsive design
+- Error handling and loading states
+- Firebase migration preparation
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-# storyvid
-# Web-App
+## 🐛 Troubleshooting
+
+### Build Issues
+If you encounter build errors:
+1. Delete `node_modules` and `package-lock.json`
+2. Run `npm install` again
+3. Clear npm cache: `npm cache clean --force`
+
+### Vercel Deployment Issues
+- Ensure you're deploying from the correct repository
+- Check that all dependencies are listed in `package.json`
+- Verify build command is set to `npm run build`
+
+## 📝 Documentation
+
+- [Week 2 Completion Report](./WEEK_2_COMPLETION_REPORT.md)
+- [Detailed Technical Report](./WEEK_2_DETAILED_COMPLETION_REPORT.md)
+- [Firebase Migration Guide](./FIREBASE_MIGRATION_GUIDE.md)
+
+## 🤝 Contributing
+
+This is a private project for StoryVid. For any questions or issues, please contact the development team.
+
+## 📄 License
+
+This project is proprietary and confidential. All rights reserved.
+
+---
+
+Built with ❤️ for StoryVid
