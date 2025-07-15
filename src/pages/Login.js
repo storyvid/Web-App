@@ -356,22 +356,6 @@ const Login = () => {
             </Alert>
           )}
 
-          {/* Development helper */}
-          {process.env.NODE_ENV === 'development' && (
-            <Alert severity="success" sx={{ mb: 3 }}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                <strong>🧪 Test Mode Active - Use these credentials:</strong>
-              </Typography>
-              <Typography variant="body2" sx={{ fontSize: '0.875rem', fontFamily: 'monospace' }}>
-                Email: <strong>client@test.com</strong><br/>
-                Password: <strong>any_password</strong>
-              </Typography>
-              <Typography variant="body2" sx={{ fontSize: '0.75rem', mt: 1, opacity: 0.8 }}>
-                Other test emails: staff@test.com, admin@test.com<br/>
-                Skip onboarding: <strong>demo@test.com</strong> (goes directly to dashboard)
-              </Typography>
-            </Alert>
-          )}
 
           {/* Success Alert for Password Reset */}
           {resetEmailSent && (
