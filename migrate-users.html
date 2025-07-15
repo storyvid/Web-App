@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StoryVid User Migration</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5wuKIdTUyUXuseAfp_3flJceKpgJQrk4",
+            authDomain: "storyvid-d1792.firebaseapp.com",
+            projectId: "storyvid-d1792",
+            storageBucket: "storyvid-d1792.firebasestorage.app",
+            messagingSenderId: "549183398177",
+            appId: "1:549183398177:web:b6bca429c71d61a0e7de60",
+            measurementId: "G-6TC35CPQ5C"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const testUsers = [
+            {
+                email: 'client@test.com',
+                password: 'password',
+                userData: {
+                    name: 'Alex',
+                    role: 'client',
+                    company: 'Tech Innovators Inc',
+                    accountType: 'Premium Client',
+                    avatar: 'https://i.pravatar.cc/150?img=1',
+                    phone: '+1 (555) 123-4567',
+                    isActive: true
+                }
+            },
+            {
+                email: 'staff@test.com',
+                password: 'password',
+                userData: {
+                    name: 'Jordan',
+                    role: 'staff',
+                    company: 'StoryVid Team',
+                    accountType: 'Video Editor',
+                    avatar: 'https://i.pravatar.cc/150?img=2',
+                    phone: '+1 (555) 234-5678',
+                    isActive: true
+                }
+            },
+            {
+                email: 'admin@test.com',
+                password: 'password',
+                userData: {
+                    name: 'Sam',
+                    role: 'admin',
+                    company: 'StoryVid',
+                    accountType: 'Production Manager',
+                    avatar: 'https://i.pravatar.cc/150?img=3',
+                    phone: '+1 (555) 345-6789',
+                    isActive: true
+                }
+            }
+        ];
+
+        async function migrateUsers() {
+            const status = document.getElementById('status');
+            status.innerHTML = 'Starting user migration...<br>';
+
+            for (const testUser of testUsers) {
+                try {
+                    // Create user in Firebase Auth
+                    const userCredential = await createUserWithEmailAndPassword(
+                        auth, 
+                        testUser.email, 
+                        testUser.password
+                    );
+                    
+                    const user = userCredential.user;
+                    status.innerHTML += `✅ Created auth user: ${testUser.email}<br>`;
+
+                    // Create user document in Firestore
+                    await setDoc(doc(db, 'users', user.uid), {
+                        email: testUser.email,
+                        ...testUser.userData,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+
+                    status.innerHTML += `✅ Created user document for: ${testUser.email}<br>`;
+
+                } catch (error) {
+                    if (error.code === 'auth/email-already-in-use') {
+                        status.innerHTML += `⚠️ User ${testUser.email} already exists - skipping<br>`;
+                    } else {
+                        status.innerHTML += `❌ Error creating user ${testUser.email}: ${error.message}<br>`;
+                    }
+                }
+            }
+
+            status.innerHTML += '<br><strong>Migration completed!</strong><br><br>';
+            status.innerHTML += 'You can now log in with:<br>';
+            status.innerHTML += '• client@test.com / password<br>';
+            status.innerHTML += '• staff@test.com / password<br>';
+            status.innerHTML += '• admin@test.com / password<br>';
+        }
+
+        // Make the function available globally
+        window.migrateUsers = migrateUsers;
+    </script>
+</head>
+<body>
+    <h1>StoryVid User Migration</h1>
+    <p>This script will create test users in your Firebase project.</p>
+    
+    <button onclick="migrateUsers()" style="padding: 10px 20px; font-size: 16px; background: #2563EB; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Create Test Users
+    </button>
+    
+    <div id="status" style="margin-top: 20px; font-family: monospace; white-space: pre-line;"></div>
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Integration Test - StoryVid</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { color: #10B981; }
+        .error { color: #EF4444; }
+        .warning { color: #F59E0B; }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #2563EB;
+            color: white;
+        }
+        button:hover { background: #1D4ED8; }
+        button:disabled { 
+            background: #9CA3AF; 
+            cursor: not-allowed; 
+        }
+        #testLog {
+            background: #1F2937;
+            color: #F9FAFB;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .status-card {
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .status-pending { background: #FEF3C7; border: 1px solid #F59E0B; }
+        .status-success { background: #D1FAE5; border: 1px solid #10B981; }
+        .status-error { background: #FEE2E2; border: 1px solid #EF4444; }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged 
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            getDoc, 
+            addDoc, 
+            getDocs, 
+            query, 
+            where, 
+            orderBy, 
+            limit,
+            serverTimestamp,
+            deleteDoc 
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5wuKIdTUyUXuseAfp_3flJceKpgJQrk4",
+            authDomain: "storyvid-d1792.firebaseapp.com",
+            projectId: "storyvid-d1792",
+            storageBucket: "storyvid-d1792.firebasestorage.app",
+            messagingSenderId: "549183398177",
+            appId: "1:549183398177:web:b6bca429c71d61a0e7de60",
+            measurementId: "G-6TC35CPQ5C"
+        };
+
+        // Initialize Firebase
+        let app, auth, db;
+        let currentUser = null;
+        let testResults = {
+            initialization: 'pending',
+            authentication: 'pending',
+            userCreation: 'pending',
+            dataWrite: 'pending',
+            dataRead: 'pending',
+            dataQuery: 'pending',
+            dataDelete: 'pending'
+        };
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('testLog');
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            logElement.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function updateStatus(test, status) {
+            testResults[test] = status;
+            const element = document.getElementById(`status-${test}`);
+            if (element) {
+                element.className = `status-card status-${status}`;
+                element.innerHTML = `<strong>${test.charAt(0).toUpperCase() + test.slice(1)}</strong><br>${status.toUpperCase()}`;
+            }
+        }
+
+        async function initializeFirebase() {
+            try {
+                log('Initializing Firebase...');
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                
+                // Set up auth state listener
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    document.getElementById('currentUser').textContent = 
+                        user ? `${user.email} (${user.uid})` : 'Not signed in';
+                });
+
+                updateStatus('initialization', 'success');
+                log('Firebase initialized successfully', 'success');
+                return true;
+            } catch (error) {
+                updateStatus('initialization', 'error');
+                log(`Firebase initialization failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function testAuthentication() {
+            try {
+                log('Testing authentication...');
+                
+                // Test sign in with existing user
+                const testEmail = 'client@test.com';
+                const testPassword = 'password';
+                
+                const userCredential = await signInWithEmailAndPassword(auth, testEmail, testPassword);
+                log(`Successfully signed in as: ${userCredential.user.email}`, 'success');
+                
+                updateStatus('authentication', 'success');
+                return true;
+            } catch (error) {
+                if (error.code === 'auth/user-not-found') {
+                    log('Test user not found - this is expected if you haven\'t run the user migration yet', 'warning');
+                    updateStatus('authentication', 'warning');
+                } else {
+                    log(`Authentication test failed: ${error.message}`, 'error');
+                    updateStatus('authentication', 'error');
+                }
+                return false;
+            }
+        }
+
+        async function testUserCreation() {
+            try {
+                log('Testing user creation...');
+                
+                const testEmail = `test-${Date.now()}@storyvid.com`;
+                const testPassword = 'testpassword123';
+                
+                // Create test user
+                const userCredential = await createUserWithEmailAndPassword(auth, testEmail, testPassword);
+                log(`Created test user: ${userCredential.user.email}`, 'success');
+                
+                // Create user document in Firestore
+                await setDoc(doc(db, 'test_users', userCredential.user.uid), {
+                    email: testEmail,
+                    name: 'Test User',
+                    role: 'test',
+                    company: 'Test Company',
+                    createdAt: serverTimestamp(),
+                    isTestData: true
+                });
+                
+                log(`Created user document for: ${testEmail}`, 'success');
+                updateStatus('userCreation', 'success');
+                
+                // Clean up - delete the test user document
+                await deleteDoc(doc(db, 'test_users', userCredential.user.uid));
+                log(`Cleaned up test user document`, 'info');
+                
+                return true;
+            } catch (error) {
+                log(`User creation test failed: ${error.message}`, 'error');
+                updateStatus('userCreation', 'error');
+                return false;
+            }
+        }
+
+        async function testDataWrite() {
+            try {
+                log('Testing data write operations...');
+                
+                // Test creating a document with setDoc
+                const testDoc = doc(db, 'test_projects', 'test-project-1');
+                await setDoc(testDoc, {
+                    name: 'Test Project',
+                    description: 'This is a test project for Firebase integration',
+                    status: 'active',
+                    createdAt: serverTimestamp(),
+                    isTestData: true,
+                    testTimestamp: Date.now()
+                });
+                log('✓ Document created with setDoc', 'success');
+                
+                // Test creating a document with addDoc
+                const testCollection = collection(db, 'test_tasks');
+                const docRef = await addDoc(testCollection, {
+                    title: 'Test Task',
+                    description: 'This is a test task',
+                    priority: 'high',
+                    completed: false,
+                    createdAt: serverTimestamp(),
+                    isTestData: true
+                });
+                log(`✓ Document created with addDoc: ${docRef.id}`, 'success');
+                
+                updateStatus('dataWrite', 'success');
+                return true;
+            } catch (error) {
+                log(`Data write test failed: ${error.message}`, 'error');
+                updateStatus('dataWrite', 'error');
+                return false;
+            }
+        }
+
+        async function testDataRead() {
+            try {
+                log('Testing data read operations...');
+                
+                // Test reading a specific document
+                const testDoc = doc(db, 'test_projects', 'test-project-1');
+                const docSnap = await getDoc(testDoc);
+                
+                if (docSnap.exists()) {
+                    log(`✓ Document read successfully: ${docSnap.data().name}`, 'success');
+                } else {
+                    log('Document does not exist', 'warning');
+                }
+                
+                // Test reading a collection
+                const testCollection = collection(db, 'test_tasks');
+                const querySnapshot = await getDocs(testCollection);
+                log(`✓ Collection read: ${querySnapshot.size} documents found`, 'success');
+                
+                querySnapshot.forEach((doc) => {
+                    log(`  - ${doc.id}: ${doc.data().title}`, 'info');
+                });
+                
+                updateStatus('dataRead', 'success');
+                return true;
+            } catch (error) {
+                log(`Data read test failed: ${error.message}`, 'error');
+                updateStatus('dataRead', 'error');
+                return false;
+            }
+        }
+
+        async function testDataQuery() {
+            try {
+                log('Testing data query operations...');
+                
+                // Test querying with where clause
+                const testCollection = collection(db, 'test_tasks');
+                const q = query(
+                    testCollection, 
+                    where('isTestData', '==', true),
+                    where('completed', '==', false)
+                );
+                
+                const querySnapshot = await getDocs(q);
+                log(`✓ Query with where clause: ${querySnapshot.size} documents found`, 'success');
+                
+                // Test querying with order and limit
+                const q2 = query(
+                    testCollection,
+                    where('isTestData', '==', true),
+                    orderBy('createdAt', 'desc'),
+                    limit(5)
+                );
+                
+                const querySnapshot2 = await getDocs(q2);
+                log(`✓ Query with order and limit: ${querySnapshot2.size} documents found`, 'success');
+                
+                updateStatus('dataQuery', 'success');
+                return true;
+            } catch (error) {
+                log(`Data query test failed: ${error.message}`, 'error');
+                updateStatus('dataQuery', 'error');
+                return false;
+            }
+        }
+
+        async function testDataDelete() {
+            try {
+                log('Testing data delete operations...');
+                
+                // Delete test documents
+                await deleteDoc(doc(db, 'test_projects', 'test-project-1'));
+                log('✓ Test project deleted', 'success');
+                
+                // Delete all test tasks
+                const testCollection = collection(db, 'test_tasks');
+                const q = query(testCollection, where('isTestData', '==', true));
+                const querySnapshot = await getDocs(q);
+                
+                const deletePromises = [];
+                querySnapshot.forEach((doc) => {
+                    deletePromises.push(deleteDoc(doc.ref));
+                });
+                
+                await Promise.all(deletePromises);
+                log(`✓ ${deletePromises.length} test task(s) deleted`, 'success');
+                
+                updateStatus('dataDelete', 'success');
+                return true;
+            } catch (error) {
+                log(`Data delete test failed: ${error.message}`, 'error');
+                updateStatus('dataDelete', 'error');
+                return false;
+            }
+        }
+
+        async function runAllTests() {
+            log('='.repeat(50));
+            log('Starting Firebase Integration Tests');
+            log('='.repeat(50));
+            
+            const tests = [
+                { name: 'Firebase Initialization', fn: initializeFirebase },
+                { name: 'Authentication', fn: testAuthentication },
+                { name: 'User Creation', fn: testUserCreation },
+                { name: 'Data Write', fn: testDataWrite },
+                { name: 'Data Read', fn: testDataRead },
+                { name: 'Data Query', fn: testDataQuery },
+                { name: 'Data Delete', fn: testDataDelete }
+            ];
+            
+            let passedTests = 0;
+            
+            for (const test of tests) {
+                log(`\n--- Running ${test.name} Test ---`);
+                const result = await test.fn();
+                if (result) passedTests++;
+                await new Promise(resolve => setTimeout(resolve, 500)); // Small delay between tests
+            }
+            
+            log('\n' + '='.repeat(50));
+            log(`Tests Complete: ${passedTests}/${tests.length} passed`);
+            log('='.repeat(50));
+            
+            if (passedTests === tests.length) {
+                log('🎉 All tests passed! Firebase integration is working correctly.', 'success');
+            } else {
+                log(`⚠️ ${tests.length - passedTests} test(s) failed. Check the logs above.`, 'warning');
+            }
+        }
+
+        async function signOutUser() {
+            try {
+                await signOut(auth);
+                log('User signed out successfully', 'success');
+            } catch (error) {
+                log(`Sign out failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearTestData() {
+            try {
+                log('Clearing all test data...');
+                
+                // Clear test collections
+                const collections = ['test_projects', 'test_tasks', 'test_users'];
+                
+                for (const collectionName of collections) {
+                    const q = query(collection(db, collectionName), where('isTestData', '==', true));
+                    const querySnapshot = await getDocs(q);
+                    
+                    const deletePromises = [];
+                    querySnapshot.forEach((doc) => {
+                        deletePromises.push(deleteDoc(doc.ref));
+                    });
+                    
+                    await Promise.all(deletePromises);
+                    log(`✓ Cleared ${deletePromises.length} documents from ${collectionName}`, 'success');
+                }
+                
+                log('All test data cleared successfully', 'success');
+            } catch (error) {
+                log(`Failed to clear test data: ${error.message}`, 'error');
+            }
+        }
+
+        // Make functions available globally
+        window.runAllTests = runAllTests;
+        window.signOutUser = signOutUser;
+        window.clearTestData = clearTestData;
+        window.testAuthentication = testAuthentication;
+        window.testDataWrite = testDataWrite;
+        window.testDataRead = testDataRead;
+        window.testDataQuery = testDataQuery;
+        window.testDataDelete = testDataDelete;
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            log('Firebase Test Suite Ready');
+            log('Click "Run All Tests" to begin comprehensive testing');
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Integration Test Suite</h1>
+        <p>This comprehensive test suite verifies that Firebase is properly integrated with your StoryVid application.</p>
+        
+        <div class="test-section">
+            <h3>Current Status</h3>
+            <p><strong>Current User:</strong> <span id="currentUser">Checking...</span></p>
+            
+            <div class="status-grid">
+                <div id="status-initialization" class="status-card status-pending">
+                    <strong>Initialization</strong><br>PENDING
+                </div>
+                <div id="status-authentication" class="status-card status-pending">
+                    <strong>Authentication</strong><br>PENDING
+                </div>
+                <div id="status-userCreation" class="status-card status-pending">
+                    <strong>User Creation</strong><br>PENDING
+                </div>
+                <div id="status-dataWrite" class="status-card status-pending">
+                    <strong>Data Write</strong><br>PENDING
+                </div>
+                <div id="status-dataRead" class="status-card status-pending">
+                    <strong>Data Read</strong><br>PENDING
+                </div>
+                <div id="status-dataQuery" class="status-card status-pending">
+                    <strong>Data Query</strong><br>PENDING
+                </div>
+                <div id="status-dataDelete" class="status-card status-pending">
+                    <strong>Data Delete</strong><br>PENDING
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Controls</h3>
+            <button onclick="runAllTests()">🚀 Run All Tests</button>
+            <button onclick="testAuthentication()">🔐 Test Auth Only</button>
+            <button onclick="testDataWrite()">💾 Test Write Only</button>
+            <button onclick="testDataRead()">📖 Test Read Only</button>
+            <button onclick="clearTestData()">🧹 Clear Test Data</button>
+            <button onclick="signOutUser()">🚪 Sign Out</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Log</h3>
+            <div id="testLog">Waiting for tests to start...\n</div>
+        </div>
+
+        <div class="test-section">
+            <h3>Manual Testing</h3>
+            <p>Use these tools to manually test specific functionality:</p>
+            
+            <h4>Authentication Test</h4>
+            <input type="email" id="testEmail" placeholder="Email" value="client@test.com">
+            <input type="password" id="testPassword" placeholder="Password" value="password">
+            <button onclick="testManualAuth()">Test Login</button>
+            
+            <h4>Data Test</h4>
+            <input type="text" id="testCollection" placeholder="Collection name" value="test_manual">
+            <input type="text" id="testDocId" placeholder="Document ID" value="test-doc">
+            <input type="text" id="testData" placeholder="Test data (JSON)" value='{"name":"Test","isTestData":true}'>
+            <button onclick="testManualWrite()">Write Data</button>
+            <button onclick="testManualRead()">Read Data</button>
+        </div>
+    </div>
+
+    <script>
+        async function testManualAuth() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                log(`Manual auth success: ${userCredential.user.email}`, 'success');
+            } catch (error) {
+                log(`Manual auth failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testManualWrite() {
+            const collectionName = document.getElementById('testCollection').value;
+            const docId = document.getElementById('testDocId').value;
+            const data = JSON.parse(document.getElementById('testData').value);
+            
+            try {
+                await setDoc(doc(db, collectionName, docId), {
+                    ...data,
+                    createdAt: serverTimestamp(),
+                    manualTest: true
+                });
+                log(`Manual write success: ${collectionName}/${docId}`, 'success');
+            } catch (error) {
+                log(`Manual write failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testManualRead() {
+            const collectionName = document.getElementById('testCollection').value;
+            const docId = document.getElementById('testDocId').value;
+            
+            try {
+                const docSnap = await getDoc(doc(db, collectionName, docId));
+                if (docSnap.exists()) {
+                    log(`Manual read success: ${JSON.stringify(docSnap.data(), null, 2)}`, 'success');
+                } else {
+                    log('Document does not exist', 'warning');
+                }
+            } catch (error) {
+                log(`Manual read failed: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

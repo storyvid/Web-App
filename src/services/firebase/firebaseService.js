@@ -2,6 +2,29 @@
 // This provides an abstraction layer between the app and Firebase
 // Making it easy to swap mock data for real Firebase calls
 
+import { initializeApp } from 'firebase/app';
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  query, 
+  where, 
+  getDocs,
+  serverTimestamp 
+} from 'firebase/firestore';
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
+import { getAnalytics } from 'firebase/analytics';
+
 import { 
   createDocumentWithTimestamps, 
   updateDocumentWithTimestamp,
@@ -15,32 +38,40 @@ import {
 
 // Mock data import (will be replaced with Firebase imports)
 import { getRoleBasedData } from '../../data/mockData';
+import getFirebaseConfig from './firebaseConfig';
 
 class FirebaseService {
   constructor() {
-    this.useMockData = true; // Toggle this to switch between mock and Firebase
+    this.useMockData = false; // Switch to Firebase
     this.currentUser = null;
+    this.app = null;
+    this.db = null;
+    this.auth = null;
+    this.storage = null;
+    this.analytics = null;
   }
 
-  // Initialize Firebase (placeholder for actual Firebase config)
-  async initialize(config = null) {
+  // Initialize Firebase
+  async initialize() {
     if (this.useMockData) {
       console.log('Using mock data - Firebase not initialized');
       return;
     }
     
-    // TODO: Replace with actual Firebase initialization
-    // import { initializeApp } from 'firebase/app';
-    // import { getFirestore } from 'firebase/firestore';
-    // import { getAuth } from 'firebase/auth';
-    // import { getStorage } from 'firebase/storage';
-    
-    // this.app = initializeApp(config);
-    // this.db = getFirestore(this.app);
-    // this.auth = getAuth(this.app);
-    // this.storage = getStorage(this.app);
-    
-    console.log('Firebase initialized');
+    try {
+      const config = getFirebaseConfig();
+      this.app = initializeApp(config);
+      this.db = getFirestore(this.app);
+      this.auth = getAuth(this.app);
+      this.storage = getStorage(this.app);
+      this.analytics = getAnalytics(this.app);
+      
+      console.log('Firebase initialized successfully');
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+      // Fallback to mock data if Firebase fails
+      this.useMockData = true;
+    }
   }
 
   // Authentication Methods
@@ -84,15 +115,18 @@ class FirebaseService {
       throw new Error('Invalid credentials');
     }
     
-    // TODO: Replace with actual Firebase Auth
-    // try {
-    //   const credential = await signInWithEmailAndPassword(this.auth, email, password);
-    //   const userDoc = await this.getUser(credential.user.uid);
-    //   this.currentUser = { ...credential.user, ...userDoc };
-    //   return { success: true, user: this.currentUser };
-    // } catch (error) {
-    //   throw new Error(error.message);
-    // }
+    try {
+      const credential = await signInWithEmailAndPassword(this.auth, email, password);
+      const userDoc = await this.getUser(credential.user.uid);
+      this.currentUser = { 
+        uid: credential.user.uid,
+        email: credential.user.email,
+        ...userDoc 
+      };
+      return { success: true, user: this.currentUser };
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 
   async signOut() {
@@ -102,9 +136,30 @@ class FirebaseService {
       return;
     }
     
-    // TODO: Replace with actual Firebase Auth
-    // await signOut(this.auth);
-    // this.currentUser = null;
+    await signOut(this.auth);
+    this.currentUser = null;
+  }
+
+  // Set up auth state listener
+  onAuthStateChanged(callback) {
+    if (this.useMockData) {
+      return () => {}; // Return empty unsubscribe function
+    }
+    
+    return onAuthStateChanged(this.auth, async (user) => {
+      if (user) {
+        const userDoc = await this.getUser(user.uid);
+        this.currentUser = { 
+          uid: user.uid,
+          email: user.email,
+          ...userDoc 
+        };
+        callback(this.currentUser);
+      } else {
+        this.currentUser = null;
+        callback(null);
+      }
+    });
   }
 
   // User Methods
@@ -114,9 +169,13 @@ class FirebaseService {
       return this.currentUser;
     }
     
-    // TODO: Replace with Firestore call
-    // const userDoc = await getDoc(doc(this.db, 'users', uid));
-    // return userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : null;
+    try {
+      const userDoc = await getDoc(doc(this.db, 'users', uid));
+      return userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : null;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
   }
 
   async createUser(userData) {

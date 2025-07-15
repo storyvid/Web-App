@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+// Import Firebase service
+import firebaseService from '../services/firebase/firebaseService.js';
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -10,28 +13,6 @@ export const useAuth = () => {
   return context;
 };
 
-const mockUsers = {
-  'client@test.com': {
-    id: '1',
-    name: 'John Client',
-    email: 'client@test.com',
-    role: 'client',
-    company: 'Tech Corp',
-  },
-  'staff@test.com': {
-    id: '2',
-    name: 'Sarah Staff',
-    email: 'staff@test.com',
-    role: 'staff',
-  },
-  'admin@test.com': {
-    id: '3',
-    name: 'Admin User',
-    email: 'admin@test.com',
-    role: 'admin',
-  },
-};
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,17 +20,30 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
+    const initializeAuth = async () => {
+      try {
+        // Initialize Firebase
+        await firebaseService.initialize();
+        
+        // Set up auth state listener
+        const unsubscribe = firebaseService.onAuthStateChanged((user) => {
+          setUser(user);
+          setLoading(false);
+        });
+
+        return unsubscribe;
+      } catch (err) {
+        console.error('Error initializing auth:', err);
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error parsing saved user data:', err);
-      localStorage.removeItem('user');
-    }
-    setLoading(false);
+    };
+
+    const unsubscribe = initializeAuth();
+    return () => {
+      if (unsubscribe && typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -57,23 +51,11 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      // Simulate network delay for realistic UX
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockUser = mockUsers[email];
-      if (mockUser && password) {
-        setUser(mockUser);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        setAuthLoading(false);
-        return { success: true };
-      }
-      
-      const errorMessage = !email || !password ? 'Please enter both email and password' : 'Invalid email or password';
-      setError(errorMessage);
+      const result = await firebaseService.signIn(email, password);
       setAuthLoading(false);
-      return { success: false, error: errorMessage };
+      return { success: true };
     } catch (err) {
-      const errorMessage = 'Login failed. Please try again.';
+      const errorMessage = err.message || 'Login failed. Please try again.';
       setError(errorMessage);
       setAuthLoading(false);
       return { success: false, error: errorMessage };
@@ -85,11 +67,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setUser(null);
-      localStorage.removeItem('user');
+      await firebaseService.signOut();
       setAuthLoading(false);
     } catch (err) {
       console.error('Logout error:', err);

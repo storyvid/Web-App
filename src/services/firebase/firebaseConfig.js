@@ -7,14 +7,13 @@
 // Copy the firebaseConfig object
 
 const firebaseConfig = {
-  // TODO: Replace with your actual Firebase configuration
-  apiKey: "your-api-key-here",
-  authDomain: "your-project-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project-id.appspot.com",
-  messagingSenderId: "your-sender-id",
-  appId: "your-app-id",
-  measurementId: "your-measurement-id" // Optional: for Analytics
+  apiKey: "AIzaSyA5wuKIdTUyUXuseAfp_3flJceKpgJQrk4",
+  authDomain: "storyvid-d1792.firebaseapp.com",
+  projectId: "storyvid-d1792",
+  storageBucket: "storyvid-d1792.firebasestorage.app",
+  messagingSenderId: "549183398177",
+  appId: "1:549183398177:web:b6bca429c71d61a0e7de60",
+  measurementId: "G-6TC35CPQ5C"
 };
 
 // Environment-specific configurations
