@@ -54,7 +54,7 @@ import getFirebaseConfig from './firebaseConfig';
 
 class FirebaseService {
   constructor() {
-    this.useMockData = false; // Switch to Firebase
+    this.useMockData = true; // Temporarily use mock data for testing
     this.currentUser = null;
     this.app = null;
     this.db = null;

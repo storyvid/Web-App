@@ -10,8 +10,13 @@ export const loginUser = createAsyncThunk(
       const result = await api.auth.login(email, password);
       return result;
     } catch (error) {
-      // Preserve the full error object to maintain Firebase error codes
-      return rejectWithValue(error);
+      // Serialize Firebase error for Redux (avoid non-serializable values)
+      const serializedError = {
+        code: error.code,
+        message: error.message,
+        name: error.name
+      };
+      return rejectWithValue(serializedError);
     }
   }
 );
@@ -24,8 +29,13 @@ export const logoutUser = createAsyncThunk(
       await api.auth.logout();
       return null;
     } catch (error) {
-      // Preserve the full error object to maintain Firebase error codes
-      return rejectWithValue(error);
+      // Serialize Firebase error for Redux (avoid non-serializable values)
+      const serializedError = {
+        code: error.code,
+        message: error.message,
+        name: error.name
+      };
+      return rejectWithValue(serializedError);
     }
   }
 );
@@ -38,8 +48,13 @@ export const refreshUserProfile = createAsyncThunk(
       const profile = await api.users.getProfile(uid);
       return profile;
     } catch (error) {
-      // Preserve the full error object to maintain Firebase error codes
-      return rejectWithValue(error);
+      // Serialize Firebase error for Redux (avoid non-serializable values)
+      const serializedError = {
+        code: error.code,
+        message: error.message,
+        name: error.name
+      };
+      return rejectWithValue(serializedError);
     }
   }
 );
@@ -52,8 +67,13 @@ export const updateUserProfile = createAsyncThunk(
       const updatedProfile = await api.users.updateProfile(uid, updates);
       return updatedProfile;
     } catch (error) {
-      // Preserve the full error object to maintain Firebase error codes
-      return rejectWithValue(error);
+      // Serialize Firebase error for Redux (avoid non-serializable values)
+      const serializedError = {
+        code: error.code,
+        message: error.message,
+        name: error.name
+      };
+      return rejectWithValue(serializedError);
     }
   }
 );
@@ -66,8 +86,13 @@ export const updateUserSettings = createAsyncThunk(
       const updatedSettings = await api.users.updateSettings(uid, settings);
       return updatedSettings;
     } catch (error) {
-      // Preserve the full error object to maintain Firebase error codes
-      return rejectWithValue(error);
+      // Serialize Firebase error for Redux (avoid non-serializable values)
+      const serializedError = {
+        code: error.code,
+        message: error.message,
+        name: error.name
+      };
+      return rejectWithValue(serializedError);
     }
   }
 );
@@ -80,8 +105,13 @@ export const completeOnboarding = createAsyncThunk(
       const result = await api.users.completeOnboarding(uid, profileData);
       return result;
     } catch (error) {
-      // Preserve the full error object to maintain Firebase error codes
-      return rejectWithValue(error);
+      // Serialize Firebase error for Redux (avoid non-serializable values)
+      const serializedError = {
+        code: error.code,
+        message: error.message,
+        name: error.name
+      };
+      return rejectWithValue(serializedError);
     }
   }
 );
