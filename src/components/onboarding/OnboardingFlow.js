@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Stepper, Step, StepLabel, Paper, Button, Typography } from '@mui/material';
+import { Box, Paper, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import RoleSelection from './RoleSelection';
-import ClientProfileSetup from './ClientProfileSetup';
-import StaffProfileSetup from './StaffProfileSetup';
-import AdminProfileSetup from './AdminProfileSetup';
 
 import { completeOnboarding } from '../../store/slices/authSlice';
 import { setError } from '../../store/slices/uiSlice';
@@ -17,64 +14,38 @@ const OnboardingFlow = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [currentStep, setCurrentStep] = useState(0);
   const [selectedRole, setSelectedRole] = useState(null);
   const [loading, setLoading] = useState(false);
   
   const user = useSelector(state => state.auth.user);
   const error = useSelector(state => state.ui.errors.global);
 
-  const steps = ['Choose Role', 'Profile Setup', 'Complete'];
+  const steps = ['Choose Your Role'];
 
-  const handleRoleSelect = (role) => {
-    setSelectedRole(role);
-    setCurrentStep(1);
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      if (currentStep === 1) {
-        setSelectedRole(null); // Clear role selection when going back to step 0
-      }
-    }
-  };
-
-  const handleSkipOnboarding = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Skip onboarding error:', error);
-      // Force navigate even if logout fails
-      navigate('/login');
-    }
-  };
-
-  const handleProfileComplete = async (profileData) => {
+  const handleRoleSelect = async (role) => {
     if (!user?.uid) {
       dispatch(setError({ section: 'global', error: 'User authentication required' }));
       return;
     }
 
     setLoading(true);
+    setSelectedRole(role);
     
     try {
-      // Complete onboarding with role-specific profile data
-      // Include user's existing email and name from authentication
+      // Complete onboarding immediately after role selection
       await dispatch(completeOnboarding({
         uid: user.uid,
         profileData: {
-          ...profileData,
-          email: user.email, // Include authenticated user's email
-          name: user.name || user.displayName || '', // Include authenticated user's name
+          role: role,
+          email: user.email,
+          name: user.name || user.displayName || '',
           onboardingComplete: true,
           onboardedAt: new Date().toISOString()
         }
       })).unwrap();
 
       // Navigate to appropriate dashboard based on role
-      switch (profileData.role) {
+      switch (role) {
         case 'client':
           navigate('/dashboard?view=client');
           break;
@@ -98,58 +69,28 @@ const OnboardingFlow = () => {
     }
   };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <RoleSelection
-            onRoleSelect={handleRoleSelect}
-            onSkip={handleSkipOnboarding}
-            loading={loading}
-            error={error}
-          />
-        );
-      case 1:
-        switch (selectedRole) {
-          case 'client':
-            return (
-              <ClientProfileSetup
-                onComplete={handleProfileComplete}
-                onBack={handleBack}
-                loading={loading}
-                error={error}
-              />
-            );
-          case 'staff':
-            return (
-              <StaffProfileSetup
-                onComplete={handleProfileComplete}
-                onBack={handleBack}
-                loading={loading}
-                error={error}
-              />
-            );
-          case 'admin':
-            return (
-              <AdminProfileSetup
-                onComplete={handleProfileComplete}
-                onBack={handleBack}
-                loading={loading}
-                error={error}
-              />
-            );
-          default:
-            return (
-              <RoleSelection
-                onRoleSelect={handleRoleSelect}
-                loading={loading}
-                error={error}
-              />
-            );
-        }
-      default:
-        return null;
+
+  const handleSkipOnboarding = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Skip onboarding error:', error);
+      // Force navigate even if logout fails
+      navigate('/login');
     }
+  };
+
+
+  const renderStepContent = () => {
+    return (
+      <RoleSelection
+        onRoleSelect={handleRoleSelect}
+        onSkip={handleSkipOnboarding}
+        loading={loading}
+        error={error}
+      />
+    );
   };
 
   return (
@@ -170,13 +111,9 @@ const OnboardingFlow = () => {
               Back to Login
             </Button>
           </Box>
-          <Stepper activeStep={currentStep} alternativeLabel>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+          <Typography variant="h5" align="center" sx={{ fontWeight: 500 }}>
+            {steps[0]}
+          </Typography>
         </Paper>
       </Box>
 

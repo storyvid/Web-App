@@ -37,47 +37,17 @@ export default function createUsersAPI(firebaseService) {
     // Complete user onboarding
     async completeOnboarding(uid, profileData) {
       try {
-        // Extract role-specific profile from profileData
-        const { role, ...roleProfile } = profileData;
-        
-        // Create base user data
-        const baseUserData = {
-          uid,
-          role,
-          email: profileData.email,
+        // Simple onboarding - just update user with basic info
+        const userData = {
+          role: profileData.role,
+          email: profileData.email || '',
           name: profileData.name || '',
-          phone: profileData.phone || '',
-          timezone: profileData.timezone || 'America/New_York'
+          onboardingComplete: true,
+          onboardedAt: profileData.onboardedAt || new Date().toISOString()
         };
 
-        // Extract role-specific profile data
-        let roleProfileData;
-        switch (role) {
-          case 'client':
-            roleProfileData = profileData.clientProfile || profileData;
-            break;
-          case 'staff':
-            roleProfileData = profileData.staffProfile || profileData;
-            break;
-          case 'admin':
-            roleProfileData = profileData.adminProfile || profileData;
-            break;
-          default:
-            throw new Error('Invalid role specified');
-        }
-
-        // Create role-based user document
-        const updatedUser = await firebaseService.createRoleBasedUser(baseUserData, roleProfileData);
-        
-        // Log onboarding completion activity
-        await firebaseService.logActivity({
-          userId: uid,
-          action: 'onboarding_completed',
-          details: {
-            role: role,
-            completedAt: new Date().toISOString()
-          }
-        });
+        // Update user document with basic info only
+        const updatedUser = await firebaseService.updateUser(uid, userData);
 
         return updatedUser;
       } catch (error) {
