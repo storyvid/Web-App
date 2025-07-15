@@ -452,39 +452,80 @@ class FirebaseService {
   async getProjects(filters = {}) {
     if (this.useMockData) {
       const data = getRoleBasedData(this.currentUser?.role || 'client');
-      return data.projects;
+      let projects = data.projects;
+      
+      // Apply filters to mock data
+      if (filters.clientId) {
+        projects = projects.filter(p => p.clientId === filters.clientId);
+      }
+      if (filters.assignedStaff) {
+        projects = projects.filter(p => p.assignedStaff?.includes(filters.assignedStaff));
+      }
+      if (filters.companyId) {
+        projects = projects.filter(p => p.companyId === filters.companyId);
+      }
+      if (filters.status) {
+        projects = projects.filter(p => p.status === filters.status);
+      }
+      
+      return projects;
     }
     
-    // TODO: Replace with Firestore query
-    // let query = collection(this.db, 'projects');
-    // 
-    // if (filters.clientId) {
-    //   query = query(query, where('clientId', '==', filters.clientId));
-    // }
-    // if (filters.status) {
-    //   query = query(query, where('status', '==', filters.status));
-    // }
-    // 
-    // const snapshot = await getDocs(query);
-    // return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    try {
+      let q = collection(this.db, 'projects');
+      
+      // Apply filters
+      if (filters.clientId) {
+        q = query(q, where('clientId', '==', filters.clientId));
+      }
+      if (filters.assignedStaff) {
+        q = query(q, where('assignedStaff', 'array-contains', filters.assignedStaff));
+      }
+      if (filters.companyId) {
+        q = query(q, where('companyId', '==', filters.companyId));
+      }
+      if (filters.status) {
+        q = query(q, where('status', '==', filters.status));
+      }
+      
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      throw new Error(`Failed to get projects: ${error.message}`);
+    }
+  }
+
+  async getProject(projectId) {
+    if (this.useMockData) {
+      const data = getRoleBasedData(this.currentUser?.role || 'client');
+      return data.projects.find(p => p.id === projectId) || null;
+    }
+
+    try {
+      const projectDoc = await getDoc(doc(this.db, 'projects', projectId));
+      return projectDoc.exists() ? { id: projectDoc.id, ...projectDoc.data() } : null;
+    } catch (error) {
+      throw new Error(`Failed to get project: ${error.message}`);
+    }
   }
 
   async createProject(projectData) {
-    const validation = validateSchema(projectData, ProjectSchema);
-    if (!validation.isValid) {
-      throw new Error(`Invalid project data: ${validation.errors.join(', ')}`);
-    }
-
     if (this.useMockData) {
       console.log('Mock: Creating project', projectData);
-      return { id: 'mock-project-id', ...projectData };
+      return { id: `mock-project-${Date.now()}`, ...projectData };
     }
     
-    // TODO: Replace with Firestore call
-    // const docRef = await addDoc(collection(this.db, 'projects'), 
-    //   createDocumentWithTimestamps(projectData)
-    // );
-    // return { id: docRef.id, ...projectData };
+    try {
+      const docRef = doc(collection(this.db, 'projects'));
+      await setDoc(docRef, {
+        ...projectData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return { id: docRef.id, ...projectData };
+    } catch (error) {
+      throw new Error(`Failed to create project: ${error.message}`);
+    }
   }
 
   async updateProject(projectId, updates) {
@@ -493,11 +534,19 @@ class FirebaseService {
       return { id: projectId, ...updates };
     }
     
-    // TODO: Replace with Firestore call
-    // await updateDoc(doc(this.db, 'projects', projectId), 
-    //   updateDocumentWithTimestamp(updates)
-    // );
-    // return { id: projectId, ...updates };
+    try {
+      const projectRef = doc(this.db, 'projects', projectId);
+      await updateDoc(projectRef, {
+        ...updates,
+        updatedAt: serverTimestamp()
+      });
+      
+      // Return updated project data
+      const updatedDoc = await getDoc(projectRef);
+      return updatedDoc.exists() ? { id: updatedDoc.id, ...updatedDoc.data() } : null;
+    } catch (error) {
+      throw new Error(`Failed to update project: ${error.message}`);
+    }
   }
 
   // Milestone Methods

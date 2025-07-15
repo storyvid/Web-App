@@ -35,18 +35,42 @@ export const getRoleBasedData = (userRole) => {
       },
       projects: [
         {
-          id: 1,
+          id: 'project-client-1',
           name: "Brand Story Video Campaign",
-          client: "My Company Project",
+          description: "A comprehensive brand story video to showcase our company values and mission",
+          status: "review",
+          priority: "high",
+          clientId: "client-uid-1",
+          companyId: "company-123",
+          projectManager: "admin-uid-1",
+          assignedStaff: ["staff-uid-1", "staff-uid-2"],
+          timeline: {
+            startDate: "2023-11-01",
+            endDate: "2023-12-18",
+            estimatedHours: 120,
+            actualHours: 90
+          },
+          budget: {
+            estimated: 15000,
+            actual: 11250,
+            currency: "USD"
+          },
+          projectType: "Corporate Video",
+          genre: "Brand Story",
+          permissions: {
+            viewAccess: ["client-uid-1", "admin-uid-1", "staff-uid-1", "staff-uid-2"],
+            editAccess: ["admin-uid-1", "staff-uid-1", "staff-uid-2"],
+            commentAccess: ["client-uid-1", "admin-uid-1", "staff-uid-1", "staff-uid-2"]
+          },
+          communications: {
+            preferredContactMethod: "email",
+            clientFeedbackStatus: "pending"
+          },
           progress: 75,
-          status: "in-review",
-          statusLabel: "Ready for Review",
-          nextMilestone: "December 18th, 2023",
           team: [
             { id: 1, avatar: "https://i.pravatar.cc/150?img=2" },
             { id: 2, avatar: "https://i.pravatar.cc/150?img=3" }
-          ],
-          action: "Review Edit"
+          ]
         },
         {
           id: 2,
