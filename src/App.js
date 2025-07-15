@@ -8,8 +8,12 @@ import theme from './styles/theme';
 import { store, persistor } from './store';
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import PublicRoute from './components/auth/PublicRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Unauthorized from './pages/Unauthorized';
 import FirebaseTest from './components/FirebaseTest';
@@ -31,33 +35,68 @@ function App() {
             <AuthProvider>
               <Router>
                 <Routes>
-                  <Route path="/login" element={<Login />} />
+                  {/* Public Routes - redirect authenticated users */}
+                  <Route 
+                    path="/login" 
+                    element={
+                      <PublicRoute>
+                        <Login />
+                      </PublicRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/signup" 
+                    element={
+                      <PublicRoute>
+                        <Signup />
+                      </PublicRoute>
+                    } 
+                  />
+
+                  {/* Onboarding Route - only for authenticated users who haven't completed onboarding */}
+                  <Route 
+                    path="/onboarding" 
+                    element={
+                      <ProtectedRoute requireOnboarding={false}>
+                        <ErrorBoundary>
+                          <Onboarding />
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    } 
+                  />
+
+                  {/* Protected Routes - require authentication and completed onboarding */}
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <ErrorBoundary>
+                          <DashboardRouter />
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route 
+                    path="/profile" 
+                    element={
+                      <ProtectedRoute>
+                        <ErrorBoundary>
+                          <UserProfile />
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    } 
+                  />
+
+                  {/* Utility Routes */}
                   <Route path="/unauthorized" element={<Unauthorized />} />
+                  
+                  {/* Test Routes - Remove in production */}
                   <Route path="/firebase-test" element={<FirebaseTest />} />
                   <Route path="/redux-test" element={<ReduxTest />} />
                   <Route path="/profile-test" element={<ProfileTest />} />
                   <Route path="/role-test" element={<RoleBasedDashboardTest />} />
-                  <Route path="/onboarding" element={<OnboardingFlow />} />
-                  <Route 
-                    path="/profile" 
-                    element={
-                      <PrivateRoute>
-                        <ErrorBoundary>
-                          <UserProfile />
-                        </ErrorBoundary>
-                      </PrivateRoute>
-                    } 
-                  />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <RoleBasedRoute requireOnboarding={true}>
-                        <ErrorBoundary>
-                          <DashboardRouter />
-                        </ErrorBoundary>
-                      </RoleBasedRoute>
-                    }
-                  />
+
+                  {/* Redirect root to dashboard */}
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </Router>

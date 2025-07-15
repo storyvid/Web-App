@@ -10,7 +10,8 @@ export const loginUser = createAsyncThunk(
       const result = await api.auth.login(email, password);
       return result;
     } catch (error) {
-      return rejectWithValue(error.message);
+      // Preserve the full error object to maintain Firebase error codes
+      return rejectWithValue(error);
     }
   }
 );
@@ -23,7 +24,8 @@ export const logoutUser = createAsyncThunk(
       await api.auth.logout();
       return null;
     } catch (error) {
-      return rejectWithValue(error.message);
+      // Preserve the full error object to maintain Firebase error codes
+      return rejectWithValue(error);
     }
   }
 );
@@ -36,7 +38,8 @@ export const refreshUserProfile = createAsyncThunk(
       const profile = await api.users.getProfile(uid);
       return profile;
     } catch (error) {
-      return rejectWithValue(error.message);
+      // Preserve the full error object to maintain Firebase error codes
+      return rejectWithValue(error);
     }
   }
 );
@@ -49,7 +52,8 @@ export const updateUserProfile = createAsyncThunk(
       const updatedProfile = await api.users.updateProfile(uid, updates);
       return updatedProfile;
     } catch (error) {
-      return rejectWithValue(error.message);
+      // Preserve the full error object to maintain Firebase error codes
+      return rejectWithValue(error);
     }
   }
 );
@@ -62,7 +66,8 @@ export const updateUserSettings = createAsyncThunk(
       const updatedSettings = await api.users.updateSettings(uid, settings);
       return updatedSettings;
     } catch (error) {
-      return rejectWithValue(error.message);
+      // Preserve the full error object to maintain Firebase error codes
+      return rejectWithValue(error);
     }
   }
 );
@@ -75,7 +80,8 @@ export const completeOnboarding = createAsyncThunk(
       const result = await api.users.completeOnboarding(uid, profileData);
       return result;
     } catch (error) {
-      return rejectWithValue(error.message);
+      // Preserve the full error object to maintain Firebase error codes
+      return rejectWithValue(error);
     }
   }
 );
@@ -101,6 +107,9 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    setError: (state, action) => {
+      state.error = action.payload;
+    },
     setOnlineStatus: (state, action) => {
       state.isOnline = action.payload;
     },
@@ -120,6 +129,9 @@ const authSlice = createSlice({
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
       }
+    },
+    setAuthError: (state, action) => {
+      state.error = action.payload;
     }
   },
   extraReducers: (builder) => {

@@ -19,6 +19,9 @@ import {
   getAuth, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
   signOut,
   onAuthStateChanged 
 } from 'firebase/auth';
@@ -134,7 +137,130 @@ class FirebaseService {
       };
       return { success: true, user: this.currentUser };
     } catch (error) {
-      throw new Error(error.message);
+      throw error; // Pass through the original Firebase error with code
+    }
+  }
+
+  // Google Sign-In
+  async signInWithGoogle() {
+    if (this.useMockData) {
+      // Mock Google sign-in
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const mockGoogleUser = {
+        uid: 'google-user-1',
+        email: 'test.google@gmail.com',
+        name: 'Google Test User',
+        role: null, // Will require onboarding
+        company: null,
+        accountType: null,
+        onboardingComplete: false,
+        authProvider: 'google'
+      };
+      this.currentUser = mockGoogleUser;
+      return { success: true, user: mockGoogleUser };
+    }
+
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+      
+      const result = await signInWithPopup(this.auth, provider);
+      
+      // Check if user exists in our database
+      let userDoc = await this.getUser(result.user.uid);
+      
+      if (!userDoc) {
+        // New user - create basic profile
+        userDoc = {
+          name: result.user.displayName,
+          email: result.user.email,
+          avatar: result.user.photoURL,
+          role: null,
+          onboardingComplete: false,
+          createdAt: new Date().toISOString(),
+          authProvider: 'google'
+        };
+        
+        // Save to Firestore
+        await this.createUser(result.user.uid, userDoc);
+      }
+      
+      this.currentUser = { 
+        uid: result.user.uid,
+        email: result.user.email,
+        ...userDoc 
+      };
+      
+      return { success: true, user: this.currentUser };
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      throw error; // Pass through the original Firebase error with code
+    }
+  }
+
+  // Create User Account
+  async createUserWithEmailAndPassword(name, email, password) {
+    if (this.useMockData) {
+      // Mock user creation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const mockUser = {
+        uid: `user-${Date.now()}`,
+        email: email,
+        name: name,
+        role: null,
+        onboardingComplete: false,
+        authProvider: 'email',
+        createdAt: new Date().toISOString()
+      };
+      this.currentUser = mockUser;
+      return { success: true, user: mockUser };
+    }
+
+    try {
+      const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+      
+      // Create user profile in Firestore
+      const userDoc = {
+        name: name,
+        email: email,
+        role: null,
+        onboardingComplete: false,
+        createdAt: new Date().toISOString(),
+        authProvider: 'email'
+      };
+      
+      // Save to Firestore
+      await this.createUser(credential.user.uid, userDoc);
+      
+      this.currentUser = { 
+        uid: credential.user.uid,
+        email: credential.user.email,
+        ...userDoc 
+      };
+      
+      return { success: true, user: this.currentUser };
+    } catch (error) {
+      console.error('User creation error:', error);
+      throw error; // Pass through the original Firebase error with code
+    }
+  }
+
+  // Password Reset
+  async sendPasswordResetEmail(email) {
+    if (this.useMockData) {
+      // Mock password reset
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Mock password reset email sent to:', email);
+      return { success: true };
+    }
+
+    try {
+      await sendPasswordResetEmail(this.auth, email);
+      return { success: true };
+    } catch (error) {
+      console.error('Password reset error:', error);
+      throw error; // Pass through the original Firebase error with code
     }
   }
 

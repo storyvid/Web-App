@@ -11,7 +11,8 @@ export default function createAuthAPI(firebaseService) {
           message: 'Login successful'
         };
       } catch (error) {
-        throw new Error(error.message || 'Login failed');
+        // Preserve original Firebase error with code for better error handling
+        throw error;
       }
     },
 
@@ -24,7 +25,8 @@ export default function createAuthAPI(firebaseService) {
           message: 'Logout successful'
         };
       } catch (error) {
-        throw new Error(error.message || 'Logout failed');
+        // Preserve original Firebase error with code for better error handling
+        throw error;
       }
     },
 
@@ -49,7 +51,8 @@ export default function createAuthAPI(firebaseService) {
           message: 'Registration successful'
         };
       } catch (error) {
-        throw new Error(error.message || 'Registration failed');
+        // Preserve original Firebase error with code for better error handling
+        throw error;
       }
     },
 
@@ -95,7 +98,8 @@ export default function createAuthAPI(firebaseService) {
           message: 'Password reset email sent'
         };
       } catch (error) {
-        throw new Error(error.message || 'Password reset failed');
+        // Preserve original Firebase error with code for better error handling
+        throw error;
       }
     },
 

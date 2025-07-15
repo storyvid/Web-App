@@ -74,6 +74,50 @@ export const AuthProvider = ({ children }) => {
       const result = await dispatch(loginUser({ email, password })).unwrap();
       return { success: true, user: result.user };
     } catch (err) {
+      // Error is already handled by the async thunk in Redux
+      return { success: false, error: err };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const result = await firebaseService.signInWithGoogle();
+      if (result.user) {
+        // Dispatch user to Redux store
+        dispatch(setUser(result.user));
+        return { success: true, user: result.user };
+      }
+      return { success: false, error: 'Google sign-in failed' };
+    } catch (err) {
+      // Dispatch error to Redux store  
+      dispatch({ type: 'auth/setAuthError', payload: err });
+      return { success: false, error: err };
+    }
+  };
+
+  const signup = async (name, email, password) => {
+    try {
+      const result = await firebaseService.createUserWithEmailAndPassword(name, email, password);
+      if (result.user) {
+        // Dispatch user to Redux store
+        dispatch(setUser(result.user));
+        return { success: true, user: result.user };
+      }
+      return { success: false, error: 'Signup failed' };
+    } catch (err) {
+      // Dispatch error to Redux store  
+      dispatch({ type: 'auth/setAuthError', payload: err });
+      return { success: false, error: err };
+    }
+  };
+
+  const resetPassword = async (email) => {
+    try {
+      await firebaseService.sendPasswordResetEmail(email);
+      return { success: true };
+    } catch (err) {
+      // Dispatch error to Redux store  
+      dispatch({ type: 'auth/setAuthError', payload: err });
       return { success: false, error: err };
     }
   };
@@ -104,6 +148,9 @@ export const AuthProvider = ({ children }) => {
     user,
     isAuthenticated,
     login,
+    signup,
+    signInWithGoogle,
+    resetPassword,
     logout,
     refreshProfile,
     loading,
