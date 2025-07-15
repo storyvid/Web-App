@@ -46,7 +46,7 @@ export default function createUsersAPI(firebaseService) {
           onboardedAt: profileData.onboardedAt || new Date().toISOString()
         };
 
-        // Update user document with basic info only
+        // Create or update user document with basic info
         const updatedUser = await firebaseService.updateUser(uid, userData);
 
         return updatedUser;

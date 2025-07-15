@@ -200,7 +200,7 @@ class FirebaseService {
         };
         
         // Save to Firestore
-        await this.createUser(result.user.uid, userDoc);
+        await this.createUser({ ...userDoc, uid: result.user.uid });
       }
       
       this.currentUser = { 
@@ -248,7 +248,7 @@ class FirebaseService {
       };
       
       // Save to Firestore
-      await this.createUser(credential.user.uid, userDoc);
+      await this.createUser({ ...userDoc, uid: credential.user.uid });
       
       this.currentUser = { 
         uid: credential.user.uid,
@@ -364,10 +364,12 @@ class FirebaseService {
 
     try {
       const userRef = doc(this.db, 'users', uid);
-      await updateDoc(userRef, {
+      
+      // Use setDoc with merge to create or update the document
+      await setDoc(userRef, {
         ...updates,
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
       
       // Return updated user data
       const updatedDoc = await getDoc(userRef);
