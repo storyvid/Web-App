@@ -44,10 +44,13 @@ const OnboardingFlow = () => {
     
     try {
       // Complete onboarding with role-specific profile data
+      // Include user's existing email and name from authentication
       await dispatch(completeOnboarding({
         uid: user.uid,
         profileData: {
           ...profileData,
+          email: user.email, // Include authenticated user's email
+          name: user.name || user.displayName || '', // Include authenticated user's name
           onboardingComplete: true,
           onboardedAt: new Date().toISOString()
         }
