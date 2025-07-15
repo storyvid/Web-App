@@ -1,6 +1,25 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-// Import Firebase service
+// Import Redux actions
+import { 
+  loginUser, 
+  logoutUser, 
+  setUser, 
+  clearAuth, 
+  clearError,
+  refreshUserProfile 
+} from '../store/slices/authSlice';
+
+// Import selectors
+import { 
+  selectUser, 
+  selectIsAuthenticated, 
+  selectAuthLoading, 
+  selectAuthError 
+} from '../store/slices/authSlice';
+
+// Import Firebase service for auth state listener
 import firebaseService from '../services/firebase/firebaseService.js';
 
 const AuthContext = createContext();
@@ -14,10 +33,14 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  
+  // Get auth state from Redux store
+  const user = useSelector(selectUser);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const authLoading = useSelector(selectAuthLoading);
+  const error = useSelector(selectAuthError);
+  const loading = useSelector(state => state.auth.loading);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -25,68 +48,68 @@ export const AuthProvider = ({ children }) => {
         // Initialize Firebase
         await firebaseService.initialize();
         
-        // Set up auth state listener
+        // Set up auth state listener that dispatches to Redux
         const unsubscribe = firebaseService.onAuthStateChanged((user) => {
-          setUser(user);
-          setLoading(false);
+          if (user) {
+            // User is signed in, update Redux store
+            dispatch(setUser(user));
+          } else {
+            // User is signed out, clear Redux store
+            dispatch(clearAuth());
+          }
         });
 
         return unsubscribe;
       } catch (err) {
         console.error('Error initializing auth:', err);
-        setLoading(false);
+        dispatch(clearAuth());
       }
     };
 
-    const unsubscribe = initializeAuth();
-    return () => {
-      if (unsubscribe && typeof unsubscribe === 'function') {
-        unsubscribe();
-      }
-    };
-  }, []);
+    initializeAuth();
+  }, [dispatch]);
 
   const login = async (email, password) => {
-    setAuthLoading(true);
-    setError(null);
-    
     try {
-      const result = await firebaseService.signIn(email, password);
-      setAuthLoading(false);
-      return { success: true };
+      const result = await dispatch(loginUser({ email, password })).unwrap();
+      return { success: true, user: result.user };
     } catch (err) {
-      const errorMessage = err.message || 'Login failed. Please try again.';
-      setError(errorMessage);
-      setAuthLoading(false);
-      return { success: false, error: errorMessage };
+      return { success: false, error: err };
     }
   };
 
   const logout = async () => {
-    setAuthLoading(true);
-    setError(null);
-    
     try {
-      await firebaseService.signOut();
-      setAuthLoading(false);
+      await dispatch(logoutUser()).unwrap();
     } catch (err) {
       console.error('Logout error:', err);
-      setAuthLoading(false);
     }
   };
 
-  const clearError = () => {
-    setError(null);
+  const refreshProfile = async () => {
+    if (user?.uid) {
+      try {
+        await dispatch(refreshUserProfile(user.uid)).unwrap();
+      } catch (err) {
+        console.error('Profile refresh error:', err);
+      }
+    }
+  };
+
+  const clearAuthError = () => {
+    dispatch(clearError());
   };
 
   const value = {
     user,
+    isAuthenticated,
     login,
     logout,
+    refreshProfile,
     loading,
     authLoading,
     error,
-    clearError,
+    clearError: clearAuthError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

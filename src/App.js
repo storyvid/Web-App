@@ -14,6 +14,8 @@ import Dashboard from './pages/Dashboard';
 import Unauthorized from './pages/Unauthorized';
 import FirebaseTest from './components/FirebaseTest';
 import ReduxTest from './components/ReduxTest';
+import UserProfile from './components/UserProfile';
+import ProfileTest from './components/ProfileTest';
 
 function App() {
   return (
@@ -29,6 +31,17 @@ function App() {
                   <Route path="/unauthorized" element={<Unauthorized />} />
                   <Route path="/firebase-test" element={<FirebaseTest />} />
                   <Route path="/redux-test" element={<ReduxTest />} />
+                  <Route path="/profile-test" element={<ProfileTest />} />
+                  <Route 
+                    path="/profile" 
+                    element={
+                      <PrivateRoute>
+                        <ErrorBoundary>
+                          <UserProfile />
+                        </ErrorBoundary>
+                      </PrivateRoute>
+                    } 
+                  />
                   <Route
                     path="/dashboard"
                     element={

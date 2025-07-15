@@ -189,11 +189,59 @@ class FirebaseService {
       return { id: 'mock-user-id', ...userData };
     }
     
-    // TODO: Replace with Firestore call
-    // const docRef = await addDoc(collection(this.db, 'users'), 
-    //   createDocumentWithTimestamps(userData)
-    // );
-    // return { id: docRef.id, ...userData };
+    try {
+      await setDoc(doc(this.db, 'users', userData.uid || userData.id), {
+        ...userData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return userData;
+    } catch (error) {
+      throw new Error(`Failed to create user: ${error.message}`);
+    }
+  }
+
+  async updateUser(uid, updates) {
+    if (this.useMockData) {
+      console.log('Mock: Updating user', uid, updates);
+      return { ...this.currentUser, ...updates };
+    }
+
+    try {
+      const userRef = doc(this.db, 'users', uid);
+      await updateDoc(userRef, {
+        ...updates,
+        updatedAt: serverTimestamp()
+      });
+      
+      // Return updated user data
+      const updatedDoc = await getDoc(userRef);
+      return updatedDoc.exists() ? { id: updatedDoc.id, ...updatedDoc.data() } : null;
+    } catch (error) {
+      throw new Error(`Failed to update user: ${error.message}`);
+    }
+  }
+
+  async updateUserSettings(uid, settings) {
+    if (this.useMockData) {
+      console.log('Mock: Updating user settings', uid, settings);
+      return settings;
+    }
+
+    try {
+      const userRef = doc(this.db, 'users', uid);
+      await updateDoc(userRef, {
+        settings: settings,
+        updatedAt: serverTimestamp()
+      });
+      return settings;
+    } catch (error) {
+      throw new Error(`Failed to update settings: ${error.message}`);
+    }
+  }
+
+  getCurrentUser() {
+    return this.currentUser;
   }
 
   // Dashboard Data Methods
@@ -419,10 +467,6 @@ class FirebaseService {
   // Utility Methods
   setMockMode(useMock) {
     this.useMockData = useMock;
-  }
-
-  getCurrentUser() {
-    return this.currentUser;
   }
 
   // Real-time subscriptions (for Firebase)
