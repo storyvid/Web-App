@@ -36,6 +36,15 @@ import {
   ActivitySchema
 } from './schemas';
 
+import {
+  validateUserRole,
+  validateClientProfile,
+  validateStaffProfile,
+  validateAdminProfile,
+  createRoleBasedUserDocument,
+  CompanySchema
+} from './roleSchemas';
+
 // Mock data import (will be replaced with Firebase imports)
 import { getRoleBasedData } from '../../data/mockData';
 import getFirebaseConfig from './firebaseConfig';
@@ -219,6 +228,177 @@ class FirebaseService {
       return updatedDoc.exists() ? { id: updatedDoc.id, ...updatedDoc.data() } : null;
     } catch (error) {
       throw new Error(`Failed to update user: ${error.message}`);
+    }
+  }
+
+  // Role-based user creation
+  async createRoleBasedUser(baseUserData, roleProfileData) {
+    // Validate base user data
+    const userValidation = validateUserRole(baseUserData);
+    if (!userValidation.isValid) {
+      throw new Error(`Invalid user data: ${userValidation.errors.join(', ')}`);
+    }
+
+    // Validate role-specific profile data
+    let profileValidation;
+    switch (baseUserData.role) {
+      case 'client':
+        profileValidation = validateClientProfile(roleProfileData);
+        break;
+      case 'staff':
+        profileValidation = validateStaffProfile(roleProfileData);
+        break;
+      case 'admin':
+        profileValidation = validateAdminProfile(roleProfileData);
+        break;
+      default:
+        throw new Error('Invalid role specified');
+    }
+
+    if (!profileValidation.isValid) {
+      throw new Error(`Invalid ${baseUserData.role} profile: ${profileValidation.errors.join(', ')}`);
+    }
+
+    if (this.useMockData) {
+      console.log('Mock: Creating role-based user', baseUserData.role, roleProfileData);
+      const mockUser = createRoleBasedUserDocument(baseUserData, roleProfileData);
+      return { id: 'mock-user-id', ...mockUser };
+    }
+
+    try {
+      // Create complete user document with role-specific profile
+      const completeUserDoc = createRoleBasedUserDocument(baseUserData, roleProfileData);
+      
+      // For admin users, also create/update company document
+      if (baseUserData.role === 'admin' && roleProfileData.company) {
+        const companyId = await this.createOrUpdateCompany(roleProfileData.company, baseUserData.uid);
+        completeUserDoc.adminProfile.companyId = companyId;
+      }
+      
+      // For staff users, validate company code and link to company
+      if (baseUserData.role === 'staff' && roleProfileData.companyCode) {
+        const companyId = await this.validateCompanyCode(roleProfileData.companyCode);
+        completeUserDoc.staffProfile.companyId = companyId;
+      }
+
+      await setDoc(doc(this.db, 'users', baseUserData.uid), {
+        ...completeUserDoc,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      return completeUserDoc;
+    } catch (error) {
+      throw new Error(`Failed to create role-based user: ${error.message}`);
+    }
+  }
+
+  // Company management methods
+  async createOrUpdateCompany(companyData, adminUid) {
+    if (this.useMockData) {
+      console.log('Mock: Creating/updating company', companyData);
+      return 'mock-company-id';
+    }
+
+    try {
+      // Check if company already exists for this admin
+      const existingCompanyQuery = query(
+        collection(this.db, 'companies'),
+        where('admins', 'array-contains', adminUid)
+      );
+      const existingCompanies = await getDocs(existingCompanyQuery);
+      
+      if (!existingCompanies.empty) {
+        // Update existing company
+        const companyDoc = existingCompanies.docs[0];
+        await updateDoc(companyDoc.ref, {
+          ...companyData,
+          updatedAt: serverTimestamp()
+        });
+        return companyDoc.id;
+      } else {
+        // Create new company
+        const companyDoc = {
+          ...CompanySchema,
+          ...companyData,
+          admins: [adminUid],
+          settings: {
+            ...CompanySchema.settings,
+            companyCode: this.generateCompanyCode(),
+            ...companyData.settings
+          },
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+        
+        const docRef = doc(collection(this.db, 'companies'));
+        await setDoc(docRef, companyDoc);
+        return docRef.id;
+      }
+    } catch (error) {
+      throw new Error(`Failed to create/update company: ${error.message}`);
+    }
+  }
+
+  async validateCompanyCode(companyCode) {
+    if (this.useMockData) {
+      console.log('Mock: Validating company code', companyCode);
+      return 'mock-company-id';
+    }
+
+    try {
+      const companyQuery = query(
+        collection(this.db, 'companies'),
+        where('settings.companyCode', '==', companyCode),
+        where('isActive', '==', true)
+      );
+      const companies = await getDocs(companyQuery);
+      
+      if (companies.empty) {
+        throw new Error('Invalid company code. Please check with your employer.');
+      }
+
+      return companies.docs[0].id;
+    } catch (error) {
+      throw new Error(`Company code validation failed: ${error.message}`);
+    }
+  }
+
+  generateCompanyCode() {
+    // Generate a unique 6-character company code
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  // Get user's company information
+  async getUserCompany(uid) {
+    if (this.useMockData) {
+      console.log('Mock: Getting user company', uid);
+      return null;
+    }
+
+    try {
+      const user = await this.getUser(uid);
+      if (!user) return null;
+
+      let companyId = null;
+      if (user.role === 'admin' && user.adminProfile?.companyId) {
+        companyId = user.adminProfile.companyId;
+      } else if (user.role === 'staff' && user.staffProfile?.companyId) {
+        companyId = user.staffProfile.companyId;
+      }
+
+      if (!companyId) return null;
+
+      const companyDoc = await getDoc(doc(this.db, 'companies', companyId));
+      return companyDoc.exists() ? { id: companyDoc.id, ...companyDoc.data() } : null;
+    } catch (error) {
+      console.error('Error getting user company:', error);
+      return null;
     }
   }
 

@@ -67,6 +67,19 @@ export const updateUserSettings = createAsyncThunk(
   }
 );
 
+export const completeOnboarding = createAsyncThunk(
+  'auth/completeOnboarding',
+  async ({ uid, profileData }, { rejectWithValue }) => {
+    try {
+      const { default: api } = await import('../../api');
+      const result = await api.users.completeOnboarding(uid, profileData);
+      return result;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 // Initial state
 const initialState = {
   user: null,
@@ -182,6 +195,22 @@ const authSlice = createSlice({
         if (state.user) {
           state.user.settings = { ...state.user.settings, ...action.payload };
         }
+      })
+      
+      // Complete Onboarding
+      .addCase(completeOnboarding.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(completeOnboarding.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.user) {
+          state.user = { ...state.user, ...action.payload };
+        }
+      })
+      .addCase(completeOnboarding.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   }
 });

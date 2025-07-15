@@ -16,6 +16,9 @@ import FirebaseTest from './components/FirebaseTest';
 import ReduxTest from './components/ReduxTest';
 import UserProfile from './components/UserProfile';
 import ProfileTest from './components/ProfileTest';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
+import RoleBasedRoute from './components/routing/RoleBasedRoute';
+import DashboardRouter from './components/routing/DashboardRouter';
 
 function App() {
   return (
@@ -32,6 +35,7 @@ function App() {
                   <Route path="/firebase-test" element={<FirebaseTest />} />
                   <Route path="/redux-test" element={<ReduxTest />} />
                   <Route path="/profile-test" element={<ProfileTest />} />
+                  <Route path="/onboarding" element={<OnboardingFlow />} />
                   <Route 
                     path="/profile" 
                     element={
@@ -45,11 +49,11 @@ function App() {
                   <Route
                     path="/dashboard"
                     element={
-                      <PrivateRoute>
+                      <RoleBasedRoute requireOnboarding={true}>
                         <ErrorBoundary>
-                          <Dashboard />
+                          <DashboardRouter />
                         </ErrorBoundary>
-                      </PrivateRoute>
+                      </RoleBasedRoute>
                     }
                   />
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -1,0 +1,221 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function getUserCompany() {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return user.role == 'admin' ? user.adminProfile.companyId : 
+             user.role == 'staff' ? user.staffProfile.companyId : null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+    
+    function isStaff() {
+      return isAuthenticated() && getUserRole() == 'staff';
+    }
+    
+    function isClient() {
+      return isAuthenticated() && getUserRole() == 'client';
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+    
+    function isSameCompany(companyId) {
+      return isAuthenticated() && getUserCompany() == companyId;
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if isOwner(userId);
+      
+      // Users can update their own profile (with restrictions)
+      allow update: if isOwner(userId) && 
+        // Prevent role changes after onboarding
+        (!('role' in request.resource.data) || resource.data.role == request.resource.data.role) &&
+        // Prevent company changes for staff/admin
+        (!('staffProfile' in request.resource.data) || 
+         !('companyId' in request.resource.data.staffProfile) || 
+         resource.data.staffProfile.companyId == request.resource.data.staffProfile.companyId) &&
+        (!('adminProfile' in request.resource.data) || 
+         !('companyId' in request.resource.data.adminProfile) || 
+         resource.data.adminProfile.companyId == request.resource.data.adminProfile.companyId);
+      
+      // Admins can read team members in their company
+      allow read: if isAdmin() && 
+        (resource.data.role == 'staff' && 
+         resource.data.staffProfile.companyId == getUserCompany());
+      
+      // Staff can read other staff members in their company
+      allow read: if isStaff() && 
+        (resource.data.role == 'staff' && 
+         resource.data.staffProfile.companyId == getUserCompany());
+      
+      // Allow user creation during onboarding
+      allow create: if isOwner(userId) && 
+        request.resource.data.uid == request.auth.uid;
+    }
+
+    // Companies collection rules
+    match /companies/{companyId} {
+      // Admins can read/write their own company
+      allow read, write: if isAdmin() && 
+        request.auth.uid in resource.data.admins;
+      
+      // Staff can read their company (but not write)
+      allow read: if isStaff() && 
+        getUserCompany() == companyId;
+    }
+
+    // Projects collection rules
+    match /projects/{projectId} {
+      // Clients can read/write projects where they are the client
+      allow read, write: if isClient() && 
+        resource.data.clientId == request.auth.uid;
+      
+      // Staff can read/write projects where they are assigned
+      allow read, write: if isStaff() && 
+        request.auth.uid in resource.data.assignedStaff;
+      
+      // Admins can read/write all projects in their company
+      allow read, write: if isAdmin() && 
+        resource.data.companyId == getUserCompany();
+      
+      // Allow project creation by admins and staff
+      allow create: if (isAdmin() || isStaff()) && 
+        request.resource.data.companyId == getUserCompany();
+    }
+
+    // Milestones collection rules
+    match /milestones/{milestoneId} {
+      // Inherit permissions from parent project
+      allow read, write: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) &&
+        // User has access to the parent project
+        (
+          (isClient() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.clientId == request.auth.uid) ||
+          (isStaff() && request.auth.uid in get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.assignedStaff) ||
+          (isAdmin() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.companyId == getUserCompany())
+        );
+    }
+
+    // Assets collection rules
+    match /assets/{assetId} {
+      // Similar to milestones - inherit from project permissions
+      allow read, write: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) &&
+        (
+          (isClient() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.clientId == request.auth.uid) ||
+          (isStaff() && request.auth.uid in get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.assignedStaff) ||
+          (isAdmin() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.companyId == getUserCompany())
+        );
+    }
+
+    // Notifications collection rules
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read, write: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Admins can create notifications for their team and clients
+      allow create: if isAdmin() && 
+        (
+          // Notification for staff in same company
+          (get(/databases/$(database)/documents/users/$(request.resource.data.userId)).data.role == 'staff' &&
+           get(/databases/$(database)/documents/users/$(request.resource.data.userId)).data.staffProfile.companyId == getUserCompany()) ||
+          // Notification for client in a project managed by this company
+          (get(/databases/$(database)/documents/users/$(request.resource.data.userId)).data.role == 'client')
+        );
+    }
+
+    // Activities collection rules
+    match /activities/{activityId} {
+      // Users can read activities related to their projects
+      allow read: if isAuthenticated() && 
+        (
+          // Activity by the user themselves
+          resource.data.userId == request.auth.uid ||
+          // Activity on a project the user has access to
+          (resource.data.projectId != null && 
+           exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) &&
+           (
+             (isClient() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.clientId == request.auth.uid) ||
+             (isStaff() && request.auth.uid in get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.assignedStaff) ||
+             (isAdmin() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.companyId == getUserCompany())
+           ))
+        );
+      
+      // All authenticated users can create activities for themselves
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+    }
+
+    // Messages/Communications collection rules
+    match /communications/{communicationId} {
+      // Users can read/write communications in projects they have access to
+      allow read, write: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) &&
+        (
+          (isClient() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.clientId == request.auth.uid) ||
+          (isStaff() && request.auth.uid in get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.assignedStaff) ||
+          (isAdmin() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.companyId == getUserCompany())
+        );
+    }
+
+    // Team invitations collection rules
+    match /invitations/{invitationId} {
+      // Admins can create and manage invitations for their company
+      allow read, write: if isAdmin() && 
+        resource.data.companyId == getUserCompany();
+      
+      // Users can read invitations sent to them
+      allow read: if isAuthenticated() && 
+        resource.data.email == request.auth.token.email;
+      
+      // Users can update invitations to accept/decline
+      allow update: if isAuthenticated() && 
+        resource.data.email == request.auth.token.email &&
+        // Can only update status field
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'respondedAt']);
+    }
+
+    // File metadata collection rules
+    match /fileMetadata/{fileId} {
+      // File access inherits from project permissions
+      allow read, write: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) &&
+        (
+          (isClient() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.clientId == request.auth.uid) ||
+          (isStaff() && request.auth.uid in get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.assignedStaff) ||
+          (isAdmin() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.companyId == getUserCompany())
+        );
+    }
+
+    // Analytics collection rules (admin only)
+    match /analytics/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // System settings (super admin only - to be implemented)
+    match /systemSettings/{document=**} {
+      allow read, write: if false; // Disabled for now
+    }
+
+    // Default deny rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
