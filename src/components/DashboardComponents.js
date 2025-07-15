@@ -106,17 +106,7 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick }) 
         })}
       </Stack>
       
-      <Paper sx={styles.desktopAppCard}>
-        <Typography variant="subtitle2" gutterBottom>
-          StoryVid Mobile App
-        </Typography>
-        <Typography variant="caption" color="text.secondary" display="block" mb={2}>
-          Review and approve videos on the go
-        </Typography>
-        <Button variant="contained" fullWidth sx={styles.downloadButton}>
-          Download
-        </Button>
-      </Paper>
+      {/* Mobile app promotion removed */}
     </>
   );
 };
@@ -318,7 +308,7 @@ export const Header = ({ user, notifications, onMobileMenuClick }) => {
               {user.company}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {user.accountType}
+              {user.name}
             </Typography>
           </Box>
           <ArrowDownIcon fontSize="small" />

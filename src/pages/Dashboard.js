@@ -194,26 +194,7 @@ const Dashboard = () => {
                 </Box>
               </Box>
               
-              <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                  <Typography variant="h6" fontWeight={600}>
-                    {roleContent.milestonesSection}
-                  </Typography>
-                  <Button 
-                    size="small" 
-                    sx={styles.seeAllButton}
-                    onClick={() => handleSeeAllClick('milestones')}
-                  >
-                    See all
-                  </Button>
-                </Stack>
-                
-                <Box sx={styles.milestonesGrid}>
-                  {data.milestones.slice(0, 6).map(milestone => (
-                    <MilestoneCard key={milestone.id} milestone={milestone} />
-                  ))}
-                </Box>
-              </Box>
+              {/* Milestones section removed */}
             </Box>
             
             {/* Right sidebar hidden */}
