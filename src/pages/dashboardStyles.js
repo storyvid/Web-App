@@ -280,8 +280,7 @@ export const styles = {
   },
 
   searchField: {
-    width: { xs: '100%', sm: 200, md: 256 },
-    minWidth: { xs: 'auto', sm: 150 },
+    flex: 1,
     '& .MuiOutlinedInput-root': {
       bgcolor: 'grey.50',
       '& fieldset': {

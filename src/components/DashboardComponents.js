@@ -36,39 +36,28 @@ import {
   Description as ReportsIcon,
   Settings as SettingsIcon,
   FilterList as FilterIcon,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  BusinessCenter as ServicesIcon,
+  PermMedia as AssetsIcon
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { styles } from '../pages/dashboardStyles';
 
 // Sidebar Content Component (reusable for both desktop and mobile)
 const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick }) => {
+  const [teamMenuAnchor, setTeamMenuAnchor] = useState(null);
+  
   const getRoleMenuItems = (role) => {
-    const menus = {
-      client: [
-        { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-        { id: 'projects', label: 'Projects', icon: FolderIcon },
-        { id: 'files', label: 'Asset Library', icon: ReportsIcon },
-        { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
-        { id: 'settings', label: 'Settings', icon: SettingsIcon }
-      ],
-      staff: [
-        { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-        { id: 'tasks', label: 'My Tasks', icon: FolderIcon },
-        { id: 'projects', label: 'All Projects', icon: CalendarIcon },
-        { id: 'files', label: 'Asset Library', icon: ReportsIcon },
-        { id: 'settings', label: 'Settings', icon: SettingsIcon }
-      ],
-      admin: [
-        { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-        { id: 'projects', label: 'All Projects', icon: FolderIcon },
-        { id: 'clients', label: 'Clients', icon: CalendarIcon },
-        { id: 'team', label: 'Team Management', icon: ReportsIcon },
-        { id: 'analytics', label: 'Analytics', icon: SettingsIcon },
-        { id: 'settings', label: 'Settings', icon: SettingsIcon }
-      ]
-    };
-    return menus[role] || menus.client;
+    // MVP pages only - same for all roles
+    const menuItems = [
+      { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
+      { id: 'projects', label: 'Projects', icon: FolderIcon },
+      { id: 'assets', label: 'Assets', icon: AssetsIcon },
+      { id: 'services', label: 'Services', icon: ServicesIcon },
+      { id: 'settings', label: 'Settings', icon: SettingsIcon }
+    ];
+    
+    return menuItems;
   };
 
   const menuItems = getRoleMenuItems(userRole);
@@ -81,7 +70,7 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick }) 
   return (
     <>
       <Box sx={styles.logo}>
-        <img src="/storyvid_logo.svg" alt="StoryVid" style={{ width: 120, height: 120 }} />
+        <img src="/storyvid_logo.svg" alt="StoryVid" style={{ width: 144, height: 144 }} />
       </Box>
       
       <Typography variant="caption" sx={styles.menuLabel}>
@@ -107,6 +96,33 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick }) 
       </Stack>
       
       {/* Mobile app promotion removed */}
+      
+      {/* Workspace selector */}
+      <Box sx={{ mt: 'auto', p: 2 }}>
+        <Paper 
+          sx={{
+            ...styles.teamSelector,
+            width: '100%',
+            justifyContent: 'center'
+          }} 
+          onClick={(e) => setTeamMenuAnchor(e.currentTarget)}
+        >
+          <Typography variant="body2" fontWeight={500}>
+            Example Workspace
+          </Typography>
+          <ArrowDownIcon fontSize="small" />
+        </Paper>
+
+        <Menu
+          anchorEl={teamMenuAnchor}
+          open={Boolean(teamMenuAnchor)}
+          onClose={() => setTeamMenuAnchor(null)}
+        >
+          <MenuItem onClick={() => setTeamMenuAnchor(null)}>Switch Workspace</MenuItem>
+          <MenuItem onClick={() => setTeamMenuAnchor(null)}>Production Settings</MenuItem>
+          <MenuItem onClick={() => setTeamMenuAnchor(null)}>Invite Collaborators</MenuItem>
+        </Menu>
+      </Box>
     </>
   );
 };
@@ -155,16 +171,12 @@ export const Header = ({ user, notifications, onMobileMenuClick }) => {
   const { logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [teamMenuAnchor, setTeamMenuAnchor] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const [searchValue, setSearchValue] = useState('');
 
   const unreadNotifications = notifications?.filter(n => n.unread).length || 0;
 
-  const handleTeamMenuClick = (event) => {
-    setTeamMenuAnchor(event.currentTarget);
-  };
 
   const handleUserMenuClick = (event) => {
     setUserMenuAnchor(event.currentTarget);
@@ -175,7 +187,6 @@ export const Header = ({ user, notifications, onMobileMenuClick }) => {
   };
 
   const handleClose = () => {
-    setTeamMenuAnchor(null);
     setUserMenuAnchor(null);
     setNotificationAnchor(null);
   };
@@ -192,62 +203,40 @@ export const Header = ({ user, notifications, onMobileMenuClick }) => {
 
   return (
     <Box sx={styles.header}>
-      <Stack direction="row" alignItems="center" spacing={isMobile ? 1 : 3}>
-        <IconButton 
-          size="small" 
-          onClick={onMobileMenuClick}
-          sx={{ display: { xs: 'block', md: 'none' } }}
-        >
-          <MenuIcon />
-        </IconButton>
-        
-        <Paper 
-          sx={{
-            ...styles.teamSelector,
-            display: { xs: isMobile ? 'none' : 'flex', sm: 'flex' }
-          }} 
-          onClick={handleTeamMenuClick}
-        >
-          <Avatar sx={styles.teamAvatar}>S</Avatar>
-          <Typography variant="body2" fontWeight={500} sx={{ display: { xs: 'none', sm: 'block' } }}>
-            StoryVid
-          </Typography>
-          <ArrowDownIcon fontSize="small" />
-        </Paper>
-
-        <Menu
-          anchorEl={teamMenuAnchor}
-          open={Boolean(teamMenuAnchor)}
-          onClose={handleClose}
-        >
-          <MenuItem onClick={handleClose}>Switch Workspace</MenuItem>
-          <MenuItem onClick={handleClose}>Production Settings</MenuItem>
-          <MenuItem onClick={handleClose}>Invite Collaborators</MenuItem>
-        </Menu>
-      </Stack>
+      <IconButton 
+        size="small" 
+        onClick={onMobileMenuClick}
+        sx={{ display: { xs: 'block', md: 'none' }, mr: 2 }}
+      >
+        <MenuIcon />
+      </IconButton>
       
-      <Stack direction="row" alignItems="center" spacing={isMobile ? 1 : 2}>
-        <TextField
-          placeholder="Search"
-          size="small"
-          value={searchValue}
-          onChange={handleSearch}
-          sx={{
-            ...styles.searchField,
-            display: { xs: 'none', sm: 'block' }
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
-          }}
-        />
-        
-        <IconButton onClick={handleSearch} sx={{ display: { xs: 'block', sm: 'none' } }}>
-          <SearchIcon />
-        </IconButton>
+      <TextField
+        placeholder="Search"
+        size="small"
+        value={searchValue}
+        onChange={handleSearch}
+        fullWidth
+        sx={{
+          ...styles.searchField,
+          display: { xs: 'none', sm: 'block' },
+          maxWidth: { sm: 400, md: 600, lg: 800 },
+          mx: 2
+        }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" />
+            </InputAdornment>
+          ),
+        }}
+      />
+      
+      <IconButton onClick={handleSearch} sx={{ display: { xs: 'block', sm: 'none' }, mr: 2 }}>
+        <SearchIcon />
+      </IconButton>
+      
+      <Stack direction="row" alignItems="center" spacing={isMobile ? 1 : 2} sx={{ ml: 'auto' }}>
         
         <IconButton onClick={handleNotificationClick}>
           <Badge badgeContent={unreadNotifications} color="primary">
@@ -303,11 +292,11 @@ export const Header = ({ user, notifications, onMobileMenuClick }) => {
         
         <Button sx={styles.userButton} onClick={handleUserMenuClick}>
           <Avatar src={user.avatar} sx={{ width: 32, height: 32 }} />
-          <Box sx={{ textAlign: 'left', ml: 1 }}>
-            <Typography variant="caption" display="block" fontWeight={500}>
+          <Box sx={{ textAlign: 'left', ml: 1, lineHeight: 1.2 }}>
+            <Typography variant="caption" display="block" fontWeight={500} sx={{ lineHeight: 1.3 }}>
               {user.company}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.3 }}>
               {user.name}
             </Typography>
           </Box>
