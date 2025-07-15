@@ -47,7 +47,7 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick }) 
     const menus = {
       client: [
         { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-        { id: 'projects', label: 'My Productions', icon: FolderIcon },
+        { id: 'projects', label: 'Projects', icon: FolderIcon },
         { id: 'files', label: 'Asset Library', icon: ReportsIcon },
         { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
         { id: 'settings', label: 'Settings', icon: SettingsIcon }
@@ -81,7 +81,7 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick }) 
   return (
     <>
       <Box sx={styles.logo}>
-        <Box sx={styles.logoIcon}>S</Box>
+        <img src="/storyvid_logo.svg" alt="StoryVid" style={{ width: 120, height: 120 }} />
       </Box>
       
       <Typography variant="caption" sx={styles.menuLabel}>

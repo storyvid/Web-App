@@ -100,7 +100,7 @@ const Dashboard = () => {
     const content = {
       client: {
         welcome: "Here's your video production overview.",
-        mainSection: "My Productions",
+        mainSection: "Projects",
         milestonesSection: "My Milestones", 
         teamTitle: "My Team",
         crewTitle: "Production Crew"
