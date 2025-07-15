@@ -5,11 +5,15 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
     try {
+      console.log('Auth slice loginUser called with:', { email, passwordLength: password.length });
       // This will be connected to our API module
       const { default: api } = await import('../../api');
+      console.log('API imported, calling auth.login');
       const result = await api.auth.login(email, password);
+      console.log('API auth.login result:', result);
       return result;
     } catch (error) {
+      console.error('Auth slice loginUser error:', error);
       // Preserve the full error object to maintain Firebase error codes
       return rejectWithValue(error);
     }

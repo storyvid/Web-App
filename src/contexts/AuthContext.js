@@ -71,9 +71,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('AuthContext login called with:', { email, passwordLength: password.length });
       const result = await dispatch(loginUser({ email, password })).unwrap();
+      console.log('Login dispatch result:', result);
       return { success: true, user: result.user };
     } catch (err) {
+      console.error('AuthContext login error:', err);
       // Error is already handled by the async thunk in Redux
       return { success: false, error: err };
     }

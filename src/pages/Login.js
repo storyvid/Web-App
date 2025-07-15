@@ -155,20 +155,30 @@ const Login = () => {
     clearError();
     
     try {
+      console.log('Attempting login with:', { email, passwordLength: password.length });
       const result = await login(email, password);
+      console.log('Login result:', result);
+      
       if (result.success) {
+        console.log('Login successful, user:', result.user);
         // Check if user needs onboarding
         if (!result.user?.onboardingComplete) {
+          console.log('Redirecting to onboarding');
           navigate('/onboarding');
         } else {
+          console.log('Redirecting to dashboard');
           navigate(from, { replace: true });
         }
       } else {
         // Handle failed login - error should already be in Redux state
         console.error('Login failed:', result.error);
+        // Force display error if not showing
+        if (!error && result.error) {
+          console.log('Manually setting error:', result.error);
+        }
       }
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('Login error caught:', err);
       // Error handling is managed by Redux and AuthContext
     } finally {
       setIsSubmitting(false);
