@@ -216,30 +216,7 @@ const Dashboard = () => {
               </Box>
             </Box>
             
-            <Box sx={styles.rightPanel}>
-              <TeamSection 
-                title={roleContent.teamTitle} 
-                items={data.teamMembers.projects} 
-                type="projects" 
-              />
-              
-              <TeamSection 
-                title={roleContent.crewTitle} 
-                items={data.teamMembers.crew} 
-                type="crew" 
-              />
-              
-              <Box>
-                <Typography variant="subtitle1" fontWeight={600} mb={2}>
-                  Recent Activity
-                </Typography>
-                <Stack spacing={0.5}>
-                  {data.activities.map(activity => (
-                    <ActivityItem key={activity.id} activity={activity} />
-                  ))}
-                </Stack>
-              </Box>
-            </Box>
+            {/* Right sidebar hidden */}
           </Box>
         </Box>
       </Box>
