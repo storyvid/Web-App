@@ -65,8 +65,6 @@ class FirebaseService {
 
   // Initialize Firebase
   async initialize() {
-    console.log('Firebase initialize called, useMockData:', this.useMockData);
-    
     if (this.useMockData) {
       console.log('Using mock data - Firebase not initialized');
       return;
@@ -74,21 +72,13 @@ class FirebaseService {
     
     try {
       const config = getFirebaseConfig();
-      console.log('Firebase config loaded:', !!config);
-      
       this.app = initializeApp(config);
       this.db = getFirestore(this.app);
       this.auth = getAuth(this.app);
       this.storage = getStorage(this.app);
       this.analytics = getAnalytics(this.app);
       
-      console.log('Firebase initialized successfully:', {
-        app: !!this.app,
-        db: !!this.db,
-        auth: !!this.auth,
-        storage: !!this.storage,
-        analytics: !!this.analytics
-      });
+      console.log('Firebase initialized successfully');
     } catch (error) {
       console.error('Firebase initialization error:', error);
       // Fallback to mock data if Firebase fails
@@ -99,8 +89,6 @@ class FirebaseService {
 
   // Authentication Methods
   async signIn(email, password) {
-    console.log('FirebaseService.signIn called with:', { email, passwordLength: password.length, useMockData: this.useMockData });
-    
     if (this.useMockData) {
       // Simulate the mock authentication
       const mockUsers = {
@@ -140,30 +128,20 @@ class FirebaseService {
       throw new Error('Invalid credentials');
     }
     
-    console.log('Using Firebase auth, auth instance:', !!this.auth);
-    
     if (!this.auth) {
-      console.error('Firebase auth not initialized');
       throw new Error('Authentication service not initialized');
     }
     
     try {
-      console.log('Attempting Firebase signInWithEmailAndPassword');
       const credential = await signInWithEmailAndPassword(this.auth, email, password);
-      console.log('Firebase signIn successful, credential:', credential);
-      
       const userDoc = await this.getUser(credential.user.uid);
-      console.log('User document retrieved:', userDoc);
-      
       this.currentUser = { 
         uid: credential.user.uid,
         email: credential.user.email,
         ...userDoc 
       };
-      console.log('Current user set:', this.currentUser);
       return { success: true, user: this.currentUser };
     } catch (error) {
-      console.error('Firebase signIn error:', error);
       throw error; // Pass through the original Firebase error with code
     }
   }

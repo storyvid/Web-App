@@ -135,59 +135,39 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    console.log('🔥 LOGIN FORM SUBMITTED');
     e.preventDefault();
-    
-    // Temporary alert to confirm form handling works
-    alert('Form submitted! Check console for details.');
-    
-    console.log('Form submission prevented, proceeding with validation');
     
     // Validate form
     const emailValidation = validateEmail(email);
     const passwordValidation = validatePassword(password);
     
     if (emailValidation) {
-      console.log('❌ Email validation failed:', emailValidation);
       setEmailError(emailValidation);
       return;
     }
     
     if (passwordValidation) {
-      console.log('❌ Password validation failed:', passwordValidation);
       setPasswordError(passwordValidation);
       return;
     }
 
-    console.log('✅ Validation passed, starting authentication...');
     setIsSubmitting(true);
     clearError();
     
     try {
-      console.log('Attempting login with:', { email, passwordLength: password.length });
       const result = await login(email, password);
-      console.log('Login result:', result);
       
       if (result.success) {
-        console.log('Login successful, user:', result.user);
         // Check if user needs onboarding
         if (!result.user?.onboardingComplete) {
-          console.log('Redirecting to onboarding');
           navigate('/onboarding');
         } else {
-          console.log('Redirecting to dashboard');
           navigate(from, { replace: true });
         }
-      } else {
-        // Handle failed login - error should already be in Redux state
-        console.error('Login failed:', result.error);
-        // Force display error if not showing
-        if (!error && result.error) {
-          console.log('Manually setting error:', result.error);
-        }
       }
+      // If result.success is false, error should already be in Redux state
     } catch (err) {
-      console.error('Login error caught:', err);
+      console.error('Login error:', err);
       // Error handling is managed by Redux and AuthContext
     } finally {
       setIsSubmitting(false);
@@ -367,6 +347,13 @@ const Login = () => {
                 {getErrorMessage(error)}
               </Alert>
             </Fade>
+          )}
+          
+          {/* Debug error display */}
+          {process.env.NODE_ENV === 'development' && error && (
+            <Alert severity="info" sx={{ mb: 2, fontSize: '0.75rem' }}>
+              Debug: {JSON.stringify(error)}
+            </Alert>
           )}
 
           {/* Success Alert for Password Reset */}

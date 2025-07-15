@@ -4,16 +4,13 @@ export default function createAuthAPI(firebaseService) {
     // User login
     async login(email, password) {
       try {
-        console.log('API auth.login called with:', { email, passwordLength: password.length });
         const result = await firebaseService.signIn(email, password);
-        console.log('FirebaseService.signIn result:', result);
         return {
           success: true,
           user: result.user,
           message: 'Login successful'
         };
       } catch (error) {
-        console.error('API auth.login error:', error);
         // Preserve original Firebase error with code for better error handling
         throw error;
       }
