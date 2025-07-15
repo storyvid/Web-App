@@ -22,7 +22,6 @@ import UserProfile from './components/UserProfile';
 import ProfileTest from './components/ProfileTest';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import RoleBasedRoute from './components/routing/RoleBasedRoute';
-import DashboardRouter from './components/routing/DashboardRouter';
 import RoleBasedDashboardTest from './components/testing/RoleBasedDashboardTest';
 
 function App() {
@@ -71,7 +70,7 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <ErrorBoundary>
-                          <DashboardRouter />
+                          <Dashboard />
                         </ErrorBoundary>
                       </ProtectedRoute>
                     }

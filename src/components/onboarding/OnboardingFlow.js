@@ -44,20 +44,8 @@ const OnboardingFlow = () => {
         }
       })).unwrap();
 
-      // Navigate to appropriate dashboard based on role
-      switch (role) {
-        case 'client':
-          navigate('/dashboard?view=client');
-          break;
-        case 'staff':
-          navigate('/dashboard?view=staff');
-          break;
-        case 'admin':
-          navigate('/dashboard?view=admin');
-          break;
-        default:
-          navigate('/dashboard');
-      }
+      // Navigate to the main dashboard (no role-specific routing)
+      navigate('/dashboard');
     } catch (err) {
       console.error('Onboarding completion error:', err);
       dispatch(setError({ 
