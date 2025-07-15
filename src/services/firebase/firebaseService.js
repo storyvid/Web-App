@@ -95,26 +95,38 @@ class FirebaseService {
         'client@test.com': { 
           uid: 'client-uid-1',
           email: 'client@test.com',
-          name: 'Alex',
+          name: 'Alex Client',
           role: 'client',
           company: 'Tech Innovators Inc',
-          accountType: 'Premium Client'
+          accountType: 'Premium Client',
+          onboardingComplete: false // Start without onboarding
         },
         'staff@test.com': { 
           uid: 'staff-uid-1',
           email: 'staff@test.com',
-          name: 'Jordan',
+          name: 'Jordan Staff',
           role: 'staff',
           company: 'StoryVid Team',
-          accountType: 'Video Editor'
+          accountType: 'Video Editor',
+          onboardingComplete: false // Start without onboarding
         },
         'admin@test.com': { 
           uid: 'admin-uid-1',
           email: 'admin@test.com',
-          name: 'Sam',
+          name: 'Sam Admin',
           role: 'admin',
           company: 'StoryVid',
-          accountType: 'Production Manager'
+          accountType: 'Production Manager',
+          onboardingComplete: false // Start without onboarding
+        },
+        'demo@test.com': { 
+          uid: 'demo-uid-1',
+          email: 'demo@test.com',
+          name: 'Demo User',
+          role: 'client',
+          company: 'Demo Company',
+          accountType: 'Demo Client',
+          onboardingComplete: true // Already completed onboarding
         }
       };
       
@@ -344,7 +356,10 @@ class FirebaseService {
   async updateUser(uid, updates) {
     if (this.useMockData) {
       console.log('Mock: Updating user', uid, updates);
-      return { ...this.currentUser, ...updates };
+      // Update the current user with new data
+      this.currentUser = { ...this.currentUser, ...updates };
+      console.log('Mock: Updated current user:', this.currentUser);
+      return this.currentUser;
     }
 
     try {

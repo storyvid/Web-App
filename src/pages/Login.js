@@ -367,7 +367,8 @@ const Login = () => {
                 Password: <strong>any_password</strong>
               </Typography>
               <Typography variant="body2" sx={{ fontSize: '0.75rem', mt: 1, opacity: 0.8 }}>
-                Other test emails: staff@test.com, admin@test.com
+                Other test emails: staff@test.com, admin@test.com<br/>
+                Skip onboarding: <strong>demo@test.com</strong> (goes directly to dashboard)
               </Typography>
             </Alert>
           )}

@@ -33,7 +33,7 @@ const OnboardingFlow = () => {
     
     try {
       // Complete onboarding immediately after role selection
-      await dispatch(completeOnboarding({
+      const result = await dispatch(completeOnboarding({
         uid: user.uid,
         profileData: {
           role: role,
@@ -43,6 +43,8 @@ const OnboardingFlow = () => {
           onboardedAt: new Date().toISOString()
         }
       })).unwrap();
+
+      console.log('Onboarding completed, result:', result);
 
       // Navigate to the main dashboard (no role-specific routing)
       navigate('/dashboard');
