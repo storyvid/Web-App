@@ -19,6 +19,7 @@ import ProfileTest from './components/ProfileTest';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import RoleBasedRoute from './components/routing/RoleBasedRoute';
 import DashboardRouter from './components/routing/DashboardRouter';
+import RoleBasedDashboardTest from './components/testing/RoleBasedDashboardTest';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
                   <Route path="/firebase-test" element={<FirebaseTest />} />
                   <Route path="/redux-test" element={<ReduxTest />} />
                   <Route path="/profile-test" element={<ProfileTest />} />
+                  <Route path="/role-test" element={<RoleBasedDashboardTest />} />
                   <Route path="/onboarding" element={<OnboardingFlow />} />
                   <Route 
                     path="/profile" 

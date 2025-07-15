@@ -16,7 +16,10 @@ import {
   ListItemAvatar,
   ListItemText,
   IconButton,
-  Paper
+  Paper,
+  Drawer,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   PlayArrow as PlayIcon,
@@ -25,16 +28,29 @@ import {
   TrendingUp as TrendingIcon,
   Message as MessageIcon,
   Notifications as NotificationIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 
 import { selectUser } from '../../store/slices/authSlice';
+import RoleBasedNavigation from '../navigation/RoleBasedNavigation';
+import RoleBasedButton from '../common/RoleBasedButton';
+import { useRoleBasedData, useRoleBasedUI } from '../../hooks/useRoleBasedData';
 
 const ClientDashboard = () => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeNavItem, setActiveNavItem] = useState('dashboard');
+
+  // Use role-based hooks
+  const { uiConfig } = useRoleBasedUI();
+  const { data: filteredProjects, permissions } = useRoleBasedData(projects, 'projects');
 
   useEffect(() => {
     // TODO: Load client-specific data
@@ -85,17 +101,85 @@ const ClientDashboard = () => {
     );
   }
 
+  const drawerWidth = 280;
+
+  const drawer = (
+    <RoleBasedNavigation 
+      activeItem={activeNavItem}
+      onMenuItemClick={setActiveNavItem}
+    />
+  );
+
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Welcome back, {user?.name}!
-        </Typography>
-        <Typography variant="h6" color="text.secondary">
-          {user?.clientProfile?.company || 'Your Projects'} Dashboard
-        </Typography>
+    <Box sx={{ display: 'flex' }}>
+      {/* Navigation Drawer */}
+      <Box
+        component="nav"
+        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+      >
+        {/* Mobile drawer */}
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: 'block', md: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+        >
+          {drawer}
+        </Drawer>
+        
+        {/* Desktop drawer */}
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
       </Box>
+
+      {/* Main content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { md: `calc(100% - ${drawerWidth}px)` }
+        }}
+      >
+        {/* Mobile menu button */}
+        {isMobile && (
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            sx={{ mr: 2, mb: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
+
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" gutterBottom>
+            {uiConfig.dashboardTitle || 'Dashboard'}
+          </Typography>
+          <Typography variant="h6" color="text.secondary">
+            Welcome back, {user?.name}!
+          </Typography>
+          {user?.clientProfile?.company && (
+            <Typography variant="body2" color="text.secondary">
+              {user.clientProfile.company}
+            </Typography>
+          )}
+        </Box>
 
       {/* Quick Stats */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -177,18 +261,20 @@ const ClientDashboard = () => {
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">
-                  Your Projects
+                  Your Projects ({filteredProjects.length})
                 </Typography>
-                <Button
+                <RoleBasedButton
                   variant="contained"
                   startIcon={<AddIcon />}
                   size="small"
+                  allowedRoles={['client']}
+                  onClick={() => console.log('Request new project')}
                 >
-                  New Project
-                </Button>
+                  Request Project
+                </RoleBasedButton>
               </Box>
               
-              {projects.map((project) => (
+              {filteredProjects.map((project) => (
                 <Card key={project.id} variant="outlined" sx={{ mb: 2 }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -347,6 +433,7 @@ const ClientDashboard = () => {
           </Grid>
         </Paper>
       )}
+      </Box>
     </Box>
   );
 };
