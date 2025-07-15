@@ -354,6 +354,8 @@ class FirebaseService {
   }
 
   async updateUser(uid, updates) {
+    console.log('📝 updateUser called with:', { uid, updates });
+    
     if (this.useMockData) {
       console.log('Mock: Updating user', uid, updates);
       // Update the current user with new data
@@ -365,17 +367,22 @@ class FirebaseService {
     try {
       const userRef = doc(this.db, 'users', uid);
       
+      console.log('📝 Using setDoc with merge for user:', uid);
       // Use setDoc with merge to create or update the document
       await setDoc(userRef, {
         ...updates,
         updatedAt: serverTimestamp()
       }, { merge: true });
       
+      console.log('✅ setDoc completed successfully');
+      
       // Return updated user data
       const updatedDoc = await getDoc(userRef);
       return updatedDoc.exists() ? { id: updatedDoc.id, ...updatedDoc.data() } : null;
     } catch (error) {
-      throw new Error(`Failed to update user: ${error.message}`);
+      console.error('❌ updateUser error details:', error);
+      console.error('❌ Error stack:', error.stack);
+      throw new Error(`[updateUser] Failed to update user: ${error.message}`);
     }
   }
 
