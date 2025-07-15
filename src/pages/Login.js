@@ -135,22 +135,31 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
+    console.log('🔥 LOGIN FORM SUBMITTED');
     e.preventDefault();
+    
+    // Temporary alert to confirm form handling works
+    alert('Form submitted! Check console for details.');
+    
+    console.log('Form submission prevented, proceeding with validation');
     
     // Validate form
     const emailValidation = validateEmail(email);
     const passwordValidation = validatePassword(password);
     
     if (emailValidation) {
+      console.log('❌ Email validation failed:', emailValidation);
       setEmailError(emailValidation);
       return;
     }
     
     if (passwordValidation) {
+      console.log('❌ Password validation failed:', passwordValidation);
       setPasswordError(passwordValidation);
       return;
     }
 
+    console.log('✅ Validation passed, starting authentication...');
     setIsSubmitting(true);
     clearError();
     
