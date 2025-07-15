@@ -20,7 +20,7 @@ import {
   ArrowForward as ArrowIcon
 } from '@mui/icons-material';
 
-const RoleSelection = ({ onRoleSelect, loading = false, error = null }) => {
+const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) => {
   const [selectedRole, setSelectedRole] = useState(null);
 
   const roles = [
@@ -178,16 +178,27 @@ const RoleSelection = ({ onRoleSelect, loading = false, error = null }) => {
       </Grid>
 
       <Box sx={{ textAlign: 'center' }}>
-        <Button
-          variant="contained"
-          size="large"
-          endIcon={<ArrowIcon />}
-          onClick={handleContinue}
-          disabled={!selectedRole || loading}
-          sx={{ minWidth: 200, py: 1.5 }}
-        >
-          {loading ? 'Setting up...' : 'Continue'}
-        </Button>
+        <Stack direction="row" spacing={2} justifyContent="center">
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={onSkip}
+            disabled={loading}
+            sx={{ minWidth: 150, py: 1.5, color: '#666', borderColor: '#E0E0E0' }}
+          >
+            Skip for Now
+          </Button>
+          <Button
+            variant="contained"
+            size="large"
+            endIcon={<ArrowIcon />}
+            onClick={handleContinue}
+            disabled={!selectedRole || loading}
+            sx={{ minWidth: 200, py: 1.5 }}
+          >
+            {loading ? 'Setting up...' : 'Continue'}
+          </Button>
+        </Stack>
 
         {selectedRole && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>

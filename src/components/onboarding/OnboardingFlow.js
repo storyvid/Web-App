@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Stepper, Step, StepLabel, Paper } from '@mui/material';
+import { Box, Stepper, Step, StepLabel, Paper, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import RoleSelection from './RoleSelection';
 import ClientProfileSetup from './ClientProfileSetup';
@@ -10,10 +11,12 @@ import AdminProfileSetup from './AdminProfileSetup';
 
 import { completeOnboarding } from '../../store/slices/authSlice';
 import { setError } from '../../store/slices/uiSlice';
+import { useAuth } from '../../contexts/AuthContext';
 
 const OnboardingFlow = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedRole, setSelectedRole] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -31,6 +34,20 @@ const OnboardingFlow = () => {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+      if (currentStep === 1) {
+        setSelectedRole(null); // Clear role selection when going back to step 0
+      }
+    }
+  };
+
+  const handleSkipOnboarding = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Skip onboarding error:', error);
+      // Force navigate even if logout fails
+      navigate('/login');
     }
   };
 
@@ -87,6 +104,7 @@ const OnboardingFlow = () => {
         return (
           <RoleSelection
             onRoleSelect={handleRoleSelect}
+            onSkip={handleSkipOnboarding}
             loading={loading}
             error={error}
           />
@@ -139,6 +157,19 @@ const OnboardingFlow = () => {
       {/* Progress Stepper */}
       <Box sx={{ maxWidth: 800, mx: 'auto', mb: 4, px: 3 }}>
         <Paper sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6" color="text.primary">
+              Account Setup
+            </Typography>
+            <Button
+              variant="text"
+              startIcon={<ArrowBackIcon />}
+              onClick={handleSkipOnboarding}
+              sx={{ color: '#666' }}
+            >
+              Back to Login
+            </Button>
+          </Box>
           <Stepper activeStep={currentStep} alternativeLabel>
             {steps.map((label) => (
               <Step key={label}>

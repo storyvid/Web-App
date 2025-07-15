@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Box, Container, Typography } from '@mui/material';
+import { Box, Container, Typography, Button } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 
 import OnboardingFlow from '../components/onboarding/OnboardingFlow';
 import { selectUser, selectIsAuthenticated } from '../store/slices/authSlice';
+import { useAuth } from '../contexts/AuthContext';
 
 // Same theme as Login/Signup pages for consistency
 const onboardingTheme = createTheme({
@@ -91,8 +93,20 @@ const onboardingTheme = createTheme({
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const user = useSelector(selectUser);
   const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  const handleExitOnboarding = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force navigate even if logout fails
+      navigate('/login');
+    }
+  };
 
   useEffect(() => {
     // Redirect if user is not authenticated
@@ -126,7 +140,26 @@ const Onboarding = () => {
       >
         <Container maxWidth="md">
           {/* Header */}
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box sx={{ position: 'relative', textAlign: 'center', mb: 4 }}>
+            {/* Exit Button */}
+            <Button
+              variant="outlined"
+              startIcon={<ExitToAppIcon />}
+              onClick={handleExitOnboarding}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                borderColor: '#E0E0E0',
+                color: '#666',
+                '&:hover': {
+                  borderColor: '#CCCCCC',
+                  backgroundColor: '#F5F5F5',
+                },
+              }}
+            >
+              Exit Setup
+            </Button>
             <Box
               component="img"
               src="/storyvid_logo.svg"
