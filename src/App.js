@@ -96,7 +96,7 @@ function App() {
                   <Route path="/profile-test" element={<ProfileTest />} />
                   <Route path="/role-test" element={<RoleBasedDashboardTest />} />
 
-                  {/* Redirect root to login for unauthenticated users */}
+                  {/* Redirect root to login - PublicRoute will handle authenticated users */}
                   <Route path="/" element={<Navigate to="/login" replace />} />
                 </Routes>
               </Router>

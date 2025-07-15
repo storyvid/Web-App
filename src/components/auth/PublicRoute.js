@@ -36,9 +36,9 @@ const PublicRoute = ({
   }
 
   // If user is authenticated, redirect appropriately
-  if (isAuthenticated) {
+  if (isAuthenticated && user) {
     // If user hasn't completed onboarding, redirect to onboarding
-    if (!user?.onboardingComplete) {
+    if (!user.onboardingComplete) {
       return <Navigate to={redirectOnboarding} replace />;
     }
     
