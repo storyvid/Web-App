@@ -184,20 +184,6 @@ const Onboarding = () => {
             >
               StoryVid
             </Typography>
-            <Typography
-              variant="h5"
-              color="text.primary"
-              gutterBottom
-            >
-              Welcome to StoryVid!
-            </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{ maxWidth: 600, mx: 'auto' }}
-            >
-              Let's set up your account to get you started with the perfect video production experience.
-            </Typography>
           </Box>
 
           {/* Onboarding Flow */}
