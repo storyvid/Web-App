@@ -23,6 +23,17 @@
 | `REACT_APP_FIREBASE_APP_ID` | `1:549183398177:web:b6bca429c71d61a0e7de60` |
 | `REACT_APP_FIREBASE_MEASUREMENT_ID` | `G-6TC35CPQ5C` |
 
+### ⚠️ **Important: Vercel Security Warning**
+When you add `REACT_APP_FIREBASE_API_KEY`, Vercel will show a warning about exposing sensitive information. **This is normal and safe for Firebase!**
+
+**What to do:**
+1. Click **"I understand the risks"** or **"Continue"** 
+2. This warning appears because Vercel is being cautious about any variable with "KEY" in the name
+3. Firebase API keys are **designed** to be public and client-accessible
+4. Firebase security comes from Authentication and Firestore Rules, not from hiding the API key
+
+**Reference:** [Firebase Documentation - API Key Security](https://firebase.google.com/docs/projects/api-keys)
+
 #### Step 2: Set Environment for All Branches
 - Make sure to set these variables for:
   - ✅ **Production**
@@ -115,10 +126,37 @@ Test Google SSO on mobile devices:
 
 ## 🔒 Security Notes
 
+### Firebase API Key Security
+- **Firebase API keys are PUBLIC by design** - they're not secret credentials
+- Security comes from Firebase Authentication and Firestore Security Rules
+- It's safe to expose Firebase API keys in client-side code
+- This is different from server-side API keys which must be kept secret
+
+### General Security Best Practices
 - Never commit `.env.local` to version control
-- Use environment variables for all sensitive configuration
-- Regularly rotate API keys and secrets
-- Monitor Firebase usage and security rules
+- Use environment variables for all configuration
+- Regularly review Firebase Security Rules
+- Monitor Firebase usage and authentication logs
+- Enable Firebase App Check for production apps
+
+### Firebase Security Rules Examples
+```javascript
+// Firestore Security Rules (where real security happens)
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Projects accessible by authenticated users
+    match /projects/{projectId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
 
 ## 🚀 Deployment Checklist
 
