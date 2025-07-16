@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -15,8 +15,19 @@ import {
   CardContent,
   Avatar,
   Chip,
-  CircularProgress
+  CircularProgress,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  InputAdornment
 } from '@mui/material';
+import {
+  PhotoCamera as PhotoCameraIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon
+} from '@mui/icons-material';
 import { 
   updateUserProfile, 
   updateUserSettings,
@@ -25,6 +36,7 @@ import {
   selectAuthError 
 } from '../store/slices/authSlice';
 import { setTheme } from '../store/slices/uiSlice';
+import firebaseService from '../services/firebase/firebaseService';
 
 const UserProfile = () => {
   const dispatch = useDispatch();
@@ -52,6 +64,24 @@ const UserProfile = () => {
   const [success, setSuccess] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
   const [settingsLoading, setSettingsLoading] = useState(false);
+  
+  // Profile picture upload state
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const fileInputRef = useRef(null);
+  
+  // Password change state
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
 
   const handleProfileChange = (field, value) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
@@ -106,6 +136,105 @@ const UserProfile = () => {
     }
   };
 
+  // Profile picture upload handlers
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !user?.uid) return;
+
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      setSuccess('Please select an image file.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      setSuccess('File size must be less than 5MB.');
+      return;
+    }
+
+    setAvatarLoading(true);
+    setSuccess('');
+
+    try {
+      const result = await firebaseService.uploadProfilePicture(user.uid, file);
+      
+      // Update local profile data
+      await dispatch(updateUserProfile({ 
+        uid: user.uid, 
+        updates: { avatar: result.downloadURL }
+      })).unwrap();
+      
+      setSuccess('Profile picture updated successfully!');
+    } catch (err) {
+      console.error('Avatar upload failed:', err);
+      setSuccess('Failed to upload profile picture. Please try again.');
+    } finally {
+      setAvatarLoading(false);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Password change handlers
+  const handlePasswordChange = (field, value) => {
+    setPasswordData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setSuccess('Please fill in all password fields.');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setSuccess('New password and confirmation do not match.');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setSuccess('New password must be at least 6 characters long.');
+      return;
+    }
+
+    setPasswordLoading(true);
+    setSuccess('');
+
+    try {
+      await firebaseService.changePassword(passwordData.currentPassword, passwordData.newPassword);
+      
+      setSuccess('Password changed successfully!');
+      setPasswordDialogOpen(false);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (err) {
+      console.error('Password change failed:', err);
+      let errorMessage = 'Failed to change password. Please try again.';
+      
+      if (err.code === 'auth/wrong-password') {
+        errorMessage = 'Current password is incorrect.';
+      } else if (err.code === 'auth/weak-password') {
+        errorMessage = 'New password is too weak.';
+      }
+      
+      setSuccess(errorMessage);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
+  };
+
   const getRoleColor = (role) => {
     switch (role) {
       case 'admin': return 'error';
@@ -146,12 +275,45 @@ const UserProfile = () => {
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
-              <Avatar 
-                src={user.avatar} 
-                sx={{ width: 100, height: 100, mx: 'auto', mb: 2 }}
-              >
-                {user.name?.charAt(0)?.toUpperCase()}
-              </Avatar>
+              <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
+                <Avatar 
+                  src={user.avatar} 
+                  sx={{ width: 100, height: 100, mx: 'auto' }}
+                >
+                  {user.name?.charAt(0)?.toUpperCase()}
+                </Avatar>
+                
+                <IconButton
+                  sx={{
+                    position: 'absolute',
+                    bottom: -8,
+                    right: -8,
+                    bgcolor: 'primary.main',
+                    color: 'white',
+                    width: 32,
+                    height: 32,
+                    '&:hover': {
+                      bgcolor: 'primary.dark'
+                    }
+                  }}
+                  onClick={handleAvatarClick}
+                  disabled={avatarLoading}
+                >
+                  {avatarLoading ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <PhotoCameraIcon fontSize="small" />
+                  )}
+                </IconButton>
+                
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleAvatarUpload}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                />
+              </Box>
               
               <Typography variant="h6" gutterBottom>
                 {user.name}
@@ -168,9 +330,18 @@ const UserProfile = () => {
                 sx={{ mb: 1 }}
               />
               
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" gutterBottom>
                 {user.company}
               </Typography>
+              
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => setPasswordDialogOpen(true)}
+                sx={{ mt: 1 }}
+              >
+                Change Password
+              </Button>
             </CardContent>
           </Card>
         </Grid>
@@ -339,6 +510,99 @@ const UserProfile = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Password Change Dialog */}
+      <Dialog 
+        open={passwordDialogOpen} 
+        onClose={() => setPasswordDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Change Password</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            <TextField
+              fullWidth
+              label="Current Password"
+              type={showPasswords.current ? 'text' : 'password'}
+              value={passwordData.currentPassword}
+              onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+              margin="normal"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => togglePasswordVisibility('current')}
+                      edge="end"
+                    >
+                      {showPasswords.current ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+            
+            <TextField
+              fullWidth
+              label="New Password"
+              type={showPasswords.new ? 'text' : 'password'}
+              value={passwordData.newPassword}
+              onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+              margin="normal"
+              helperText="Password must be at least 6 characters long"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => togglePasswordVisibility('new')}
+                      edge="end"
+                    >
+                      {showPasswords.new ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+            
+            <TextField
+              fullWidth
+              label="Confirm New Password"
+              type={showPasswords.confirm ? 'text' : 'password'}
+              value={passwordData.confirmPassword}
+              onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+              margin="normal"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => togglePasswordVisibility('confirm')}
+                      edge="end"
+                    >
+                      {showPasswords.confirm ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setPasswordDialogOpen(false)}
+            disabled={passwordLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handlePasswordSubmit}
+            disabled={passwordLoading}
+            startIcon={passwordLoading && <CircularProgress size={20} />}
+          >
+            {passwordLoading ? 'Changing...' : 'Change Password'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Debug Info */}
       <Paper sx={{ p: 2, mt: 3, bgcolor: 'grey.50' }}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, 
   Typography, 
@@ -29,6 +30,7 @@ import {
 // Main Dashboard Component
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeMenuItem, setActiveMenuItem] = useState('dashboard');
@@ -66,7 +68,29 @@ const Dashboard = () => {
   const handleMenuItemClick = (menuId) => {
     setActiveMenuItem(menuId);
     console.log('Navigation to:', menuId);
-    // Add navigation logic here - could use React Router
+    
+    // Handle navigation based on menu item
+    switch (menuId) {
+      case 'settings':
+        navigate('/settings');
+        break;
+      case 'projects':
+        // TODO: Add projects page
+        console.log('Projects page not implemented yet');
+        break;
+      case 'assets':
+        // TODO: Add assets page
+        console.log('Assets page not implemented yet');
+        break;
+      case 'services':
+        // TODO: Add services page
+        console.log('Services page not implemented yet');
+        break;
+      case 'dashboard':
+      default:
+        // Stay on dashboard
+        break;
+    }
   };
 
   const handleSeeAllClick = (section) => {

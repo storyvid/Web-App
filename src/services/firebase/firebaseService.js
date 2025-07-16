@@ -877,6 +877,84 @@ class FirebaseService {
     // return { id: docRef.id, ...assetData };
   }
 
+  // Profile picture upload
+  async uploadProfilePicture(uid, file) {
+    if (this.useMockData) {
+      console.log('Mock: Uploading profile picture for', uid);
+      // Create a mock blob URL for testing
+      const mockUrl = URL.createObjectURL(file);
+      return {
+        downloadURL: mockUrl,
+        fileName: file.name,
+        size: file.size
+      };
+    }
+
+    try {
+      // TODO: Implement Firebase Storage upload for profile pictures
+      // const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+      // const storageRef = ref(this.storage, `profile-pictures/${uid}/${Date.now()}-${file.name}`);
+      // const snapshot = await uploadBytes(storageRef, file);
+      // const downloadURL = await getDownloadURL(snapshot.ref);
+      // 
+      // // Update user profile with new avatar URL
+      // await this.updateUser(uid, { avatar: downloadURL });
+      // 
+      // return {
+      //   downloadURL,
+      //   fileName: file.name,
+      //   size: file.size,
+      //   storagePath: snapshot.ref.fullPath
+      // };
+      
+      // For now, return a mock implementation
+      console.log('Profile picture upload not implemented yet, using mock');
+      const mockUrl = URL.createObjectURL(file);
+      await this.updateUser(uid, { avatar: mockUrl });
+      
+      return {
+        downloadURL: mockUrl,
+        fileName: file.name,
+        size: file.size
+      };
+    } catch (error) {
+      throw new Error(`Failed to upload profile picture: ${error.message}`);
+    }
+  }
+
+  // Change user password
+  async changePassword(currentPassword, newPassword) {
+    if (this.useMockData) {
+      console.log('Mock: Changing password');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { success: true };
+    }
+
+    try {
+      const { updatePassword, reauthenticateWithCredential, EmailAuthProvider } = await import('firebase/auth');
+      
+      if (!this.auth.currentUser) {
+        throw new Error('No authenticated user');
+      }
+
+      // Re-authenticate user with current password
+      const credential = EmailAuthProvider.credential(
+        this.auth.currentUser.email,
+        currentPassword
+      );
+      
+      await reauthenticateWithCredential(this.auth.currentUser, credential);
+      
+      // Update to new password
+      await updatePassword(this.auth.currentUser, newPassword);
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Password change error:', error);
+      throw error; // Pass through the original Firebase error with code
+    }
+  }
+
   // Utility Methods
   setMockMode(useMock) {
     this.useMockData = useMock;
