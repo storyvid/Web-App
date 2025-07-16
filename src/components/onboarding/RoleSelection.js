@@ -30,46 +30,22 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
     {
       id: 'client',
       title: 'Client Portal',
-      subtitle: 'I need video production services',
-      description: 'Perfect for businesses and individuals who want to commission video content. Get matched with production teams, track project progress, and manage deliverables.',
+      subtitle: 'Hire video production services',
       icon: <ClientIcon sx={{ fontSize: 48, color: 'primary.main' }} />,
-      features: [
-        'Project commissioning',
-        'Team collaboration',
-        'Asset management',
-        'Progress tracking',
-        'Billing & invoicing'
-      ],
       color: 'primary'
     },
     {
       id: 'staff',
-      title: 'Team Member',
-      subtitle: 'I work for a video production company',
-      description: 'For video editors, producers, and production team members. Collaborate on projects, manage assets, track time, and communicate with clients.',
+      title: 'Team Member', 
+      subtitle: 'Work for a production company',
       icon: <TeamIcon sx={{ fontSize: 48, color: 'secondary.main' }} />,
-      features: [
-        'Project assignments',
-        'Time tracking',
-        'Asset collaboration',
-        'Client communication',
-        'Team coordination'
-      ],
       color: 'secondary'
     },
     {
       id: 'admin',
       title: 'Production Company',
-      subtitle: 'I run a video production business',
-      description: 'For production company owners and managers. Oversee all projects, manage teams, handle client relationships, and analyze business performance.',
+      subtitle: 'Run a video production business',
       icon: <BusinessIcon sx={{ fontSize: 48, color: 'error.main' }} />,
-      features: [
-        'Company management',
-        'Team oversight',
-        'Client relationships',
-        'Business analytics',
-        'Project coordination'
-      ],
       color: 'error'
     }
   ];
@@ -137,43 +113,16 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
                   onClick={() => handleRoleSelect(role.id)}
                   sx={{ height: '100%', p: 0 }}
                 >
-                  <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ textAlign: 'center', mb: 2 }}>
-                      {role.icon}
-                      <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 1, fontWeight: 600 }}>
-                        {role.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {role.subtitle}
-                      </Typography>
-                    </Box>
-
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1, lineHeight: 1.4 }}>
-                      {role.description}
+                  <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                    {role.icon}
+                    <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 2, fontWeight: 600 }}>
+                      {role.title}
                     </Typography>
-
-                    <Box>
-                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap justifyContent="center">
-                        {role.features.slice(0, 2).map((feature, index) => (
-                          <Chip
-                            key={index}
-                            label={feature}
-                            size="small"
-                            variant="outlined"
-                            color={selectedRole === role.id ? role.color : 'default'}
-                          />
-                        ))}
-                        <Chip
-                          label={`+${role.features.length - 2} more`}
-                          size="small"
-                          variant="outlined"
-                          color={selectedRole === role.id ? role.color : 'default'}
-                        />
-                      </Stack>
-                    </Box>
-
+                    <Typography variant="body2" color="text.secondary">
+                      {role.subtitle}
+                    </Typography>
                     {selectedRole === role.id && (
-                      <Box sx={{ mt: 2, textAlign: 'center' }}>
+                      <Box sx={{ mt: 2 }}>
                         <Chip
                           label="✓ Selected"
                           color={role.color}
@@ -191,34 +140,19 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
         </Box>
       ) : (
         // Company Form Step
-        <Box sx={{ maxWidth: 500, mx: 'auto', flexGrow: 1 }}>
-          <Paper sx={{ p: 4, borderRadius: 2 }}>
-            <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <Box sx={{ mb: 2 }}>
-                {roles.find(r => r.id === selectedRole)?.icon}
-              </Box>
-              <Typography variant="h6" gutterBottom>
-                {roles.find(r => r.id === selectedRole)?.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {selectedRole === 'client' 
-                  ? 'What\'s the name of your company or organization?'
-                  : selectedRole === 'staff'
-                  ? 'Which company do you work for?'
-                  : 'What\'s the name of your production company?'
-                }
+        <Box sx={{ maxWidth: 400, mx: 'auto', flexGrow: 1 }}>
+          <Paper sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
+            <Box sx={{ mb: 3 }}>
+              {roles.find(r => r.id === selectedRole)?.icon}
+              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                Company Name
               </Typography>
             </Box>
 
             <TextField
               fullWidth
               label="Company Name"
-              placeholder={selectedRole === 'client' 
-                ? 'e.g., Acme Corporation'
-                : selectedRole === 'staff'
-                ? 'e.g., Creative Studios Inc.'
-                : 'e.g., Video Production Co.'
-              }
+              placeholder="Enter your company name"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               disabled={loading}
@@ -263,24 +197,6 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
         </Box>
       )}
 
-      {!showCompanyForm && (
-        <Box sx={{ mt: { xs: 3, md: 4 }, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-            Need help choosing?
-          </Typography>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 3 }} justifyContent="center">
-            <Typography variant="body2" color="text.secondary">
-              <strong>Client:</strong> Hire video services
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Team Member:</strong> Work for production company
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Production Company:</strong> Own/manage business
-            </Typography>
-          </Stack>
-        </Box>
-      )}
     </Container>
   );
 };
