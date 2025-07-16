@@ -8,7 +8,9 @@ import {
   getDoc,
   getDocs,
   serverTimestamp,
-  writeBatch 
+  writeBatch,
+  query,
+  where
 } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import firebaseService from './firebaseService';
@@ -367,15 +369,30 @@ class DataMigrationService {
           id: `client-project-2-${userId}`,
           name: 'Product Demo Series',
           client: 'TechCorp Inc',
-          status: 'in-production',
-          progress: 40,
-          nextMilestone: 'First Draft - Feb 5',
+          status: 'completed',
+          progress: 100,
+          nextMilestone: 'Project Complete',
           team: [
             { id: 'member3', name: 'Sarah Designer', avatar: null }
           ],
-          action: 'In Progress',
+          action: 'Completed',
           projectType: 'Product Demo',
           deliverables: ['3 demo videos', 'Tutorial guides'],
+          ...baseData
+        },
+        {
+          id: `client-project-3-${userId}`,
+          name: 'Social Media Campaign',
+          client: 'TechCorp Inc',
+          status: 'in-production',
+          progress: 60,
+          nextMilestone: 'Second Review - Feb 10',
+          team: [
+            { id: 'member4', name: 'Mike Creative', avatar: null }
+          ],
+          action: 'In Progress',
+          projectType: 'Social Media',
+          deliverables: ['Instagram reels', 'TikTok videos'],
           ...baseData
         }
       ],
@@ -439,6 +456,8 @@ class DataMigrationService {
   // Get actual Firebase Auth UID for an email
   async getAuthUidForEmail(email) {
     try {
+      console.log(`🔍 Getting UID for ${email}...`);
+      
       // Sign in temporarily to get the UID
       const credential = await signInWithEmailAndPassword(
         firebaseService.auth,
@@ -447,12 +466,14 @@ class DataMigrationService {
       );
       const uid = credential.user.uid;
       
+      console.log(`✅ Found UID for ${email}: ${uid}`);
+      
       // Sign out immediately
       await firebaseService.signOut();
       
       return uid;
     } catch (error) {
-      console.error(`Error getting UID for ${email}:`, error);
+      console.error(`❌ Error getting UID for ${email}:`, error);
       return null;
     }
   }
@@ -518,6 +539,7 @@ class DataMigrationService {
 
         await batch.commit();
         console.log(`✅ Populated data for ${account.email} (UID: ${userId})`);
+        console.log(`📊 Batch committed with ${dummyData.projects.length + dummyData.notifications.length + dummyData.activities.length} total documents`);
 
       } catch (error) {
         console.error(`❌ Error populating data for ${account.email}:`, error);
@@ -613,26 +635,189 @@ class DataMigrationService {
     console.log('🔄 Force running migration...');
     
     try {
-      // Clear existing data first
+      console.log('Step 1: Clearing existing data...');
       await this.clearExistingData();
       
-      // Create dummy accounts
+      console.log('Step 2: Creating dummy accounts...');
       await this.createDummyAccounts();
 
-      // Populate with dummy data  
+      console.log('Step 3: Populating with dummy data...');
       await this.populateDummyData();
 
-      // Mark as complete
+      console.log('Step 4: Verifying data was created...');
+      await this.verifyDummyData();
+
+      console.log('Step 5: Marking migration as complete...');
       await this.markMigrationComplete();
 
       console.log('✅ Force migration completed successfully!');
+      console.log('🧪 Test with: window.checkFirestoreData()');
     } catch (error) {
       console.error('❌ Force migration failed:', error);
+      console.error('❌ Error details:', error.message);
+      console.error('❌ Stack trace:', error.stack);
       throw error;
+    }
+  }
+
+  // Verify dummy data was created correctly
+  async verifyDummyData() {
+    console.log('🔍 Verifying dummy data creation...');
+    
+    try {
+      const collections = ['projects', 'notifications', 'activities'];
+      const verificationResults = {};
+
+      for (const collectionName of collections) {
+        const snapshot = await getDocs(collection(firebaseService.db, collectionName));
+        verificationResults[collectionName] = snapshot.size;
+        console.log(`📊 ${collectionName}: ${snapshot.size} documents`);
+      }
+
+      const totalDocs = Object.values(verificationResults).reduce((sum, count) => sum + count, 0);
+      console.log(`✅ Total documents created: ${totalDocs}`);
+      
+      if (totalDocs === 0) {
+        throw new Error('No dummy data was created! Check migration logic.');
+      }
+
+      // Log sample document IDs for verification
+      for (const collectionName of collections) {
+        const snapshot = await getDocs(collection(firebaseService.db, collectionName));
+        if (!snapshot.empty) {
+          const sampleDoc = snapshot.docs[0];
+          console.log(`📝 Sample ${collectionName} doc:`, {
+            id: sampleDoc.id,
+            userId: sampleDoc.data().userId,
+            createdBy: sampleDoc.data().createdBy
+          });
+        }
+      }
+
+    } catch (error) {
+      console.error('❌ Data verification failed:', error);
+      throw error;
+    }
+  }
+
+  // Test dummy account data after login (for debugging)
+  async testDummyAccountLogin(email) {
+    console.log(`🧪 Testing data for ${email}...`);
+    
+    try {
+      // Get the user ID for this email
+      const userId = await this.getAuthUidForEmail(email);
+      if (!userId) {
+        console.log(`❌ Could not find user ID for ${email}`);
+        return;
+      }
+
+      console.log(`👤 User ID for ${email}: ${userId}`);
+
+      // Test data retrieval using the same methods the dashboard uses
+      const [projects, notifications, activities] = await Promise.all([
+        firebaseService.getUserProjects(userId),
+        firebaseService.getUserNotifications(userId),
+        firebaseService.getUserActivities(userId)
+      ]);
+
+      console.log(`📊 Data for ${email}:`, {
+        projects: projects.length,
+        notifications: notifications.length,
+        activities: activities.length
+      });
+
+      if (projects.length > 0) {
+        console.log(`📋 Sample project:`, {
+          name: projects[0].name,
+          client: projects[0].client,
+          status: projects[0].status
+        });
+      }
+
+      if (notifications.length > 0) {
+        console.log(`🔔 Sample notification:`, {
+          title: notifications[0].title,
+          unread: notifications[0].unread
+        });
+      }
+
+      return { projects, notifications, activities };
+
+    } catch (error) {
+      console.error(`❌ Error testing ${email}:`, error);
+      return null;
     }
   }
 }
 
 // Export singleton instance
 const dataMigrationService = new DataMigrationService();
+
+// Export test functions for debugging
+window.testDummyAccount = (email) => dataMigrationService.testDummyAccountLogin(email);
+window.forceMigration = () => dataMigrationService.forceMigration();
+window.checkFirestoreData = async () => {
+  try {
+    const collections = ['projects', 'notifications', 'activities'];
+    for (const collectionName of collections) {
+      const snapshot = await getDocs(collection(firebaseService.db, collectionName));
+      console.log(`📊 ${collectionName}: ${snapshot.size} documents`);
+      
+      if (!snapshot.empty) {
+        const sampleDoc = snapshot.docs[0];
+        console.log(`📝 Sample ${collectionName}:`, {
+          id: sampleDoc.id,
+          userId: sampleDoc.data().userId,
+          createdBy: sampleDoc.data().createdBy,
+          data: sampleDoc.data()
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error checking Firestore data:', error);
+  }
+};
+
+window.checkClientData = async (userId) => {
+  try {
+    console.log(`🔍 Checking data for client user: ${userId}`);
+    
+    // Direct query for projects with createdBy field
+    const projectsQuery = query(
+      collection(firebaseService.db, 'projects'),
+      where('createdBy', '==', userId)
+    );
+    const projectsSnapshot = await getDocs(projectsQuery);
+    console.log(`📋 Client projects (createdBy): ${projectsSnapshot.size}`);
+    
+    // Also check with userId field
+    const projectsQuery2 = query(
+      collection(firebaseService.db, 'projects'),
+      where('userId', '==', userId)
+    );
+    const projectsSnapshot2 = await getDocs(projectsQuery2);
+    console.log(`📋 Client projects (userId): ${projectsSnapshot2.size}`);
+    
+    // Check notifications
+    const notificationsQuery = query(
+      collection(firebaseService.db, 'notifications'),
+      where('userId', '==', userId)
+    );
+    const notificationsSnapshot = await getDocs(notificationsQuery);
+    console.log(`🔔 Client notifications: ${notificationsSnapshot.size}`);
+    
+    // Check activities
+    const activitiesQuery = query(
+      collection(firebaseService.db, 'activities'),
+      where('userId', '==', userId)
+    );
+    const activitiesSnapshot = await getDocs(activitiesQuery);
+    console.log(`📊 Client activities: ${activitiesSnapshot.size}`);
+    
+  } catch (error) {
+    console.error('Error checking client data:', error);
+  }
+};
+
 export default dataMigrationService;

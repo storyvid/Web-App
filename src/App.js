@@ -25,6 +25,7 @@ import ProfileTest from './components/ProfileTest';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import RoleBasedRoute from './components/routing/RoleBasedRoute';
 import RoleBasedDashboardTest from './components/testing/RoleBasedDashboardTest';
+import DataDebugger from './components/DataDebugger';
 
 function App() {
   return (
@@ -107,6 +108,7 @@ function App() {
                   <Route path="/redux-test" element={<ReduxTest />} />
                   <Route path="/profile-test" element={<ProfileTest />} />
                   <Route path="/role-test" element={<RoleBasedDashboardTest />} />
+                  <Route path="/debug" element={<DataDebugger />} />
 
                   {/* Redirect root to login - PublicRoute will handle authenticated users */}
                   <Route path="/" element={<Navigate to="/login" replace />} />

@@ -474,12 +474,20 @@ class FirebaseService {
   // Dashboard Data Methods
   async getDashboardData(userRole, userId) {
     try {
+      console.log(`📊 Loading dashboard data for user ${userId} with role ${userRole}`);
+      
       // Get user-specific data from Firestore
       const [projects, notifications, activities] = await Promise.all([
         this.getUserProjects(userId),
         this.getUserNotifications(userId),
         this.getUserActivities(userId)
       ]);
+
+      console.log(`📈 Dashboard data loaded:`, {
+        projects: projects.length,
+        notifications: notifications.length,
+        activities: activities.length
+      });
 
       // Calculate stats based on real data
       const stats = this.calculateUserStats(projects, notifications, userRole);
@@ -507,6 +515,8 @@ class FirebaseService {
   // Get user-specific projects
   async getUserProjects(userId) {
     try {
+      console.log(`🗂️ Getting projects for user ${userId} with role ${this.currentUser?.role}`);
+      
       let projectsQuery;
       const userRole = this.currentUser?.role;
       
@@ -531,13 +541,16 @@ class FirebaseService {
       }
 
       const snapshot = await getDocs(projectsQuery);
-      return snapshot.docs.map(doc => ({
+      const projects = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         // Convert timestamps to strings for serialization
         createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
         updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
       }));
+      
+      console.log(`📋 Found ${projects.length} projects for user ${userId}`);
+      return projects;
     } catch (error) {
       console.error('Error getting user projects:', error);
       return [];
@@ -545,43 +558,81 @@ class FirebaseService {
   }
 
   // Get user notifications
-  async getUserNotifications(userId, limit = 20) {
+  async getUserNotifications(userId, limitCount = 20) {
     try {
+      console.log(`🔔 Getting notifications for user ${userId}`);
+      console.log(`🔧 Using database instance:`, this.db ? 'Available' : 'Missing');
+      
       const notificationsQuery = query(
         collection(this.db, 'notifications'),
         where('userId', '==', userId),
-        orderBy('createdAt', 'desc'),
-        limit(limit)
+        limit(limitCount)
       );
 
+      console.log(`🔍 Executing query for notifications...`);
       const snapshot = await getDocs(notificationsQuery);
-      return snapshot.docs.map(doc => ({
+      console.log(`📊 Query executed, found ${snapshot.size} documents`);
+      
+      const notifications = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt
       }));
+      
+      console.log(`📬 Found ${notifications.length} notifications for user ${userId}`);
+      
+      // Debug: log first notification if exists
+      if (notifications.length > 0) {
+        console.log(`📄 Sample notification:`, {
+          id: notifications[0].id,
+          title: notifications[0].title,
+          userId: notifications[0].userId
+        });
+      } else {
+        console.log(`❌ No notifications found for userId: ${userId}`);
+        
+        // Debug: Check if any notifications exist at all
+        const allNotificationsSnapshot = await getDocs(collection(this.db, 'notifications'));
+        console.log(`🔍 Total notifications in database: ${allNotificationsSnapshot.size}`);
+        
+        if (allNotificationsSnapshot.size > 0) {
+          const sampleDoc = allNotificationsSnapshot.docs[0];
+          console.log(`📄 Sample notification in DB:`, {
+            id: sampleDoc.id,
+            userId: sampleDoc.data().userId,
+            title: sampleDoc.data().title
+          });
+        }
+      }
+      
+      return notifications;
     } catch (error) {
       console.error('Error getting user notifications:', error);
+      console.error('Error details:', error.message);
       return [];
     }
   }
 
   // Get user activities
-  async getUserActivities(userId, limit = 10) {
+  async getUserActivities(userId, limitCount = 10) {
     try {
+      console.log(`📊 Getting activities for user ${userId}`);
+      
       const activitiesQuery = query(
         collection(this.db, 'activities'),
         where('userId', '==', userId),
-        orderBy('createdAt', 'desc'),
-        limit(limit)
+        limit(limitCount)
       );
 
       const snapshot = await getDocs(activitiesQuery);
-      return snapshot.docs.map(doc => ({
+      const activities = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt
       }));
+      
+      console.log(`📈 Found ${activities.length} activities for user ${userId}`);
+      return activities;
     } catch (error) {
       console.error('Error getting user activities:', error);
       return [];

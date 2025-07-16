@@ -20,8 +20,8 @@ const firebaseConfig = {
 const configs = {
   development: {
     ...firebaseConfig,
-    // You can use Firebase Emulators for development
-    useEmulators: true,
+    // Use real Firebase for now (disable emulators)
+    useEmulators: false,
     emulators: {
       auth: { host: 'localhost', port: 9099 },
       firestore: { host: 'localhost', port: 8080 },
