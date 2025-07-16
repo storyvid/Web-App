@@ -128,7 +128,7 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, us
 };
 
 // Sidebar Component with Mobile Drawer
-export const Sidebar = ({ activeItem, onMenuItemClick, userRole, mobileOpen, onMobileClose }) => {
+export const Sidebar = ({ activeItem, onMenuItemClick, userRole, mobileOpen, onMobileClose, user }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 

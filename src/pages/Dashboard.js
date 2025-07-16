@@ -41,7 +41,18 @@ const Dashboard = () => {
         // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 800));
         const roleData = getRoleBasedData(user?.role || 'client');
-        setData(roleData);
+        // Replace mock user data with real user data
+        const dashboardData = {
+          ...roleData,
+          user: {
+            ...roleData.user,
+            name: user?.name || roleData.user.name,
+            company: user?.company || roleData.user.company,
+            email: user?.email || roleData.user.email,
+            avatar: user?.avatar || roleData.user.avatar
+          }
+        };
+        setData(dashboardData);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       } finally {
@@ -50,7 +61,7 @@ const Dashboard = () => {
     };
 
     loadDashboardData();
-  }, [user?.role]);
+  }, [user?.role, user?.name, user?.company, user?.email, user?.avatar]);
 
   const handleMenuItemClick = (menuId) => {
     setActiveMenuItem(menuId);
@@ -139,6 +150,7 @@ const Dashboard = () => {
           userRole={user?.role || 'client'}
           mobileOpen={mobileOpen}
           onMobileClose={handleMobileClose}
+          user={user}
         />
         
         <Box sx={styles.mainContent}>

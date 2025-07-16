@@ -42,6 +42,7 @@ export default function createUsersAPI(firebaseService) {
           role: profileData.role,
           email: profileData.email || '',
           name: profileData.name || '',
+          company: profileData.company || '',
           onboardingComplete: true,
           onboardedAt: profileData.onboardedAt || new Date().toISOString()
         };

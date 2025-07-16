@@ -189,7 +189,7 @@ class FirebaseService {
       
       if (!userDoc) {
         // New user - create basic profile
-        userDoc = {
+        const newUserData = {
           name: result.user.displayName,
           email: result.user.email,
           avatar: result.user.photoURL,
@@ -200,7 +200,7 @@ class FirebaseService {
         };
         
         // Save to Firestore using updateUser (simpler, no strict validation)
-        await this.updateUser(result.user.uid, userDoc);
+        userDoc = await this.updateUser(result.user.uid, newUserData);
       }
       
       this.currentUser = { 
@@ -248,12 +248,12 @@ class FirebaseService {
       };
       
       // Save to Firestore using updateUser (simpler, no strict validation)
-      await this.updateUser(credential.user.uid, userDoc);
+      const savedUser = await this.updateUser(credential.user.uid, userDoc);
       
       this.currentUser = { 
         uid: credential.user.uid,
         email: credential.user.email,
-        ...userDoc 
+        ...savedUser 
       };
       
       return { success: true, user: this.currentUser };
@@ -306,6 +306,7 @@ class FirebaseService {
           email: user.email,
           ...userDoc 
         };
+        // Ensure all timestamps are serialized before calling callback
         callback(this.currentUser);
       } else {
         this.currentUser = null;
@@ -323,7 +324,17 @@ class FirebaseService {
     
     try {
       const userDoc = await getDoc(doc(this.db, 'users', uid));
-      return userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : null;
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        // Convert Firebase Timestamps to strings for Redux serialization
+        return {
+          id: userDoc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+        };
+      }
+      return null;
     } catch (error) {
       console.error('Error getting user:', error);
       return null;
@@ -342,12 +353,20 @@ class FirebaseService {
     }
     
     try {
-      await setDoc(doc(this.db, 'users', userData.uid || userData.id), {
+      const userDocData = {
         ...userData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
-      });
-      return userData;
+      };
+      
+      await setDoc(doc(this.db, 'users', userData.uid || userData.id), userDocData);
+      
+      // Return the user data with serialized timestamps
+      return {
+        ...userData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
     } catch (error) {
       throw new Error(`Failed to create user: ${error.message}`);
     }
@@ -376,9 +395,19 @@ class FirebaseService {
       
       console.log('✅ setDoc completed successfully');
       
-      // Return updated user data
+      // Return updated user data with serialized timestamps
       const updatedDoc = await getDoc(userRef);
-      return updatedDoc.exists() ? { id: updatedDoc.id, ...updatedDoc.data() } : null;
+      if (updatedDoc.exists()) {
+        const data = updatedDoc.data();
+        // Convert Firebase Timestamps to strings for Redux serialization
+        return {
+          id: updatedDoc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+        };
+      }
+      return null;
     } catch (error) {
       console.error('❌ updateUser error details:', error);
       console.error('❌ Error stack:', error.stack);
