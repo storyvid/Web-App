@@ -91,10 +91,12 @@ const Login = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
-  // Clear errors when component mounts
+  // Don't clear errors on mount - let them persist to show login failures
+
+  // Debug error state changes
   useEffect(() => {
-    clearError();
-  }, [clearError]);
+    console.log('Error state changed:', error);
+  }, [error]);
 
   // Get redirect path from location state
   const from = location.state?.from?.pathname || '/dashboard';
@@ -132,7 +134,10 @@ const Login = () => {
       if (passwordError) setPasswordError('');
     }
     
-    // Don't clear global errors immediately - let user see them
+    // Clear auth errors when user starts typing again (they're probably fixing their input)
+    if (error && value.trim() !== '') {
+      clearError();
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -140,6 +145,7 @@ const Login = () => {
     
     // Clear any previous errors
     clearError();
+    console.log('Cleared error before login attempt');
     
     // Validate form
     const emailValidation = validateEmail(email);
@@ -158,7 +164,9 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
+      console.log('Attempting login with:', email);
       const result = await login(email, password);
+      console.log('Login result:', result);
       
       if (result.success) {
         // Check if user needs onboarding
@@ -167,8 +175,9 @@ const Login = () => {
         } else {
           navigate(from, { replace: true });
         }
+      } else {
+        console.log('Login failed, error should be in Redux state');
       }
-      // Login failed - error should be in Redux state
     } catch (err) {
       console.error('Login error:', err);
       // Error handling is managed by Redux and AuthContext
@@ -344,34 +353,37 @@ const Login = () => {
             </Typography>
           </Box>
 
-          <Fade in={!!error} timeout={300}>
-            <Box>
-              {error && (
-                <Alert 
-                  severity="error" 
-                  sx={{ mb: 3 }}
-                  onClose={() => clearError()}
-                >
-                  {getErrorMessage(error)}
-                  {error.code === 'auth/user-not-found' && (
-                    <Box sx={{ mt: 1 }}>
-                      <Link
-                        component="button"
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          navigate('/signup');
-                        }}
-                        sx={{ color: 'error.dark', textDecoration: 'underline' }}
-                      >
-                        Create an account
-                      </Link>
-                    </Box>
-                  )}
-                </Alert>
+          {error && (
+            <Alert 
+              severity="error" 
+              sx={{ mb: 3 }}
+              onClose={() => clearError()}
+            >
+              {getErrorMessage(error)}
+              {error.code === 'auth/user-not-found' && (
+                <Box sx={{ mt: 1 }}>
+                  <Link
+                    component="button"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/signup');
+                    }}
+                    sx={{ color: 'error.dark', textDecoration: 'underline' }}
+                  >
+                    Create an account
+                  </Link>
+                </Box>
               )}
-            </Box>
-          </Fade>
+            </Alert>
+          )}
+          
+          {/* Debug error display in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <Alert severity="info" sx={{ mb: 2, fontSize: '0.75rem' }}>
+              Debug - Error exists: {!!error ? 'YES' : 'NO'} | Error: {error ? JSON.stringify(error) : 'null'}
+            </Alert>
+          )}
           
 
 
