@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Paper, Button, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import RoleSelection from './RoleSelection';
 
@@ -19,8 +18,6 @@ const OnboardingFlow = () => {
   
   const user = useSelector(state => state.auth.user);
   const error = useSelector(state => state.ui.errors.global);
-
-  const steps = ['Choose Your Role'];
 
   const handleRoleSelect = async (role, companyName) => {
     if (!user?.uid) {
@@ -86,28 +83,6 @@ const OnboardingFlow = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 4 }}>
-      {/* Progress Stepper */}
-      <Box sx={{ maxWidth: 800, mx: 'auto', mb: 4, px: 3 }}>
-        <Paper sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6" color="text.primary">
-              Account Setup
-            </Typography>
-            <Button
-              variant="text"
-              startIcon={<ArrowBackIcon />}
-              onClick={handleSkipOnboarding}
-              sx={{ color: '#666' }}
-            >
-              Back to Login
-            </Button>
-          </Box>
-          <Typography variant="h5" align="center" sx={{ fontWeight: 500 }}>
-            {steps[0]}
-          </Typography>
-        </Paper>
-      </Box>
-
       {/* Step Content */}
       <Box>
         {renderStepContent()}
