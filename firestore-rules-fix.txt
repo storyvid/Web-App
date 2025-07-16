@@ -1,0 +1,68 @@
+FIRESTORE SECURITY RULES FIX
+============================
+
+The error "Missing or insufficient permissions" means your Firestore security rules 
+are blocking read/write operations.
+
+🔧 IMMEDIATE FIX - Update your Firestore Rules:
+
+1. Go to Firebase Console: https://console.firebase.google.com/
+2. Select your project (storyvid-d1792)
+3. Go to Firestore Database → Rules
+4. Replace your current rules with:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow authenticated users to read/write projects
+    match /projects/{projectId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to read/write notifications
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to read/write activities
+    match /activities/{activityId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow system documents (for migration tracking)
+    match /system/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow test documents (for debugging)
+    match /test/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow companies documents
+    match /companies/{companyId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+
+5. Click "Publish" to apply the rules
+
+🚨 IMPORTANT: These rules allow any authenticated user to read/write data.
+In production, you'll want more restrictive rules that check user roles and ownership.
+
+📋 AFTER UPDATING RULES:
+
+1. Go back to http://localhost:3000/debug
+2. Run "Run Force Migration" again
+3. Then test "Check Firestore Data"
+4. If successful, login as client@test.com and check dashboard
+
+The dummy data should now populate correctly!

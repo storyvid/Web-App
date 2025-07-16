@@ -1,0 +1,28 @@
+SIMPLE FIRESTORE RULES FOR TESTING
+===================================
+
+Try these VERY PERMISSIVE rules first to test if data works:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // TEMPORARY: Allow all read/write for testing
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+```
+
+⚠️  WARNING: These rules allow ANYONE to read/write ALL data.
+Only use for testing, then switch to secure rules!
+
+STEPS:
+1. Go to Firebase Console → Firestore Database → Rules
+2. Replace ALL existing rules with the above
+3. Click "Publish"
+4. Wait 30 seconds for propagation
+5. Test migration again
+
+If this works, we know it's a rules issue and can create proper secure rules.

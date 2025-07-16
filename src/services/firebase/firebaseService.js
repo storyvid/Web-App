@@ -773,36 +773,122 @@ class FirebaseService {
 
   // Milestone Methods
   async getMilestones(projectId = null) {
-    if (this.useMockData) {
-      const data = getRoleBasedData(this.currentUser?.role || 'client');
-      return projectId ? 
-        data.milestones.filter(m => m.projectId === projectId) : 
-        data.milestones;
+    try {
+      let milestonesQuery;
+      
+      if (projectId) {
+        milestonesQuery = query(
+          collection(this.db, 'milestones'),
+          where('projectId', '==', projectId),
+          orderBy('order', 'asc')
+        );
+      } else {
+        milestonesQuery = query(
+          collection(this.db, 'milestones'),
+          orderBy('dueDate', 'asc')
+        );
+      }
+
+      const snapshot = await getDocs(milestonesQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
+        dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate
+      }));
+    } catch (error) {
+      console.error('Error getting milestones:', error);
+      return [];
     }
-    
-    // TODO: Replace with Firestore query
-    // let query = collection(this.db, 'milestones');
-    // 
-    // if (projectId) {
-    //   query = query(query, where('projectId', '==', projectId));
-    // }
-    // 
-    // const snapshot = await getDocs(query);
-    // return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 
-  async createMilestone(milestoneData) {
-    const validation = validateSchema(milestoneData, MilestoneSchema);
-    if (!validation.isValid) {
-      throw new Error(`Invalid milestone data: ${validation.errors.join(', ')}`);
-    }
+  async createMilestone(projectId, milestoneData) {
+    try {
+      const docRef = doc(collection(this.db, 'milestones'));
+      const milestone = {
+        ...milestoneData,
+        projectId,
+        createdBy: this.currentUser?.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        status: milestoneData.status || 'pending',
+        revisionCount: 0,
+        maxRevisions: 2
+      };
 
-    if (this.useMockData) {
-      console.log('Mock: Creating milestone', milestoneData);
-      return { id: 'mock-milestone-id', ...milestoneData };
+      await setDoc(docRef, milestone);
+      
+      return {
+        id: docRef.id,
+        ...milestone,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error creating milestone:', error);
+      throw new Error(`Failed to create milestone: ${error.message}`);
     }
-    
-    // TODO: Replace with Firestore call
+  }
+
+  async updateMilestone(milestoneId, updates) {
+    try {
+      const milestoneRef = doc(this.db, 'milestones', milestoneId);
+      
+      await updateDoc(milestoneRef, {
+        ...updates,
+        updatedAt: serverTimestamp()
+      });
+
+      // Return updated milestone
+      const updatedDoc = await getDoc(milestoneRef);
+      if (updatedDoc.exists()) {
+        const data = updatedDoc.data();
+        return {
+          id: updatedDoc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+          dueDate: data.dueDate?.toDate?.()?.toISOString() || data.dueDate
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error updating milestone:', error);
+      throw new Error(`Failed to update milestone: ${error.message}`);
+    }
+  }
+
+  async deleteMilestone(milestoneId) {
+    try {
+      const { deleteDoc } = await import('firebase/firestore');
+      await deleteDoc(doc(this.db, 'milestones', milestoneId));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting milestone:', error);
+      throw new Error(`Failed to delete milestone: ${error.message}`);
+    }
+  }
+
+  async reorderMilestones(projectId, milestoneOrders) {
+    try {
+      const { writeBatch } = await import('firebase/firestore');
+      const batch = writeBatch(this.db);
+
+      for (const { id, order } of milestoneOrders) {
+        const milestoneRef = doc(this.db, 'milestones', id);
+        batch.update(milestoneRef, {
+          order,
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      await batch.commit();
+      return { success: true };
+    } catch (error) {
+      console.error('Error reordering milestones:', error);
+      throw new Error(`Failed to reorder milestones: ${error.message}`);
+    }
   }
 
   // Notification Methods
@@ -878,41 +964,196 @@ class FirebaseService {
   }
 
   // File/Asset Methods
-  async uploadFile(file, projectId = null, milestoneId = null) {
-    if (this.useMockData) {
-      console.log('Mock: Uploading file', file.name);
-      return {
-        id: 'mock-file-id',
-        name: file.name,
-        url: 'https://mock-url.com',
-        type: file.type,
-        size: file.size
+  async uploadFile(file, options = {}) {
+    try {
+      const {
+        projectId = null,
+        milestoneId = null,
+        category = 'general',
+        onProgress = null
+      } = options;
+
+      if (!this.currentUser) {
+        throw new Error('User must be authenticated to upload files');
+      }
+
+      // Generate unique file path
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const storagePath = `files/${this.currentUser.uid}/${timestamp}-${sanitizedFileName}`;
+      
+      // Create storage reference
+      const { ref, uploadBytes, uploadBytesResumable, getDownloadURL } = await import('firebase/storage');
+      const storageRef = ref(this.storage, storagePath);
+
+      // Upload file with progress tracking
+      let uploadTask;
+      if (onProgress) {
+        uploadTask = uploadBytesResumable(storageRef, file);
+        
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            onProgress(progress);
+          },
+          (error) => {
+            throw error;
+          }
+        );
+        
+        await uploadTask;
+      } else {
+        await uploadBytes(storageRef, file);
+      }
+
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Determine file type
+      const extension = file.name.split('.').pop().toLowerCase();
+      const typeMap = {
+        video: ['mp4', 'mov', 'avi', 'mkv', 'webm'],
+        document: ['pdf', 'doc', 'docx', 'txt'],
+        image: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+        audio: ['mp3', 'wav', 'aac', 'm4a']
       };
+      
+      let fileType = 'other';
+      for (const [type, extensions] of Object.entries(typeMap)) {
+        if (extensions.includes(extension)) {
+          fileType = type;
+          break;
+        }
+      }
+
+      // Create file document in Firestore
+      const fileData = {
+        name: file.name,
+        originalName: file.name,
+        size: file.size,
+        type: fileType,
+        mimeType: file.type,
+        downloadURL,
+        storagePath,
+        projectId,
+        milestoneId,
+        category,
+        uploadedBy: this.currentUser.uid,
+        uploadedByName: this.currentUser.name || this.currentUser.email,
+        isPublic: false,
+        downloadCount: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      const docRef = doc(collection(this.db, 'files'));
+      await setDoc(docRef, fileData);
+
+      return {
+        id: docRef.id,
+        ...fileData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw new Error(`Failed to upload file: ${error.message}`);
     }
-    
-    // TODO: Replace with Firebase Storage upload
-    // const storageRef = ref(this.storage, `files/${Date.now()}-${file.name}`);
-    // const snapshot = await uploadBytes(storageRef, file);
-    // const downloadUrl = await getDownloadURL(snapshot.ref);
-    // 
-    // const assetData = {
-    //   name: file.name,
-    //   originalName: file.name,
-    //   type: file.type.split('/')[0],
-    //   mimeType: file.type,
-    //   size: file.size,
-    //   storageUrl: downloadUrl,
-    //   storagePath: snapshot.ref.fullPath,
-    //   uploadedBy: this.currentUser.uid,
-    //   projectId,
-    //   milestoneId
-    // };
-    // 
-    // const docRef = await addDoc(collection(this.db, 'assets'), 
-    //   createDocumentWithTimestamps(assetData)
-    // );
-    // 
-    // return { id: docRef.id, ...assetData };
+  }
+
+  async getProjectFiles(projectId, options = {}) {
+    try {
+      const { category = null, type = null, limitCount = 100 } = options;
+
+      let filesQuery = query(
+        collection(this.db, 'files'),
+        where('projectId', '==', projectId),
+        orderBy('createdAt', 'desc')
+      );
+
+      if (category) {
+        filesQuery = query(filesQuery, where('category', '==', category));
+      }
+
+      if (type) {
+        filesQuery = query(filesQuery, where('type', '==', type));
+      }
+
+      if (limitCount) {
+        filesQuery = query(filesQuery, limit(limitCount));
+      }
+
+      const snapshot = await getDocs(filesQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
+      }));
+    } catch (error) {
+      console.error('Error getting project files:', error);
+      return [];
+    }
+  }
+
+  async getMilestoneFiles(milestoneId, options = {}) {
+    try {
+      const { type = null, limitCount = 50 } = options;
+
+      let filesQuery = query(
+        collection(this.db, 'files'),
+        where('milestoneId', '==', milestoneId),
+        orderBy('createdAt', 'desc')
+      );
+
+      if (type) {
+        filesQuery = query(filesQuery, where('type', '==', type));
+      }
+
+      if (limitCount) {
+        filesQuery = query(filesQuery, limit(limitCount));
+      }
+
+      const snapshot = await getDocs(filesQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
+      }));
+    } catch (error) {
+      console.error('Error getting milestone files:', error);
+      return [];
+    }
+  }
+
+  async downloadFile(fileId) {
+    try {
+      const fileDoc = await getDoc(doc(this.db, 'files', fileId));
+      
+      if (!fileDoc.exists()) {
+        throw new Error('File not found');
+      }
+
+      const fileData = fileDoc.data();
+      
+      // Track the download
+      await updateDoc(doc(this.db, 'files', fileId), {
+        downloadCount: (fileData.downloadCount || 0) + 1,
+        lastDownloadAt: serverTimestamp(),
+        lastDownloadBy: this.currentUser?.uid
+      });
+
+      return {
+        downloadURL: fileData.downloadURL,
+        fileName: fileData.name,
+        size: fileData.size,
+        type: fileData.type
+      };
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      throw new Error(`Failed to download file: ${error.message}`);
+    }
   }
 
   // Profile picture upload

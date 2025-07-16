@@ -347,10 +347,16 @@ class DataMigrationService {
   }
 
   getClientDummyData(userEmail, userId, baseData) {
+    const projectIds = [
+      `client-project-1-${userId}`,
+      `client-project-2-${userId}`,
+      `client-project-3-${userId}`
+    ];
+
     return {
       projects: [
         {
-          id: `client-project-1-${userId}`,
+          id: projectIds[0],
           name: 'Company Intro Video',
           client: 'TechCorp Inc',
           status: 'in-review',
@@ -366,7 +372,7 @@ class DataMigrationService {
           ...baseData
         },
         {
-          id: `client-project-2-${userId}`,
+          id: projectIds[1],
           name: 'Product Demo Series',
           client: 'TechCorp Inc',
           status: 'completed',
@@ -381,7 +387,7 @@ class DataMigrationService {
           ...baseData
         },
         {
-          id: `client-project-3-${userId}`,
+          id: projectIds[2],
           name: 'Social Media Campaign',
           client: 'TechCorp Inc',
           status: 'in-production',
@@ -393,6 +399,212 @@ class DataMigrationService {
           action: 'In Progress',
           projectType: 'Social Media',
           deliverables: ['Instagram reels', 'TikTok videos'],
+          ...baseData
+        }
+      ],
+      milestones: [
+        // Company Intro Video milestones
+        {
+          id: `client-milestone-1-${userId}`,
+          projectId: projectIds[0],
+          title: 'Script Review & Approval',
+          description: 'Review and approve the video script and storyboard',
+          status: 'completed',
+          dueDate: new Date('2025-01-15').toISOString(),
+          completedAt: new Date('2025-01-14').toISOString(),
+          order: 0,
+          assignedTo: userId,
+          revisionCount: 1,
+          maxRevisions: 2,
+          ...baseData
+        },
+        {
+          id: `client-milestone-2-${userId}`,
+          projectId: projectIds[0],
+          title: 'First Draft Review',
+          description: 'Review the first cut of the video and provide feedback',
+          status: 'in_review',
+          dueDate: new Date('2025-01-23').toISOString(),
+          order: 1,
+          assignedTo: userId,
+          revisionCount: 0,
+          maxRevisions: 2,
+          ...baseData
+        },
+        {
+          id: `client-milestone-3-${userId}`,
+          projectId: projectIds[0],
+          title: 'Final Approval',
+          description: 'Final review and approval for video delivery',
+          status: 'pending',
+          dueDate: new Date('2025-01-30').toISOString(),
+          order: 2,
+          assignedTo: userId,
+          revisionCount: 0,
+          maxRevisions: 2,
+          ...baseData
+        },
+        // Product Demo Series milestones (completed project)
+        {
+          id: `client-milestone-4-${userId}`,
+          projectId: projectIds[1],
+          title: 'Demo 1 - Product Overview',
+          description: 'Complete overview demo video',
+          status: 'completed',
+          dueDate: new Date('2024-12-15').toISOString(),
+          completedAt: new Date('2024-12-14').toISOString(),
+          order: 0,
+          assignedTo: userId,
+          revisionCount: 0,
+          maxRevisions: 2,
+          ...baseData
+        },
+        {
+          id: `client-milestone-5-${userId}`,
+          projectId: projectIds[1],
+          title: 'Demo 2 - Feature Deep Dive',
+          description: 'Detailed feature demonstration',
+          status: 'completed',
+          dueDate: new Date('2024-12-22').toISOString(),
+          completedAt: new Date('2024-12-21').toISOString(),
+          order: 1,
+          assignedTo: userId,
+          revisionCount: 1,
+          maxRevisions: 2,
+          ...baseData
+        },
+        // Social Media Campaign milestones
+        {
+          id: `client-milestone-6-${userId}`,
+          projectId: projectIds[2],
+          title: 'Content Strategy Approval',
+          description: 'Approve social media content strategy and themes',
+          status: 'completed',
+          dueDate: new Date('2025-01-20').toISOString(),
+          completedAt: new Date('2025-01-19').toISOString(),
+          order: 0,
+          assignedTo: userId,
+          revisionCount: 0,
+          maxRevisions: 2,
+          ...baseData
+        },
+        {
+          id: `client-milestone-7-${userId}`,
+          projectId: projectIds[2],
+          title: 'First Batch Review',
+          description: 'Review first batch of social media content',
+          status: 'in_progress',
+          dueDate: new Date('2025-02-10').toISOString(),
+          order: 1,
+          assignedTo: userId,
+          revisionCount: 0,
+          maxRevisions: 2,
+          ...baseData
+        }
+      ],
+      files: [
+        // Company Intro Video files
+        {
+          id: `client-file-1-${userId}`,
+          name: 'company_intro_script_v2.pdf',
+          originalName: 'company_intro_script_v2.pdf',
+          size: 245760,
+          type: 'document',
+          mimeType: 'application/pdf',
+          downloadURL: 'https://example.com/files/company_intro_script_v2.pdf',
+          storagePath: `files/${userId}/company_intro_script_v2.pdf`,
+          projectId: projectIds[0],
+          milestoneId: `client-milestone-1-${userId}`,
+          category: 'script',
+          uploadedByName: 'Jordan Staff',
+          isPublic: false,
+          downloadCount: 3,
+          ...baseData
+        },
+        {
+          id: `client-file-2-${userId}`,
+          name: 'company_intro_first_draft.mp4',
+          originalName: 'company_intro_first_draft.mp4',
+          size: 52428800,
+          type: 'video',
+          mimeType: 'video/mp4',
+          downloadURL: 'https://example.com/files/company_intro_first_draft.mp4',
+          storagePath: `files/${userId}/company_intro_first_draft.mp4`,
+          projectId: projectIds[0],
+          milestoneId: `client-milestone-2-${userId}`,
+          category: 'draft',
+          uploadedByName: 'Jordan Staff',
+          isPublic: false,
+          downloadCount: 1,
+          ...baseData
+        },
+        // Product Demo Series files (completed)
+        {
+          id: `client-file-3-${userId}`,
+          name: 'product_demo_overview_final.mp4',
+          originalName: 'product_demo_overview_final.mp4',
+          size: 78643200,
+          type: 'video',
+          mimeType: 'video/mp4',
+          downloadURL: 'https://example.com/files/product_demo_overview_final.mp4',
+          storagePath: `files/${userId}/product_demo_overview_final.mp4`,
+          projectId: projectIds[1],
+          milestoneId: `client-milestone-4-${userId}`,
+          category: 'final',
+          uploadedByName: 'Sarah Designer',
+          isPublic: false,
+          downloadCount: 8,
+          ...baseData
+        },
+        {
+          id: `client-file-4-${userId}`,
+          name: 'product_demo_features_final.mp4',
+          originalName: 'product_demo_features_final.mp4',
+          size: 94371840,
+          type: 'video',
+          mimeType: 'video/mp4',
+          downloadURL: 'https://example.com/files/product_demo_features_final.mp4',
+          storagePath: `files/${userId}/product_demo_features_final.mp4`,
+          projectId: projectIds[1],
+          milestoneId: `client-milestone-5-${userId}`,
+          category: 'final',
+          uploadedByName: 'Sarah Designer',
+          isPublic: false,
+          downloadCount: 12,
+          ...baseData
+        },
+        // Social Media Campaign files
+        {
+          id: `client-file-5-${userId}`,
+          name: 'social_media_strategy.pdf',
+          originalName: 'social_media_strategy.pdf',
+          size: 1572864,
+          type: 'document',
+          mimeType: 'application/pdf',
+          downloadURL: 'https://example.com/files/social_media_strategy.pdf',
+          storagePath: `files/${userId}/social_media_strategy.pdf`,
+          projectId: projectIds[2],
+          milestoneId: `client-milestone-6-${userId}`,
+          category: 'strategy',
+          uploadedByName: 'Mike Creative',
+          isPublic: false,
+          downloadCount: 2,
+          ...baseData
+        },
+        {
+          id: `client-file-6-${userId}`,
+          name: 'brand_assets.zip',
+          originalName: 'brand_assets.zip',
+          size: 15728640,
+          type: 'other',
+          mimeType: 'application/zip',
+          downloadURL: 'https://example.com/files/brand_assets.zip',
+          storagePath: `files/${userId}/brand_assets.zip`,
+          projectId: projectIds[2],
+          category: 'assets',
+          uploadedByName: 'Sam Client',
+          isPublic: false,
+          downloadCount: 1,
           ...baseData
         }
       ],
@@ -504,7 +716,9 @@ class DataMigrationService {
         console.log(`📊 Generated data for ${account.email}:`, {
           projects: dummyData.projects.length,
           notifications: dummyData.notifications.length,
-          activities: dummyData.activities.length
+          activities: dummyData.activities.length,
+          milestones: dummyData.milestones?.length || 0,
+          files: dummyData.files?.length || 0
         });
 
         const batch = writeBatch(firebaseService.db);
@@ -537,9 +751,31 @@ class DataMigrationService {
           });
         });
 
+        // Add milestones
+        if (dummyData.milestones) {
+          dummyData.milestones.forEach(milestone => {
+            const milestoneRef = doc(collection(firebaseService.db, 'milestones'));
+            batch.set(milestoneRef, {
+              ...milestone,
+              createdBy: userId
+            });
+          });
+        }
+
+        // Add files
+        if (dummyData.files) {
+          dummyData.files.forEach(file => {
+            const fileRef = doc(collection(firebaseService.db, 'files'));
+            batch.set(fileRef, {
+              ...file,
+              uploadedBy: userId
+            });
+          });
+        }
+
         await batch.commit();
         console.log(`✅ Populated data for ${account.email} (UID: ${userId})`);
-        console.log(`📊 Batch committed with ${dummyData.projects.length + dummyData.notifications.length + dummyData.activities.length} total documents`);
+        console.log(`📊 Batch committed with ${(dummyData.projects.length + dummyData.notifications.length + dummyData.activities.length + (dummyData.milestones?.length || 0) + (dummyData.files?.length || 0))} total documents`);
 
       } catch (error) {
         console.error(`❌ Error populating data for ${account.email}:`, error);

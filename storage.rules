@@ -1,0 +1,99 @@
+// Firebase Storage Security Rules for StoryVid Client Portal
+// These rules secure file uploads and downloads based on user authentication and permissions
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user has admin role
+    function isAdmin() {
+      return request.auth.token.role == 'admin';
+    }
+    
+    // Helper function to check if user has staff role
+    function isStaff() {
+      return request.auth.token.role == 'staff';
+    }
+    
+    // Helper function to check file size (max 100MB)
+    function isValidFileSize() {
+      return request.resource.size <= 100 * 1024 * 1024;
+    }
+    
+    // Helper function to check allowed file types
+    function isAllowedFileType() {
+      return request.resource.contentType.matches('video/.*') ||
+             request.resource.contentType.matches('image/.*') ||
+             request.resource.contentType.matches('audio/.*') ||
+             request.resource.contentType == 'application/pdf' ||
+             request.resource.contentType.matches('application/.*document.*') ||
+             request.resource.contentType == 'text/plain' ||
+             request.resource.contentType == 'application/zip';
+    }
+    
+    // Profile pictures - users can upload/update their own
+    match /profile-pictures/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      (isOwner(userId) || isAdmin()) &&
+                      isValidFileSize() &&
+                      request.resource.contentType.matches('image/.*');
+    }
+    
+    // Project files - organized by user who uploaded them
+    match /files/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      (isOwner(userId) || isAdmin() || isStaff()) &&
+                      isValidFileSize() &&
+                      isAllowedFileType();
+      allow delete: if isAuthenticated() && 
+                       (isOwner(userId) || isAdmin());
+    }
+    
+    // Shared project assets - accessible by all authenticated users
+    match /shared/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      (isAdmin() || isStaff()) &&
+                      isValidFileSize() &&
+                      isAllowedFileType();
+      allow delete: if isAdmin();
+    }
+    
+    // Company assets - accessible by company members
+    match /companies/{companyId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      (isAdmin() || isStaff()) &&
+                      isValidFileSize() &&
+                      isAllowedFileType();
+      allow delete: if isAdmin();
+    }
+    
+    // Temporary uploads - for processing before moving to final location
+    match /temp/{userId}/{allPaths=**} {
+      allow read, write: if isAuthenticated() && 
+                            isOwner(userId) &&
+                            isValidFileSize() &&
+                            isAllowedFileType();
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // Default deny rule for any other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
