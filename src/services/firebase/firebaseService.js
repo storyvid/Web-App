@@ -1156,6 +1156,38 @@ class FirebaseService {
     }
   }
 
+  async deleteFile(fileId) {
+    try {
+      // Get file document first
+      const fileDoc = await getDoc(doc(this.db, 'files', fileId));
+      
+      if (!fileDoc.exists()) {
+        throw new Error('File not found');
+      }
+
+      const fileData = fileDoc.data();
+
+      // Check permissions - only uploader or admin can delete
+      if (fileData.uploadedBy !== this.currentUser?.uid && this.currentUser?.role !== 'admin') {
+        throw new Error('Permission denied: You can only delete your own files');
+      }
+
+      // Delete from Firebase Storage
+      const { ref, deleteObject } = await import('firebase/storage');
+      const storageRef = ref(this.storage, fileData.storagePath);
+      await deleteObject(storageRef);
+
+      // Delete from Firestore
+      const { deleteDoc } = await import('firebase/firestore');
+      await deleteDoc(doc(this.db, 'files', fileId));
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      throw new Error(`Failed to delete file: ${error.message}`);
+    }
+  }
+
   // Profile picture upload
   async uploadProfilePicture(uid, file) {
 
