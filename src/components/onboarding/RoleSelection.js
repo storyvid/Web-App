@@ -69,19 +69,6 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
 
   return (
     <Container maxWidth="xl" sx={{ py: { xs: 2, md: 3 }, minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      {!showCompanyForm && (
-        <Box sx={{ textAlign: 'center', mb: { xs: 3, md: 4 } }}>
-          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
-            Welcome to StoryVid
-          </Typography>
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-            Choose your role to get started
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-            We'll customize your dashboard and features based on how you plan to use StoryVid
-          </Typography>
-        </Box>
-      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
