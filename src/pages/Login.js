@@ -93,10 +93,6 @@ const Login = () => {
 
   // Don't clear errors on mount - let them persist to show login failures
 
-  // Debug error state changes
-  useEffect(() => {
-    console.log('Error state changed:', error);
-  }, [error]);
 
   // Get redirect path from location state
   const from = location.state?.from?.pathname || '/dashboard';
@@ -145,7 +141,6 @@ const Login = () => {
     
     // Clear any previous errors
     clearError();
-    console.log('Cleared error before login attempt');
     
     // Validate form
     const emailValidation = validateEmail(email);
@@ -164,9 +159,7 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('Attempting login with:', email);
       const result = await login(email, password);
-      console.log('Login result:', result);
       
       if (result.success) {
         // Check if user needs onboarding
@@ -175,9 +168,8 @@ const Login = () => {
         } else {
           navigate(from, { replace: true });
         }
-      } else {
-        console.log('Login failed, error should be in Redux state');
       }
+      // Login failed - error should be in Redux state
     } catch (err) {
       console.error('Login error:', err);
       // Error handling is managed by Redux and AuthContext
@@ -378,12 +370,6 @@ const Login = () => {
             </Alert>
           )}
           
-          {/* Debug error display in development */}
-          {process.env.NODE_ENV === 'development' && (
-            <Alert severity="info" sx={{ mb: 2, fontSize: '0.75rem' }}>
-              Debug - Error exists: {!!error ? 'YES' : 'NO'} | Error: {error ? JSON.stringify(error) : 'null'}
-            </Alert>
-          )}
           
 
 
