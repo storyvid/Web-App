@@ -17,6 +17,17 @@ class DataMigrationService {
   constructor() {
     this.dummyPassword = '123456789';
     this.migrationComplete = false;
+    
+    // Ensure we never use mock data for dummy accounts
+    this.ensureFirebaseMode();
+  }
+
+  // Ensure Firebase service is in real mode
+  ensureFirebaseMode() {
+    if (firebaseService.useMockData) {
+      console.log('🔧 Switching Firebase service to real mode for dummy accounts');
+      firebaseService.useMockData = false;
+    }
   }
 
   // Check if migration has already been completed

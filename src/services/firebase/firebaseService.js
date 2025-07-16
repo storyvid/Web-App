@@ -56,7 +56,7 @@ import getFirebaseConfig from './firebaseConfig';
 
 class FirebaseService {
   constructor() {
-    this.useMockData = false; // Use real Firebase
+    this.useMockData = false; // Always use real Firebase - no more mock mode
     this.currentUser = null;
     this.app = null;
     this.db = null;
@@ -67,11 +67,6 @@ class FirebaseService {
 
   // Initialize Firebase
   async initialize() {
-    if (this.useMockData) {
-      console.log('Using mock data - Firebase not initialized');
-      return;
-    }
-    
     try {
       const config = getFirebaseConfig();
       this.app = initializeApp(config);
@@ -83,65 +78,12 @@ class FirebaseService {
       console.log('Firebase initialized successfully');
     } catch (error) {
       console.error('Firebase initialization error:', error);
-      // Fallback to mock data if Firebase fails
-      this.useMockData = true;
-      console.log('Switched to mock data due to Firebase init error');
+      throw new Error('Firebase initialization failed. Please check your configuration.');
     }
   }
 
   // Authentication Methods
   async signIn(email, password) {
-    if (this.useMockData) {
-      // Simulate the mock authentication
-      const mockUsers = {
-        'client@test.com': { 
-          uid: 'client-uid-1',
-          email: 'client@test.com',
-          name: 'Alex Client',
-          role: 'client',
-          company: 'Tech Innovators Inc',
-          accountType: 'Premium Client',
-          onboardingComplete: false // Start without onboarding
-        },
-        'staff@test.com': { 
-          uid: 'staff-uid-1',
-          email: 'staff@test.com',
-          name: 'Jordan Staff',
-          role: 'staff',
-          company: 'StoryVid Team',
-          accountType: 'Video Editor',
-          onboardingComplete: false // Start without onboarding
-        },
-        'admin@test.com': { 
-          uid: 'admin-uid-1',
-          email: 'admin@test.com',
-          name: 'Sam Admin',
-          role: 'admin',
-          company: 'StoryVid',
-          accountType: 'Production Manager',
-          onboardingComplete: false // Start without onboarding
-        },
-        'demo@test.com': { 
-          uid: 'demo-uid-1',
-          email: 'demo@test.com',
-          name: 'Demo User',
-          role: 'client',
-          company: 'Demo Company',
-          accountType: 'Demo Client',
-          onboardingComplete: true // Already completed onboarding
-        }
-      };
-      
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
-      
-      const user = mockUsers[email];
-      if (user && password) {
-        this.currentUser = user;
-        return { success: true, user };
-      }
-      throw new Error('Invalid credentials');
-    }
-    
     if (!this.auth) {
       throw new Error('Authentication service not initialized');
     }
@@ -162,23 +104,6 @@ class FirebaseService {
 
   // Google Sign-In
   async signInWithGoogle() {
-    if (this.useMockData) {
-      // Mock Google sign-in
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockGoogleUser = {
-        uid: 'google-user-1',
-        email: 'test.google@gmail.com',
-        name: 'Google Test User',
-        role: null, // Will require onboarding
-        company: null,
-        accountType: null,
-        onboardingComplete: false,
-        authProvider: 'google'
-      };
-      this.currentUser = mockGoogleUser;
-      return { success: true, user: mockGoogleUser };
-    }
-
     try {
       const provider = new GoogleAuthProvider();
       provider.addScope('email');
@@ -220,22 +145,6 @@ class FirebaseService {
 
   // Create User Account
   async createUserWithEmailAndPassword(name, email, password) {
-    if (this.useMockData) {
-      // Mock user creation
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const mockUser = {
-        uid: `user-${Date.now()}`,
-        email: email,
-        name: name,
-        role: null,
-        onboardingComplete: false,
-        authProvider: 'email',
-        createdAt: new Date().toISOString()
-      };
-      this.currentUser = mockUser;
-      return { success: true, user: mockUser };
-    }
-
     try {
       const credential = await createUserWithEmailAndPassword(this.auth, email, password);
       
@@ -267,13 +176,6 @@ class FirebaseService {
 
   // Password Reset
   async sendPasswordResetEmail(email) {
-    if (this.useMockData) {
-      // Mock password reset
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Mock password reset email sent to:', email);
-      return { success: true };
-    }
-
     try {
       await sendPasswordResetEmail(this.auth, email);
       return { success: true };
@@ -284,22 +186,12 @@ class FirebaseService {
   }
 
   async signOut() {
-    if (this.useMockData) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      this.currentUser = null;
-      return;
-    }
-    
     await signOut(this.auth);
     this.currentUser = null;
   }
 
   // Set up auth state listener
   onAuthStateChanged(callback) {
-    if (this.useMockData) {
-      return () => {}; // Return empty unsubscribe function
-    }
-    
     return onAuthStateChanged(this.auth, async (user) => {
       if (user) {
         const userDoc = await this.getUser(user.uid);
@@ -319,11 +211,6 @@ class FirebaseService {
 
   // User Methods
   async getUser(uid) {
-    if (this.useMockData) {
-      // Return mock user data
-      return this.currentUser;
-    }
-    
     try {
       const userDoc = await getDoc(doc(this.db, 'users', uid));
       if (userDoc.exists()) {
@@ -348,11 +235,6 @@ class FirebaseService {
     if (!validation.isValid) {
       throw new Error(`Invalid user data: ${validation.errors.join(', ')}`);
     }
-
-    if (this.useMockData) {
-      console.log('Mock: Creating user', userData);
-      return { id: 'mock-user-id', ...userData };
-    }
     
     try {
       const userDocData = {
@@ -376,14 +258,6 @@ class FirebaseService {
 
   async updateUser(uid, updates) {
     console.log('📝 updateUser called with:', { uid, updates });
-    
-    if (this.useMockData) {
-      console.log('Mock: Updating user', uid, updates);
-      // Update the current user with new data
-      this.currentUser = { ...this.currentUser, ...updates };
-      console.log('Mock: Updated current user:', this.currentUser);
-      return this.currentUser;
-    }
 
     try {
       const userRef = doc(this.db, 'users', uid);
@@ -445,11 +319,6 @@ class FirebaseService {
       throw new Error(`Invalid ${baseUserData.role} profile: ${profileValidation.errors.join(', ')}`);
     }
 
-    if (this.useMockData) {
-      console.log('Mock: Creating role-based user', baseUserData.role, roleProfileData);
-      const mockUser = createRoleBasedUserDocument(baseUserData, roleProfileData);
-      return { id: 'mock-user-id', ...mockUser };
-    }
 
     try {
       // Create complete user document with role-specific profile
@@ -481,10 +350,6 @@ class FirebaseService {
 
   // Company management methods
   async createOrUpdateCompany(companyData, adminUid) {
-    if (this.useMockData) {
-      console.log('Mock: Creating/updating company', companyData);
-      return 'mock-company-id';
-    }
 
     try {
       // Check if company already exists for this admin
@@ -527,10 +392,6 @@ class FirebaseService {
   }
 
   async validateCompanyCode(companyCode) {
-    if (this.useMockData) {
-      console.log('Mock: Validating company code', companyCode);
-      return 'mock-company-id';
-    }
 
     try {
       const companyQuery = query(
@@ -612,11 +473,6 @@ class FirebaseService {
 
   // Dashboard Data Methods
   async getDashboardData(userRole, userId) {
-    if (this.useMockData) {
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate loading
-      return getRoleBasedData(userRole);
-    }
-    
     try {
       // Get user-specific data from Firestore
       const [projects, notifications, activities] = await Promise.all([
@@ -637,18 +493,19 @@ class FirebaseService {
       };
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      // Fallback to mock data on error
-      return getRoleBasedData(userRole);
+      // Return empty data structure if Firebase fails
+      return {
+        user: this.currentUser,
+        projects: [],
+        notifications: [],
+        activities: [],
+        stats: this.calculateUserStats([], [], userRole)
+      };
     }
   }
 
   // Get user-specific projects
   async getUserProjects(userId) {
-    if (this.useMockData) {
-      const data = getRoleBasedData(this.currentUser?.role || 'client');
-      return data.projects;
-    }
-
     try {
       let projectsQuery;
       const userRole = this.currentUser?.role;
@@ -689,11 +546,6 @@ class FirebaseService {
 
   // Get user notifications
   async getUserNotifications(userId, limit = 20) {
-    if (this.useMockData) {
-      const data = getRoleBasedData(this.currentUser?.role || 'client');
-      return data.notifications;
-    }
-
     try {
       const notificationsQuery = query(
         collection(this.db, 'notifications'),
@@ -716,11 +568,6 @@ class FirebaseService {
 
   // Get user activities
   async getUserActivities(userId, limit = 10) {
-    if (this.useMockData) {
-      const data = getRoleBasedData(this.currentUser?.role || 'client');
-      return data.activities;
-    }
-
     try {
       const activitiesQuery = query(
         collection(this.db, 'activities'),
@@ -1019,16 +866,6 @@ class FirebaseService {
 
   // Profile picture upload
   async uploadProfilePicture(uid, file) {
-    if (this.useMockData) {
-      console.log('Mock: Uploading profile picture for', uid);
-      // Create a mock blob URL for testing
-      const mockUrl = URL.createObjectURL(file);
-      return {
-        downloadURL: mockUrl,
-        fileName: file.name,
-        size: file.size
-      };
-    }
 
     try {
       // TODO: Implement Firebase Storage upload for profile pictures
@@ -1064,11 +901,6 @@ class FirebaseService {
 
   // Change user password
   async changePassword(currentPassword, newPassword) {
-    if (this.useMockData) {
-      console.log('Mock: Changing password');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
-    }
 
     try {
       const { updatePassword, reauthenticateWithCredential, EmailAuthProvider } = await import('firebase/auth');
