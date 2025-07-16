@@ -358,7 +358,7 @@ export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAll
 };
 
 // Project Card Component
-export const ProjectCard = ({ project }) => {
+export const ProjectCard = ({ project, onClick }) => {
   const statusColors = {
     'in-review': {
       bg: 'warning.50',
@@ -375,7 +375,19 @@ export const ProjectCard = ({ project }) => {
   const status = statusColors[project.status] || statusColors['in-production'];
   
   return (
-    <Card sx={styles.projectCard}>
+    <Card 
+      sx={{
+        ...styles.projectCard,
+        cursor: onClick ? 'pointer' : 'default',
+        '&:hover': {
+          ...(onClick && {
+            transform: 'translateY(-2px)',
+            boxShadow: 3
+          })
+        }
+      }}
+      onClick={() => onClick && onClick(project)}
+    >
       <CardContent>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
           <Box flex={1}>

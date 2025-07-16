@@ -16,6 +16,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
+import ProjectDetail from './pages/ProjectDetail';
 import Settings from './pages/Settings';
 import Unauthorized from './pages/Unauthorized';
 import FirebaseTest from './components/FirebaseTest';
@@ -75,6 +76,16 @@ function App() {
                       <ProtectedRoute>
                         <ErrorBoundary>
                           <Dashboard />
+                        </ErrorBoundary>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/project/:projectId"
+                    element={
+                      <ProtectedRoute>
+                        <ErrorBoundary>
+                          <ProjectDetail />
                         </ErrorBoundary>
                       </ProtectedRoute>
                     }

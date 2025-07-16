@@ -26,6 +26,8 @@ import {
   TeamSection, 
   ActivityItem 
 } from '../components/DashboardComponents';
+import MilestoneWidget from '../components/dashboard/MilestoneWidget';
+import RecentFilesWidget from '../components/dashboard/RecentFilesWidget';
 
 
 // Main Dashboard Component
@@ -114,6 +116,10 @@ const Dashboard = () => {
   const handleSeeAllClick = (section) => {
     console.log('See all clicked for:', section);
     // Add navigation logic to detailed view
+  };
+
+  const handleProjectClick = (project) => {
+    navigate(`/project/${project.id}`);
   };
 
   const handleMobileMenuClick = () => {
@@ -243,12 +249,39 @@ const Dashboard = () => {
                 
                 <Box sx={styles.projectsGrid}>
                   {data.projects.map(project => (
-                    <ProjectCard key={project.id} project={project} />
+                    <ProjectCard 
+                      key={project.id} 
+                      project={project} 
+                      onClick={handleProjectClick}
+                    />
                   ))}
                 </Box>
               </Box>
               
-              {/* Milestones section removed */}
+              {/* Milestone and Files Widgets */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 3, mb: 4 }}>
+                <MilestoneWidget
+                  title="Upcoming Milestones"
+                  maxItems={4}
+                  showProjectName={true}
+                  onMilestoneClick={(milestone) => {
+                    navigate(`/project/${milestone.projectId}?tab=1`);
+                  }}
+                />
+                
+                <RecentFilesWidget
+                  title="Recent Files"
+                  maxItems={4}
+                  showProjectName={true}
+                  onFileClick={(file) => {
+                    navigate(`/project/${file.projectId}?tab=2`);
+                  }}
+                  onViewAll={() => {
+                    // Navigate to a general files page or dashboard with files focus
+                    console.log('Navigate to all files');
+                  }}
+                />
+              </Box>
             </Box>
             
             {/* Right sidebar hidden */}
