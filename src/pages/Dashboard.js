@@ -10,7 +10,12 @@ import {
 } from '@mui/material';
 import {
   Folder as FolderIcon,
-  CheckCircle as CheckCircleIcon
+  CheckCircle as CheckCircleIcon,
+  Assignment as AssignmentIcon,
+  Schedule as ScheduleIcon,
+  People as PeopleIcon,
+  PlayCircle as PlayCircleIcon,
+  Notifications as NotificationsIcon
 } from '@mui/icons-material';
 import { theme, styles } from './dashboardStyles';
 import { useAuth } from '../contexts/AuthContext';
@@ -95,8 +100,7 @@ const Dashboard = () => {
         navigate('/settings');
         break;
       case 'projects':
-        // TODO: Add projects page
-        console.log('Projects page not implemented yet');
+        navigate('/projects');
         break;
       case 'assets':
         // TODO: Add assets page
@@ -115,7 +119,27 @@ const Dashboard = () => {
 
   const handleSeeAllClick = (section) => {
     console.log('See all clicked for:', section);
-    // Add navigation logic to detailed view
+    
+    // Navigate to appropriate pages based on section
+    switch (section) {
+      case 'current-productions':
+      case 'myProjects':
+      case 'assignedTasks':
+      case 'activeProjects':
+        navigate('/projects');
+        break;
+      case 'pendingApprovals':
+        // TODO: Navigate to approvals page or filter projects by pending approvals
+        navigate('/projects?filter=pending-approvals');
+        break;
+      case 'upcomingDeadlines':
+        // TODO: Navigate to deadlines page or filter projects by upcoming deadlines
+        navigate('/projects?filter=upcoming-deadlines');
+        break;
+      default:
+        navigate('/projects');
+        break;
+    }
   };
 
   const handleProjectClick = (project) => {
@@ -146,7 +170,8 @@ const Dashboard = () => {
       admin: [
         { key: 'totalClients', title: 'Total Clients', subtitle: 'active' },
         { key: 'activeProjects', title: 'Active Projects', subtitle: 'in progress' },
-        { key: 'teamMembers', title: 'Team Members', subtitle: 'available' }
+        { key: 'pendingApprovals', title: 'Pending Approvals', subtitle: 'awaiting review' },
+        { key: 'upcomingDeadlines', title: 'Upcoming Deadlines', subtitle: 'this week' }
       ]
     };
     return configs[role] || configs.client;
@@ -220,17 +245,38 @@ const Dashboard = () => {
               </Box>
               
               <Box sx={styles.statsGrid}>
-                {statsConfig.map((stat, index) => (
-                  <StatsCard
-                    key={stat.key}
-                    icon={index === 0 ? FolderIcon : index === 1 ? CheckCircleIcon : FolderIcon}
-                    title={stat.title}
-                    value={data.stats[stat.key]}
-                    subtitle={stat.subtitle}
-                    seeAll
-                    onSeeAllClick={() => handleSeeAllClick(stat.key)}
-                  />
-                ))}
+                {statsConfig.map((stat, index) => {
+                  // Enhanced icon mapping for different stat types
+                  const getStatIcon = (statKey) => {
+                    const iconMap = {
+                      myProjects: FolderIcon,
+                      pendingApprovals: NotificationsIcon,
+                      deliveredVideos: PlayCircleIcon,
+                      assignedTasks: AssignmentIcon,
+                      completedToday: CheckCircleIcon,
+                      upcomingDeadlines: ScheduleIcon,
+                      totalClients: PeopleIcon,
+                      activeProjects: FolderIcon,
+                      teamMembers: PeopleIcon
+                    };
+                    return iconMap[statKey] || FolderIcon;
+                  };
+
+                  const StatIcon = getStatIcon(stat.key);
+                  
+                  return (
+                    <StatsCard
+                      key={stat.key}
+                      icon={StatIcon}
+                      title={stat.title}
+                      value={data.stats[stat.key]}
+                      subtitle={stat.subtitle}
+                      seeAll
+                      onSeeAllClick={() => handleSeeAllClick(stat.key)}
+                      statKey={stat.key}
+                    />
+                  );
+                })}
               </Box>
               
               <Box mb={4}>

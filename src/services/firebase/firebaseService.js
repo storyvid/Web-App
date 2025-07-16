@@ -56,7 +56,7 @@ import getFirebaseConfig from './firebaseConfig';
 
 class FirebaseService {
   constructor() {
-    this.useMockData = false; // Always use real Firebase - no more mock mode
+    this.useMockData = true; // Temporarily use mock data to show file activity features
     this.currentUser = null;
     this.app = null;
     this.db = null;
@@ -965,6 +965,53 @@ class FirebaseService {
 
   // File/Asset Methods
   async uploadFile(file, options = {}) {
+    // Handle mock data mode
+    if (this.useMockData) {
+      console.log('Mock: Uploading file', file.name);
+      
+      // Simulate upload progress
+      const { onProgress } = options;
+      if (onProgress) {
+        const simulateProgress = () => {
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += 10;
+            onProgress(progress);
+            if (progress >= 100) {
+              clearInterval(interval);
+            }
+          }, 100);
+        };
+        simulateProgress();
+      }
+      
+      // Simulate delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Return mock file data
+      return {
+        id: `mock-file-${Date.now()}`,
+        name: file.name,
+        originalName: file.name,
+        size: file.size,
+        type: file.type.startsWith('video/') ? 'video' : 
+              file.type.startsWith('image/') ? 'image' :
+              file.type.startsWith('audio/') ? 'audio' : 'document',
+        mimeType: file.type,
+        downloadURL: `https://mock-storage.example.com/files/${file.name}`,
+        storagePath: `files/mock-user/${Date.now()}-${file.name}`,
+        projectId: options.projectId,
+        milestoneId: options.milestoneId,
+        category: options.category || 'general',
+        uploadedBy: this.currentUser?.uid || 'mock-user',
+        uploadedByName: this.currentUser?.name || 'Mock User',
+        isPublic: false,
+        downloadCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    }
+    
     try {
       const {
         projectId = null,
@@ -1062,6 +1109,53 @@ class FirebaseService {
   }
 
   async getProjectFiles(projectId, options = {}) {
+    // Handle mock data mode
+    if (this.useMockData) {
+      console.log('Mock: Getting project files for', projectId);
+      
+      // Return mock files for demonstration
+      const mockFiles = [
+        {
+          id: 'mock-file-1',
+          name: 'project-brief.pdf',
+          originalName: 'project-brief.pdf',
+          size: 1024000,
+          type: 'document',
+          mimeType: 'application/pdf',
+          downloadURL: 'https://mock-storage.example.com/files/project-brief.pdf',
+          storagePath: 'files/mock-user/project-brief.pdf',
+          projectId: projectId,
+          category: 'general',
+          uploadedBy: 'mock-user',
+          uploadedByName: 'Mock User',
+          isPublic: false,
+          downloadCount: 0,
+          createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+          updatedAt: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          id: 'mock-file-2',
+          name: 'demo-video.mp4',
+          originalName: 'demo-video.mp4',
+          size: 50000000,
+          type: 'video',
+          mimeType: 'video/mp4',
+          downloadURL: 'https://mock-storage.example.com/files/demo-video.mp4',
+          storagePath: 'files/mock-user/demo-video.mp4',
+          projectId: projectId,
+          category: 'draft',
+          uploadedBy: 'mock-user',
+          uploadedByName: 'Mock User',
+          isPublic: false,
+          downloadCount: 5,
+          createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+          updatedAt: new Date(Date.now() - 3600000).toISOString()
+        }
+      ];
+      
+      return mockFiles;
+    }
+    
     try {
       const { category = null, type = null, limitCount = 100 } = options;
 
@@ -1157,6 +1251,12 @@ class FirebaseService {
   }
 
   async deleteFile(fileId) {
+    // Handle mock data mode
+    if (this.useMockData) {
+      console.log('Mock: Deleting file', fileId);
+      return { success: true };
+    }
+    
     try {
       // Get file document first
       const fileDoc = await getDoc(doc(this.db, 'files', fileId));

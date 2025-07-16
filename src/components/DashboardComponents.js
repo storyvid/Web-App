@@ -38,7 +38,15 @@ import {
   FilterList as FilterIcon,
   Menu as MenuIcon,
   BusinessCenter as ServicesIcon,
-  PermMedia as AssetsIcon
+  PermMedia as AssetsIcon,
+  Schedule as ScheduleIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Assignment as AssignmentIcon,
+  AttachFile as FileIcon,
+  CloudUpload as UploadIcon,
+  VideoFile as VideoIcon,
+  PictureAsPdf as PdfIcon
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { styles } from '../pages/dashboardStyles';
@@ -322,13 +330,45 @@ export const Header = ({ user, notifications, onMobileMenuClick }) => {
 };
 
 // Stats Card Component
-export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAllClick }) => {
+export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAllClick, statKey }) => {
+  // Enhanced styling for urgent stats
+  const getStatStyle = (statKey, value) => {
+    const styles = {
+      pendingApprovals: {
+        iconColor: value > 0 ? 'warning.main' : 'text.secondary',
+        valueColor: value > 0 ? 'warning.main' : 'text.primary',
+        showBadge: value > 0,
+        badgeColor: 'warning'
+      },
+      upcomingDeadlines: {
+        iconColor: value > 5 ? 'error.main' : value > 0 ? 'warning.main' : 'text.secondary',
+        valueColor: value > 5 ? 'error.main' : value > 0 ? 'warning.main' : 'text.primary',
+        showBadge: value > 5,
+        badgeColor: value > 5 ? 'error' : 'warning'
+      },
+      default: {
+        iconColor: 'text.secondary',
+        valueColor: 'text.primary',
+        showBadge: false,
+        badgeColor: 'default'
+      }
+    };
+    
+    return styles[statKey] || styles.default;
+  };
+
+  const statStyle = getStatStyle(statKey, value);
+
   return (
     <Card sx={styles.statsCard}>
       <CardContent>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Box sx={styles.statsIcon}>
+            <Box sx={{
+              ...styles.statsIcon,
+              color: statStyle.iconColor,
+              backgroundColor: statStyle.showBadge ? `${statStyle.badgeColor}.50` : 'grey.50'
+            }}>
               <Icon fontSize="small" />
             </Box>
             <Typography variant="body2" color="text.secondary">
@@ -343,13 +383,31 @@ export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAll
         </Stack>
         
         <Stack direction="row" alignItems="baseline" spacing={0.5}>
-          <Typography variant="h4" fontWeight={600}>
+          <Typography 
+            variant="h4" 
+            fontWeight={600}
+            sx={{ color: statStyle.valueColor }}
+          >
             {value}
           </Typography>
           {subtitle && (
             <Typography variant="body2" color="text.secondary">
               /{subtitle}
             </Typography>
+          )}
+          {statStyle.showBadge && (
+            <Box sx={{ ml: 1 }}>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: statStyle.badgeColor === 'error' ? 'error.main' : 'warning.main',
+                  fontWeight: 600
+                }}
+              >
+                {statKey === 'upcomingDeadlines' && value > 5 ? 'Urgent!' : 
+                 statKey === 'pendingApprovals' && value > 0 ? 'Action needed' : ''}
+              </Typography>
+            </Box>
           )}
         </Stack>
       </CardContent>
@@ -373,6 +431,28 @@ export const ProjectCard = ({ project, onClick }) => {
   };
   
   const status = statusColors[project.status] || statusColors['in-production'];
+  
+  // Get milestone status and urgency
+  const getMilestoneStatus = (milestone) => {
+    if (!milestone) return null;
+    
+    const now = new Date();
+    const dueDate = new Date(milestone.dueDate);
+    const daysDiff = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff < 0) {
+      return { type: 'overdue', color: 'error.main', icon: WarningIcon };
+    } else if (daysDiff <= 2) {
+      return { type: 'urgent', color: 'warning.main', icon: ScheduleIcon };
+    } else if (milestone.status === 'pending_approval') {
+      return { type: 'approval', color: 'info.main', icon: AssignmentIcon };
+    } else if (milestone.status === 'completed') {
+      return { type: 'completed', color: 'success.main', icon: CheckCircleIcon };
+    }
+    return { type: 'normal', color: 'text.secondary', icon: ScheduleIcon };
+  };
+  
+  const milestoneStatus = getMilestoneStatus(project.nextMilestoneDetails);
   
   return (
     <Card 
@@ -421,20 +501,127 @@ export const ProjectCard = ({ project, onClick }) => {
           <LinearProgress 
             variant="determinate" 
             value={project.progress} 
-            sx={styles.progressBar}
+            sx={{
+              ...styles.progressBar,
+              '& .MuiLinearProgress-bar': {
+                backgroundColor: project.progress >= 90 ? '#4caf50' : // Green for 90%+
+                               project.progress >= 70 ? '#8bc34a' : // Light green for 70-89%
+                               project.progress >= 50 ? '#ffc107' : // Amber for 50-69%
+                               project.progress >= 30 ? '#ff9800' : // Orange for 30-49%
+                               '#f44336' // Red for <30%
+              }
+            }}
           />
         </Box>
         
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="caption" color="text.secondary">
-              Due:
-            </Typography>
-            <Typography variant="caption" fontWeight={500}>
-              {project.nextMilestone}
-            </Typography>
+        {/* Enhanced Milestone Section */}
+        <Box mb={2}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" alignItems="center" spacing={1}>
+              {milestoneStatus && (
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <milestoneStatus.icon 
+                    sx={{ 
+                      fontSize: 16, 
+                      color: milestoneStatus.color,
+                      mr: 0.5
+                    }} 
+                  />
+                </Box>
+              )}
+              <Typography variant="caption" color="text.secondary">
+                {project.nextMilestoneDetails?.status === 'pending_approval' ? 'Approval Due:' : 'Next Due:'}
+              </Typography>
+              <Typography 
+                variant="caption" 
+                fontWeight={500}
+                sx={{ 
+                  color: milestoneStatus?.color || 'text.primary'
+                }}
+              >
+                {project.nextMilestone}
+              </Typography>
+            </Stack>
+            
+            {project.nextMilestoneDetails?.status === 'pending_approval' && (
+              <Chip 
+                label="Needs Approval" 
+                size="small"
+                sx={{
+                  bgcolor: 'warning.50',
+                  color: 'warning.dark',
+                  fontSize: '0.75rem',
+                  height: 20
+                }}
+              />
+            )}
           </Stack>
           
+          {project.nextMilestoneDetails?.title && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+              {project.nextMilestoneDetails.title}
+            </Typography>
+          )}
+        </Box>
+        
+        {/* File Activity Section */}
+        {project.fileActivity && (
+          <Box mb={2}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <FileIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="caption" color="text.secondary">
+                  {project.fileActivity.recentCount} files
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  • {project.fileActivity.lastUpload}
+                </Typography>
+              </Stack>
+              
+              {project.fileActivity.hasNewUploads && (
+                <Chip 
+                  label="New" 
+                  size="small"
+                  sx={{
+                    bgcolor: 'success.50',
+                    color: 'success.dark',
+                    fontSize: '0.7rem',
+                    height: 18
+                  }}
+                />
+              )}
+            </Stack>
+            
+            {project.fileActivity.types && project.fileActivity.types.length > 0 && (
+              <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
+                {project.fileActivity.types.map((type, index) => {
+                  const getFileIcon = (fileType) => {
+                    switch(fileType) {
+                      case 'video': return VideoIcon;
+                      case 'pdf': return PdfIcon;
+                      case 'image': return FileIcon;
+                      default: return FileIcon;
+                    }
+                  };
+                  
+                  const FileTypeIcon = getFileIcon(type);
+                  return (
+                    <FileTypeIcon 
+                      key={index}
+                      sx={{ 
+                        fontSize: 14, 
+                        color: 'text.secondary',
+                        opacity: 0.7
+                      }} 
+                    />
+                  );
+                })}
+              </Stack>
+            )}
+          </Box>
+        )}
+        
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Stack direction="row" alignItems="center" spacing={1}>
             <AvatarGroup max={3} sx={styles.avatarGroup}>
               {project.team.map(member => (
@@ -445,10 +632,12 @@ export const ProjectCard = ({ project, onClick }) => {
                 />
               ))}
             </AvatarGroup>
-            <Button size="small" variant="text" sx={styles.actionButton}>
-              {project.action}
-            </Button>
           </Stack>
+          
+          <Button size="small" variant="text" sx={styles.actionButton}>
+            {project.fileActivity?.hasNewUploads ? 'View Files' : 
+             project.nextMilestoneDetails?.status === 'pending_approval' ? 'Review' : project.action}
+          </Button>
         </Stack>
         
         {project.notStarted && (

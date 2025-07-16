@@ -29,8 +29,8 @@ export const getRoleBasedData = (userRole) => {
     client: {
       user: baseUser.client,
       stats: {
-        myProjects: 2,
-        pendingApprovals: 1,
+        myProjects: 4,
+        pendingApprovals: 2,
         deliveredVideos: 8
       },
       projects: [
@@ -67,10 +67,26 @@ export const getRoleBasedData = (userRole) => {
             clientFeedbackStatus: "pending"
           },
           progress: 75,
+          client: "Tech Innovators Inc",
+          nextMilestone: "December 18th, 2023",
+          nextMilestoneDetails: {
+            id: "milestone-1",
+            title: "Final Cut Review",
+            status: "pending_approval",
+            dueDate: "2023-12-18",
+            type: "review"
+          },
           team: [
             { id: 1, avatar: "https://i.pravatar.cc/150?img=2" },
             { id: 2, avatar: "https://i.pravatar.cc/150?img=3" }
-          ]
+          ],
+          action: "Review",
+          fileActivity: {
+            recentCount: 12,
+            lastUpload: "15 minutes ago",
+            hasNewUploads: true,
+            types: ["video", "pdf", "image"]
+          }
         },
         {
           id: 2,
@@ -80,11 +96,77 @@ export const getRoleBasedData = (userRole) => {
           status: "in-production",
           statusLabel: "In Production",
           nextMilestone: "January 15th, 2024",
+          nextMilestoneDetails: {
+            id: "milestone-2",
+            title: "Script Approval",
+            status: "in_progress",
+            dueDate: "2024-01-15",
+            type: "draft"
+          },
           team: [
             { id: 4, avatar: "https://i.pravatar.cc/150?img=5" },
             { id: 5, avatar: "https://i.pravatar.cc/150?img=6" }
           ],
-          action: "View Progress"
+          action: "View Progress",
+          fileActivity: {
+            recentCount: 6,
+            lastUpload: "2 days ago",
+            hasNewUploads: false,
+            types: ["video", "pdf"]
+          }
+        },
+        {
+          id: 3,
+          name: "Holiday Marketing Campaign",
+          client: "Tech Innovators Inc",
+          progress: 85,
+          status: "in-review",
+          statusLabel: "Client Review",
+          nextMilestone: "December 20th, 2023",
+          nextMilestoneDetails: {
+            id: "milestone-3",
+            title: "Final Approval",
+            status: "pending_approval",
+            dueDate: "2023-12-20",
+            type: "final"
+          },
+          team: [
+            { id: 6, avatar: "https://i.pravatar.cc/150?img=7" },
+            { id: 7, avatar: "https://i.pravatar.cc/150?img=8" }
+          ],
+          action: "Review",
+          fileActivity: {
+            recentCount: 24,
+            lastUpload: "3 hours ago",
+            hasNewUploads: true,
+            types: ["video", "image"]
+          }
+        },
+        {
+          id: 4,
+          name: "Training Video Series",
+          client: "My Company Project",
+          progress: 20,
+          status: "in-production",
+          statusLabel: "In Production",
+          nextMilestone: "January 30th, 2024",
+          nextMilestoneDetails: {
+            id: "milestone-4",
+            title: "First Draft Complete",
+            status: "not_started",
+            dueDate: "2024-01-30",
+            type: "draft"
+          },
+          team: [
+            { id: 8, avatar: "https://i.pravatar.cc/150?img=9" }
+          ],
+          action: "View Progress",
+          fileActivity: {
+            recentCount: 4,
+            lastUpload: "1 week ago",
+            hasNewUploads: false,
+            types: ["pdf"]
+          }
         }
       ],
       milestones: [
@@ -156,9 +238,9 @@ export const getRoleBasedData = (userRole) => {
     staff: {
       user: baseUser.staff,
       stats: {
-        assignedTasks: 8,
-        completedToday: 3,
-        upcomingDeadlines: 5
+        assignedTasks: 12,
+        completedToday: 4,
+        upcomingDeadlines: 6
       },
       projects: [
         {
@@ -169,11 +251,24 @@ export const getRoleBasedData = (userRole) => {
           status: "in-production",
           statusLabel: "Editing",
           nextMilestone: "December 18th, 2023",
+          nextMilestoneDetails: {
+            id: "milestone-staff-1",
+            title: "Complete Final Edit",
+            status: "in_progress",
+            dueDate: "2023-12-18",
+            type: "production"
+          },
           team: [
             { id: 1, avatar: "https://i.pravatar.cc/150?img=2" },
             { id: 2, avatar: "https://i.pravatar.cc/150?img=3" }
           ],
-          action: "Continue Edit"
+          action: "Continue Edit",
+          fileActivity: {
+            recentCount: 18,
+            lastUpload: "5 minutes ago",
+            hasNewUploads: true,
+            types: ["video", "pdf", "image"]
+          }
         },
         {
           id: 2,
@@ -183,11 +278,77 @@ export const getRoleBasedData = (userRole) => {
           status: "in-production",
           statusLabel: "Color Grading",
           nextMilestone: "January 15th, 2024",
+          nextMilestoneDetails: {
+            id: "milestone-staff-2",
+            title: "Color Grading Complete",
+            status: "not_started",
+            dueDate: "2024-01-15",
+            type: "production"
+          },
           team: [
             { id: 4, avatar: "https://i.pravatar.cc/150?img=5" },
             { id: 5, avatar: "https://i.pravatar.cc/150?img=6" }
           ],
-          action: "Start Grading"
+          action: "Start Grading",
+          fileActivity: {
+            recentCount: 9,
+            lastUpload: "1 hour ago",
+            hasNewUploads: true,
+            types: ["video", "image"]
+          }
+        },
+        {
+          id: 3,
+          name: "Corporate Training Module",
+          client: "Enterprise Corp",
+          progress: 60,
+          status: "in-production",
+          statusLabel: "Sound Design",
+          nextMilestone: "December 22nd, 2023",
+          nextMilestoneDetails: {
+            id: "milestone-staff-3",
+            title: "Audio Post Production",
+            status: "in_progress",
+            dueDate: "2023-12-22",
+            type: "production"
+          },
+          team: [
+            { id: 9, avatar: "https://i.pravatar.cc/150?img=10" },
+            { id: 10, avatar: "https://i.pravatar.cc/150?img=11" }
+          ],
+          action: "Continue Audio",
+          fileActivity: {
+            recentCount: 31,
+            lastUpload: "2 hours ago",
+            hasNewUploads: true,
+            types: ["video", "pdf"]
+          }
+        },
+        {
+          id: 4,
+          name: "Social Media Content Pack",
+          client: "Marketing Agency",
+          progress: 25,
+          status: "in-production",
+          statusLabel: "Scripting",
+          nextMilestone: "January 8th, 2024",
+          nextMilestoneDetails: {
+            id: "milestone-staff-4",
+            title: "Script Review",
+            status: "not_started",
+            dueDate: "2024-01-08",
+            type: "draft"
+          },
+          team: [
+            { id: 11, avatar: "https://i.pravatar.cc/150?img=12" }
+          ],
+          action: "Write Scripts",
+          fileActivity: {
+            recentCount: 2,
+            lastUpload: "3 days ago",
+            hasNewUploads: false,
+            types: ["pdf"]
+          }
         }
       ],
       milestones: [
@@ -262,9 +423,10 @@ export const getRoleBasedData = (userRole) => {
     admin: {
       user: baseUser.admin,
       stats: {
-        totalClients: 12,
-        activeProjects: 18,
-        teamMembers: 15
+        totalClients: 15,
+        activeProjects: 23,
+        pendingApprovals: 8,
+        upcomingDeadlines: 12
       },
       projects: [
         {
@@ -275,11 +437,24 @@ export const getRoleBasedData = (userRole) => {
           status: "in-production",
           statusLabel: "On Track",
           nextMilestone: "December 18th, 2023",
+          nextMilestoneDetails: {
+            id: "milestone-admin-1",
+            title: "Client Review Meeting",
+            status: "scheduled",
+            dueDate: "2023-12-18",
+            type: "review"
+          },
           team: [
             { id: 1, avatar: "https://i.pravatar.cc/150?img=2" },
             { id: 2, avatar: "https://i.pravatar.cc/150?img=3" }
           ],
-          action: "Monitor"
+          action: "Monitor",
+          fileActivity: {
+            recentCount: 28,
+            lastUpload: "10 minutes ago",
+            hasNewUploads: true,
+            types: ["video", "pdf", "image"]
+          }
         },
         {
           id: 2,
@@ -289,11 +464,105 @@ export const getRoleBasedData = (userRole) => {
           status: "in-production",
           statusLabel: "Needs Attention",
           nextMilestone: "January 15th, 2024",
+          nextMilestoneDetails: {
+            id: "milestone-admin-2",
+            title: "Project Deadline Review",
+            status: "overdue",
+            dueDate: "2024-01-10",
+            type: "review"
+          },
           team: [
             { id: 4, avatar: "https://i.pravatar.cc/150?img=5" },
             { id: 5, avatar: "https://i.pravatar.cc/150?img=6" }
           ],
-          action: "Review"
+          action: "Review",
+          fileActivity: {
+            recentCount: 14,
+            lastUpload: "6 hours ago",
+            hasNewUploads: false,
+            types: ["video", "pdf"]
+          }
+        },
+        {
+          id: 3,
+          name: "Multi-Client Campaign Hub",
+          client: "Various Clients",
+          progress: 90,
+          status: "in-review",
+          statusLabel: "Final Review",
+          nextMilestone: "December 19th, 2023",
+          nextMilestoneDetails: {
+            id: "milestone-admin-3",
+            title: "Campaign Launch Approval",
+            status: "pending_approval",
+            dueDate: "2023-12-19",
+            type: "final"
+          },
+          team: [
+            { id: 12, avatar: "https://i.pravatar.cc/150?img=13" },
+            { id: 13, avatar: "https://i.pravatar.cc/150?img=14" },
+            { id: 14, avatar: "https://i.pravatar.cc/150?img=15" }
+          ],
+          action: "Review",
+          fileActivity: {
+            recentCount: 45,
+            lastUpload: "30 minutes ago",
+            hasNewUploads: true,
+            types: ["video", "image"]
+          }
+        },
+        {
+          id: 4,
+          name: "Quarterly Reports Archive",
+          client: "Internal",
+          progress: 50,
+          status: "in-production",
+          statusLabel: "Data Collection",
+          nextMilestone: "January 5th, 2024",
+          nextMilestoneDetails: {
+            id: "milestone-admin-4",
+            title: "Q4 Report Compilation",
+            status: "in_progress",
+            dueDate: "2024-01-05",
+            type: "production"
+          },
+          team: [
+            { id: 15, avatar: "https://i.pravatar.cc/150?img=16" }
+          ],
+          action: "Monitor",
+          fileActivity: {
+            recentCount: 8,
+            lastUpload: "2 days ago",
+            hasNewUploads: false,
+            types: ["pdf"]
+          }
+        },
+        {
+          id: 5,
+          name: "Emergency Response Training",
+          client: "Government Agency",
+          progress: 65,
+          status: "in-production",
+          statusLabel: "Post Production",
+          nextMilestone: "December 28th, 2023",
+          nextMilestoneDetails: {
+            id: "milestone-admin-5",
+            title: "Security Review",
+            status: "scheduled",
+            dueDate: "2023-12-28",
+            type: "review"
+          },
+          team: [
+            { id: 16, avatar: "https://i.pravatar.cc/150?img=17" },
+            { id: 17, avatar: "https://i.pravatar.cc/150?img=18" }
+          ],
+          action: "Monitor",
+          fileActivity: {
+            recentCount: 19,
+            lastUpload: "4 hours ago",
+            hasNewUploads: true,
+            types: ["video", "pdf", "image"]
+          }
         }
       ],
       milestones: [
