@@ -15,6 +15,24 @@ const DataMigrationHandler = ({ children }) => {
           await firebaseService.initialize();
         }
 
+        // Check for force migration parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const forceMigration = urlParams.get('forceMigration') === 'true';
+
+        if (forceMigration) {
+          console.log('🔄 Force migration requested...');
+          setMigrationStatus('running');
+          await dataMigrationService.forceMigration();
+          setMigrationStatus('completed');
+          console.log('✅ Force migration completed successfully');
+          
+          // Remove the parameter from URL
+          urlParams.delete('forceMigration');
+          const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+          window.history.replaceState({}, '', newUrl);
+          return;
+        }
+
         // Check if migration is needed
         const isCompleted = await dataMigrationService.checkMigrationStatus();
         

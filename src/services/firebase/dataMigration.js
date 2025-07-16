@@ -6,10 +6,11 @@ import {
   doc, 
   setDoc, 
   getDoc,
+  getDocs,
   serverTimestamp,
   writeBatch 
 } from 'firebase/firestore';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import firebaseService from './firebaseService';
 
 class DataMigrationService {
@@ -424,6 +425,27 @@ class DataMigrationService {
     };
   }
 
+  // Get actual Firebase Auth UID for an email
+  async getAuthUidForEmail(email) {
+    try {
+      // Sign in temporarily to get the UID
+      const credential = await signInWithEmailAndPassword(
+        firebaseService.auth,
+        email,
+        this.dummyPassword
+      );
+      const uid = credential.user.uid;
+      
+      // Sign out immediately
+      await firebaseService.signOut();
+      
+      return uid;
+    } catch (error) {
+      console.error(`Error getting UID for ${email}:`, error);
+      return null;
+    }
+  }
+
   // Populate Firestore with dummy data
   async populateDummyData() {
     console.log('Populating dummy data in Firestore...');
@@ -436,32 +458,55 @@ class DataMigrationService {
 
     for (const account of dummyAccounts) {
       try {
-        // For demo purposes, we'll use a generated userId based on role
-        const userId = `${account.role}-uid-${Date.now()}`;
+        // Get the actual Firebase Auth UID for this account
+        const userId = await this.getAuthUidForEmail(account.email);
+        
+        if (!userId) {
+          console.log(`❌ Could not get UID for ${account.email}, skipping data population`);
+          continue;
+        }
+
+        console.log(`📝 Creating data for ${account.email} with UID: ${userId}`);
         const dummyData = this.getDummyData(account.role, account.email, userId);
+        
+        console.log(`📊 Generated data for ${account.email}:`, {
+          projects: dummyData.projects.length,
+          notifications: dummyData.notifications.length,
+          activities: dummyData.activities.length
+        });
 
         const batch = writeBatch(firebaseService.db);
 
         // Add projects
         dummyData.projects.forEach(project => {
           const projectRef = doc(collection(firebaseService.db, 'projects'));
-          batch.set(projectRef, project);
+          batch.set(projectRef, {
+            ...project,
+            userId: userId, // Link to real user
+            createdBy: userId
+          });
         });
 
         // Add notifications
         dummyData.notifications.forEach(notification => {
           const notificationRef = doc(collection(firebaseService.db, 'notifications'));
-          batch.set(notificationRef, notification);
+          batch.set(notificationRef, {
+            ...notification,
+            userId: userId // Link to real user
+          });
         });
 
         // Add activities
         dummyData.activities.forEach(activity => {
           const activityRef = doc(collection(firebaseService.db, 'activities'));
-          batch.set(activityRef, activity);
+          batch.set(activityRef, {
+            ...activity,
+            userId: userId // Link to real user
+          });
         });
 
         await batch.commit();
-        console.log(`✅ Populated data for ${account.email}`);
+        console.log(`✅ Populated data for ${account.email} (UID: ${userId})`);
 
       } catch (error) {
         console.error(`❌ Error populating data for ${account.email}:`, error);
@@ -507,11 +552,73 @@ class DataMigrationService {
     }
   }
 
+  // Clear existing dummy data
+  async clearExistingData() {
+    console.log('🗑️ Clearing existing dummy data...');
+    
+    try {
+      // Get all collections and delete dummy data
+      const collections = ['projects', 'notifications', 'activities'];
+      
+      for (const collectionName of collections) {
+        const snapshot = await getDocs(collection(firebaseService.db, collectionName));
+        
+        if (!snapshot.empty) {
+          const batch = writeBatch(firebaseService.db);
+          
+          snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+          
+          await batch.commit();
+          console.log(`✅ Cleared ${snapshot.size} documents from ${collectionName}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error clearing existing data:', error);
+    }
+  }
+
   // Reset dummy accounts (useful for testing)
   async resetDummyAccounts() {
     console.log('🔄 Resetting dummy accounts...');
-    // TODO: Implement reset functionality
-    console.log('Reset functionality not implemented yet');
+    
+    try {
+      // Clear existing data
+      await this.clearExistingData();
+      
+      // Repopulate with fresh data
+      await this.populateDummyData();
+      
+      console.log('✅ Dummy accounts reset successfully');
+    } catch (error) {
+      console.error('❌ Error resetting dummy accounts:', error);
+      throw error;
+    }
+  }
+
+  // Force migration (clears existing migration status)
+  async forceMigration() {
+    console.log('🔄 Force running migration...');
+    
+    try {
+      // Clear existing data first
+      await this.clearExistingData();
+      
+      // Create dummy accounts
+      await this.createDummyAccounts();
+
+      // Populate with dummy data  
+      await this.populateDummyData();
+
+      // Mark as complete
+      await this.markMigrationComplete();
+
+      console.log('✅ Force migration completed successfully!');
+    } catch (error) {
+      console.error('❌ Force migration failed:', error);
+      throw error;
+    }
   }
 }
 
