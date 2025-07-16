@@ -13,6 +13,8 @@ import {
   query, 
   where, 
   getDocs,
+  orderBy,
+  limit,
   serverTimestamp 
 } from 'firebase/firestore';
 import { 
@@ -609,27 +611,165 @@ class FirebaseService {
   }
 
   // Dashboard Data Methods
-  async getDashboardData(userRole) {
+  async getDashboardData(userRole, userId) {
     if (this.useMockData) {
       await new Promise(resolve => setTimeout(resolve, 800)); // Simulate loading
       return getRoleBasedData(userRole);
     }
     
-    // TODO: Replace with actual Firestore queries
-    // This would involve multiple queries to get user-specific data
-    // const projects = await this.getUserProjects(this.currentUser.uid);
-    // const milestones = await this.getUserMilestones(this.currentUser.uid);
-    // const notifications = await this.getUserNotifications(this.currentUser.uid);
-    // const activities = await this.getUserActivities(this.currentUser.uid);
-    // 
-    // return {
-    //   user: this.currentUser,
-    //   projects,
-    //   milestones,
-    //   notifications,
-    //   activities,
-    //   stats: await this.getUserStats(this.currentUser.uid)
-    // };
+    try {
+      // Get user-specific data from Firestore
+      const [projects, notifications, activities] = await Promise.all([
+        this.getUserProjects(userId),
+        this.getUserNotifications(userId),
+        this.getUserActivities(userId)
+      ]);
+
+      // Calculate stats based on real data
+      const stats = this.calculateUserStats(projects, notifications, userRole);
+
+      return {
+        user: this.currentUser,
+        projects: projects || [],
+        notifications: notifications || [],
+        activities: activities || [],
+        stats: stats
+      };
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      // Fallback to mock data on error
+      return getRoleBasedData(userRole);
+    }
+  }
+
+  // Get user-specific projects
+  async getUserProjects(userId) {
+    if (this.useMockData) {
+      const data = getRoleBasedData(this.currentUser?.role || 'client');
+      return data.projects;
+    }
+
+    try {
+      let projectsQuery;
+      const userRole = this.currentUser?.role;
+      
+      if (userRole === 'admin') {
+        // Admin sees all projects in their company
+        projectsQuery = query(
+          collection(this.db, 'projects'),
+          where('companyId', '==', this.currentUser?.companyId || 'storyvid-productions')
+        );
+      } else if (userRole === 'staff') {
+        // Staff sees projects they're assigned to
+        projectsQuery = query(
+          collection(this.db, 'projects'),
+          where('assignedStaff', 'array-contains', userId)
+        );
+      } else {
+        // Clients see their own projects
+        projectsQuery = query(
+          collection(this.db, 'projects'),
+          where('createdBy', '==', userId)
+        );
+      }
+
+      const snapshot = await getDocs(projectsQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        // Convert timestamps to strings for serialization
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
+      }));
+    } catch (error) {
+      console.error('Error getting user projects:', error);
+      return [];
+    }
+  }
+
+  // Get user notifications
+  async getUserNotifications(userId, limit = 20) {
+    if (this.useMockData) {
+      const data = getRoleBasedData(this.currentUser?.role || 'client');
+      return data.notifications;
+    }
+
+    try {
+      const notificationsQuery = query(
+        collection(this.db, 'notifications'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(limit)
+      );
+
+      const snapshot = await getDocs(notificationsQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt
+      }));
+    } catch (error) {
+      console.error('Error getting user notifications:', error);
+      return [];
+    }
+  }
+
+  // Get user activities
+  async getUserActivities(userId, limit = 10) {
+    if (this.useMockData) {
+      const data = getRoleBasedData(this.currentUser?.role || 'client');
+      return data.activities;
+    }
+
+    try {
+      const activitiesQuery = query(
+        collection(this.db, 'activities'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(limit)
+      );
+
+      const snapshot = await getDocs(activitiesQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt
+      }));
+    } catch (error) {
+      console.error('Error getting user activities:', error);
+      return [];
+    }
+  }
+
+  // Calculate user stats from real data
+  calculateUserStats(projects, notifications, userRole) {
+    const stats = {};
+
+    switch (userRole) {
+      case 'admin':
+        stats.totalClients = new Set(projects.map(p => p.client)).size;
+        stats.activeProjects = projects.filter(p => p.status === 'in-production').length;
+        stats.teamMembers = 5; // TODO: Calculate from company staff
+        break;
+      
+      case 'staff':
+        stats.assignedTasks = projects.length;
+        stats.completedToday = projects.filter(p => p.progress === 100).length;
+        stats.upcomingDeadlines = projects.filter(p => {
+          // Simple deadline check - in real app would parse dates
+          return p.nextMilestone?.includes('Jan');
+        }).length;
+        break;
+      
+      case 'client':
+      default:
+        stats.myProjects = projects.length;
+        stats.pendingApprovals = projects.filter(p => p.status === 'in-review').length;
+        stats.deliveredVideos = projects.filter(p => p.progress === 100).length;
+        break;
+    }
+
+    return stats;
   }
 
   // Project Methods

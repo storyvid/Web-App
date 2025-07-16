@@ -16,6 +16,7 @@ import { theme, styles } from './dashboardStyles';
 import { useAuth } from '../contexts/AuthContext';
 import { getRoleBasedData } from '../data/mockData';
 import LoadingSpinner from '../components/LoadingSpinner';
+import firebaseService from '../services/firebase/firebaseService';
 import { 
   Sidebar, 
   Header, 
@@ -38,13 +39,32 @@ const Dashboard = () => {
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      if (!user?.uid) return;
+      
       setLoading(true);
       try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // Try to get real Firebase data first
+        const dashboardData = await firebaseService.getDashboardData(user.role, user.uid);
+        
+        // Ensure user data is from the authenticated user
+        const finalData = {
+          ...dashboardData,
+          user: {
+            ...dashboardData.user,
+            name: user.name || dashboardData.user?.name,
+            company: user.company || dashboardData.user?.company,
+            email: user.email || dashboardData.user?.email,
+            avatar: user.avatar || dashboardData.user?.avatar
+          }
+        };
+        
+        setData(finalData);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        
+        // Fallback to mock data with real user info
         const roleData = getRoleBasedData(user?.role || 'client');
-        // Replace mock user data with real user data
-        const dashboardData = {
+        const fallbackData = {
           ...roleData,
           user: {
             ...roleData.user,
@@ -54,16 +74,14 @@ const Dashboard = () => {
             avatar: user?.avatar || roleData.user.avatar
           }
         };
-        setData(dashboardData);
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
+        setData(fallbackData);
       } finally {
         setLoading(false);
       }
     };
 
     loadDashboardData();
-  }, [user?.role, user?.name, user?.company, user?.email, user?.avatar]);
+  }, [user?.role, user?.name, user?.company, user?.email, user?.avatar, user?.uid]);
 
   const handleMenuItemClick = (menuId) => {
     setActiveMenuItem(menuId);

@@ -11,6 +11,7 @@ import PrivateRoute from './components/PrivateRoute';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import DataMigrationHandler from './components/DataMigrationHandler';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Onboarding from './pages/Onboarding';
@@ -32,8 +33,9 @@ function App() {
         <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <AuthProvider>
-              <Router>
+            <DataMigrationHandler>
+              <AuthProvider>
+                <Router>
                 <Routes>
                   {/* Public Routes - redirect authenticated users */}
                   <Route 
@@ -111,10 +113,11 @@ function App() {
                 </Routes>
               </Router>
             </AuthProvider>
-          </ThemeProvider>
-        </PersistGate>
-      </Provider>
-    </ErrorBoundary>
+          </DataMigrationHandler>
+        </ThemeProvider>
+      </PersistGate>
+    </Provider>
+  </ErrorBoundary>
   );
 }
 
