@@ -89,8 +89,13 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, error: 'Google sign-in failed' };
     } catch (err) {
-      // Dispatch error to Redux store  
-      dispatch({ type: 'auth/setAuthError', payload: err });
+      // Serialize Firebase error for Redux (avoid non-serializable values)
+      const serializedError = {
+        code: err.code,
+        message: err.message,
+        name: err.name
+      };
+      dispatch({ type: 'auth/setAuthError', payload: serializedError });
       return { success: false, error: err };
     }
   };
@@ -105,8 +110,13 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, error: 'Signup failed' };
     } catch (err) {
-      // Dispatch error to Redux store  
-      dispatch({ type: 'auth/setAuthError', payload: err });
+      // Serialize Firebase error for Redux (avoid non-serializable values)
+      const serializedError = {
+        code: err.code,
+        message: err.message,
+        name: err.name
+      };
+      dispatch({ type: 'auth/setAuthError', payload: serializedError });
       return { success: false, error: err };
     }
   };
@@ -116,8 +126,13 @@ export const AuthProvider = ({ children }) => {
       await firebaseService.sendPasswordResetEmail(email);
       return { success: true };
     } catch (err) {
-      // Dispatch error to Redux store  
-      dispatch({ type: 'auth/setAuthError', payload: err });
+      // Serialize Firebase error for Redux (avoid non-serializable values)
+      const serializedError = {
+        code: err.code,
+        message: err.message,
+        name: err.name
+      };
+      dispatch({ type: 'auth/setAuthError', payload: serializedError });
       return { success: false, error: err };
     }
   };

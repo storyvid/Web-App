@@ -82,37 +82,39 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Typography variant="h3" component="h1" gutterBottom>
+    <Container maxWidth="xl" sx={{ py: { xs: 2, md: 3 }, minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Box sx={{ textAlign: 'center', mb: { xs: 3, md: 4 } }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
           Welcome to StoryVid
         </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-          Choose your role to get started with the right experience
+        <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+          Choose your role to get started
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
           We'll customize your dashboard and features based on how you plan to use StoryVid
         </Typography>
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
           {error}
         </Alert>
       )}
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 }, flexGrow: 1, alignItems: 'stretch' }}>
         {roles.map((role) => (
-          <Grid item xs={12} md={4} key={role.id}>
+          <Grid item xs={12} md={4} key={role.id} sx={{ display: 'flex' }}>
             <Card
               sx={{
-                height: '100%',
+                width: '100%',
                 border: selectedRole === role.id ? 2 : 1,
                 borderColor: selectedRole === role.id ? `${role.color}.main` : 'divider',
                 transition: 'all 0.2s ease-in-out',
+                cursor: 'pointer',
                 '&:hover': {
-                  boxShadow: 3,
-                  transform: 'translateY(-2px)'
+                  boxShadow: 4,
+                  transform: 'translateY(-4px)',
+                  borderColor: `${role.color}.main`
                 }
               }}
             >
@@ -120,27 +122,24 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
                 onClick={() => handleRoleSelect(role.id)}
                 sx={{ height: '100%', p: 0 }}
               >
-                <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ p: { xs: 2, md: 3 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ textAlign: 'center', mb: 2 }}>
                     {role.icon}
-                    <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 1 }}>
+                    <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 1, fontWeight: 600 }}>
                       {role.title}
                     </Typography>
-                    <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
                       {role.subtitle}
                     </Typography>
                   </Box>
 
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1, lineHeight: 1.4 }}>
                     {role.description}
                   </Typography>
 
                   <Box>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Key Features:
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                      {role.features.slice(0, 3).map((feature, index) => (
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap justifyContent="center">
+                      {role.features.slice(0, 2).map((feature, index) => (
                         <Chip
                           key={index}
                           label={feature}
@@ -149,24 +148,23 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
                           color={selectedRole === role.id ? role.color : 'default'}
                         />
                       ))}
-                      {role.features.length > 3 && (
-                        <Chip
-                          label={`+${role.features.length - 3} more`}
-                          size="small"
-                          variant="outlined"
-                          color={selectedRole === role.id ? role.color : 'default'}
-                        />
-                      )}
+                      <Chip
+                        label={`+${role.features.length - 2} more`}
+                        size="small"
+                        variant="outlined"
+                        color={selectedRole === role.id ? role.color : 'default'}
+                      />
                     </Stack>
                   </Box>
 
                   {selectedRole === role.id && (
                     <Box sx={{ mt: 2, textAlign: 'center' }}>
                       <Chip
-                        label="Selected"
+                        label="✓ Selected"
                         color={role.color}
                         variant="filled"
                         size="small"
+                        sx={{ fontWeight: 600 }}
                       />
                     </Box>
                   )}
@@ -177,14 +175,14 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
         ))}
       </Grid>
 
-      <Box sx={{ textAlign: 'center' }}>
-        <Stack direction="row" spacing={2} justifyContent="center">
+      <Box sx={{ textAlign: 'center', mt: 'auto' }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="center">
           <Button
             variant="outlined"
             size="large"
             onClick={onSkip}
             disabled={loading}
-            sx={{ minWidth: 150, py: 1.5, color: '#666', borderColor: '#E0E0E0' }}
+            sx={{ minWidth: 140, py: 1.2, color: '#666', borderColor: '#E0E0E0' }}
           >
             Skip for Now
           </Button>
@@ -194,7 +192,7 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
             endIcon={<ArrowIcon />}
             onClick={handleContinue}
             disabled={!selectedRole || loading}
-            sx={{ minWidth: 200, py: 1.5 }}
+            sx={{ minWidth: 180, py: 1.2 }}
           >
             {loading ? 'Setting up...' : 'Continue'}
           </Button>
@@ -202,35 +200,27 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
 
         {selectedRole && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            You selected: <strong>{roles.find(r => r.id === selectedRole)?.title}</strong>
-            <br />
-            You can change this later in your profile settings.
+            <strong>{roles.find(r => r.id === selectedRole)?.title}</strong> selected • You can change this later
           </Typography>
         )}
       </Box>
 
-      <Paper sx={{ mt: 4, p: 3, bgcolor: 'grey.50' }}>
-        <Typography variant="h6" gutterBottom>
+      <Box sx={{ mt: { xs: 3, md: 4 }, textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
           Need help choosing?
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
-            <Typography variant="body2">
-              <strong>Choose Client</strong> if you're looking to hire video production services for your business or personal projects.
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Typography variant="body2">
-              <strong>Choose Team Member</strong> if you're a video editor, producer, or work for a production company.
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Typography variant="body2">
-              <strong>Choose Production Company</strong> if you own or manage a video production business.
-            </Typography>
-          </Grid>
-        </Grid>
-      </Paper>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 3 }} justifyContent="center">
+          <Typography variant="body2" color="text.secondary">
+            <strong>Client:</strong> Hire video services
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            <strong>Team Member:</strong> Work for production company
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            <strong>Production Company:</strong> Own/manage business
+          </Typography>
+        </Stack>
+      </Box>
     </Container>
   );
 };

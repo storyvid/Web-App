@@ -199,8 +199,8 @@ class FirebaseService {
           authProvider: 'google'
         };
         
-        // Save to Firestore
-        await this.createUser({ ...userDoc, uid: result.user.uid });
+        // Save to Firestore using updateUser (simpler, no strict validation)
+        await this.updateUser(result.user.uid, userDoc);
       }
       
       this.currentUser = { 
@@ -247,8 +247,8 @@ class FirebaseService {
         authProvider: 'email'
       };
       
-      // Save to Firestore
-      await this.createUser({ ...userDoc, uid: credential.user.uid });
+      // Save to Firestore using updateUser (simpler, no strict validation)
+      await this.updateUser(credential.user.uid, userDoc);
       
       this.currentUser = { 
         uid: credential.user.uid,
