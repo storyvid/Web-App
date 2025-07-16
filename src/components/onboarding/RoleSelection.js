@@ -93,20 +93,19 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
 
   return (
     <Container maxWidth="xl" sx={{ py: { xs: 2, md: 3 }, minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      <Box sx={{ textAlign: 'center', mb: { xs: 3, md: 4 } }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
-          Welcome to StoryVid
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-          {showCompanyForm ? 'Tell us about your organization' : 'Choose your role to get started'}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-          {showCompanyForm 
-            ? 'Help us personalize your experience with your organization details'
-            : 'We\'ll customize your dashboard and features based on how you plan to use StoryVid'
-          }
-        </Typography>
-      </Box>
+      {!showCompanyForm && (
+        <Box sx={{ textAlign: 'center', mb: { xs: 3, md: 4 } }}>
+          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
+            Welcome to StoryVid
+          </Typography>
+          <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+            Choose your role to get started
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
+            We'll customize your dashboard and features based on how you plan to use StoryVid
+          </Typography>
+        </Box>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
@@ -264,22 +263,24 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
         </Box>
       )}
 
-      <Box sx={{ mt: { xs: 3, md: 4 }, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
-          Need help choosing?
-        </Typography>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 3 }} justifyContent="center">
-          <Typography variant="body2" color="text.secondary">
-            <strong>Client:</strong> Hire video services
+      {!showCompanyForm && (
+        <Box sx={{ mt: { xs: 3, md: 4 }, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
+            Need help choosing?
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Team Member:</strong> Work for production company
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Production Company:</strong> Own/manage business
-          </Typography>
-        </Stack>
-      </Box>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 3 }} justifyContent="center">
+            <Typography variant="body2" color="text.secondary">
+              <strong>Client:</strong> Hire video services
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Team Member:</strong> Work for production company
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Production Company:</strong> Own/manage business
+            </Typography>
+          </Stack>
+        </Box>
+      )}
     </Container>
   );
 };
