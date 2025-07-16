@@ -8,7 +8,8 @@ import {
   setUser, 
   clearAuth, 
   clearError,
-  refreshUserProfile 
+  refreshUserProfile,
+  setAuthError 
 } from '../store/slices/authSlice';
 
 // Import selectors
@@ -95,7 +96,7 @@ export const AuthProvider = ({ children }) => {
         message: err.message,
         name: err.name
       };
-      dispatch({ type: 'auth/setAuthError', payload: serializedError });
+      dispatch(setAuthError(serializedError));
       return { success: false, error: err };
     }
   };
@@ -116,7 +117,7 @@ export const AuthProvider = ({ children }) => {
         message: err.message,
         name: err.name
       };
-      dispatch({ type: 'auth/setAuthError', payload: serializedError });
+      dispatch(setAuthError(serializedError));
       return { success: false, error: err };
     }
   };
@@ -132,7 +133,7 @@ export const AuthProvider = ({ children }) => {
         message: err.message,
         name: err.name
       };
-      dispatch({ type: 'auth/setAuthError', payload: serializedError });
+      dispatch(setAuthError(serializedError));
       return { success: false, error: err };
     }
   };

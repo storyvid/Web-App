@@ -168,18 +168,18 @@ const authSlice = createSlice({
     builder
       // Login
       .addCase(loginUser.pending, (state) => {
-        state.authLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.authLoading = false;
+        state.loading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.lastLoginAt = Date.now();
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.authLoading = false;
+        state.loading = false;
         state.error = action.payload;
         state.isAuthenticated = false;
         state.user = null;
@@ -260,10 +260,12 @@ const authSlice = createSlice({
 // Export actions
 export const { 
   clearError, 
+  setError,
   setOnlineStatus, 
   setUser, 
   clearAuth, 
-  updateUserData 
+  updateUserData,
+  setAuthError 
 } = authSlice.actions;
 
 // Selectors

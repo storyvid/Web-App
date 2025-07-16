@@ -14,7 +14,7 @@ const PublicRoute = ({
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const authLoading = useSelector(selectAuthLoading);
 
-  // Show loading spinner while authentication is being determined
+  // Show loading spinner during initial auth check
   if (authLoading) {
     return (
       <Box 

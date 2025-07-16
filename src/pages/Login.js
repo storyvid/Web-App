@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, TextField, Button, Link, Divider, Alert, Fade, CircularProgress } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useSelector } from 'react-redux';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import GoogleIcon from '@mui/icons-material/Google';
 
@@ -79,6 +80,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, signInWithGoogle, resetPassword, authLoading, error, clearError } = useAuth();
+  const loading = useSelector(state => state.auth.loading);
   
   // Form state
   const [email, setEmail] = useState('');
@@ -130,12 +132,14 @@ const Login = () => {
       if (passwordError) setPasswordError('');
     }
     
-    // Clear global errors when user starts typing
-    if (error) clearError();
+    // Don't clear global errors immediately - let user see them
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Clear any previous errors
+    clearError();
     
     // Validate form
     const emailValidation = validateEmail(email);
@@ -152,7 +156,6 @@ const Login = () => {
     }
 
     setIsSubmitting(true);
-    clearError();
     
     try {
       const result = await login(email, password);
@@ -165,7 +168,7 @@ const Login = () => {
           navigate(from, { replace: true });
         }
       }
-      // If result.success is false, error should already be in Redux state
+      // Login failed - error should be in Redux state
     } catch (err) {
       console.error('Login error:', err);
       // Error handling is managed by Redux and AuthContext
@@ -341,20 +344,35 @@ const Login = () => {
             </Typography>
           </Box>
 
-          {error && (
-            <Fade in={!!error}>
-              <Alert severity="error" sx={{ mb: 3 }} onClose={() => clearError()}>
-                {getErrorMessage(error)}
-              </Alert>
-            </Fade>
-          )}
+          <Fade in={!!error} timeout={300}>
+            <Box>
+              {error && (
+                <Alert 
+                  severity="error" 
+                  sx={{ mb: 3 }}
+                  onClose={() => clearError()}
+                >
+                  {getErrorMessage(error)}
+                  {error.code === 'auth/user-not-found' && (
+                    <Box sx={{ mt: 1 }}>
+                      <Link
+                        component="button"
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate('/signup');
+                        }}
+                        sx={{ color: 'error.dark', textDecoration: 'underline' }}
+                      >
+                        Create an account
+                      </Link>
+                    </Box>
+                  )}
+                </Alert>
+              )}
+            </Box>
+          </Fade>
           
-          {/* Debug error display */}
-          {process.env.NODE_ENV === 'development' && error && (
-            <Alert severity="info" sx={{ mb: 2, fontSize: '0.75rem' }}>
-              Debug: {JSON.stringify(error)}
-            </Alert>
-          )}
 
 
           {/* Success Alert for Password Reset */}
@@ -472,9 +490,10 @@ const Login = () => {
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 error={!!emailError}
                 helperText={emailError}
-                disabled={isSubmitting || authLoading}
+                disabled={isSubmitting || loading}
                 sx={{ mb: 3 }}
                 size="small"
+                autoComplete="email"
               />
 
               <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
@@ -488,9 +507,10 @@ const Login = () => {
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 error={!!passwordError}
                 helperText={passwordError}
-                disabled={isSubmitting || authLoading}
+                disabled={isSubmitting || loading}
                 sx={{ mb: 2 }}
                 size="small"
+                autoComplete="current-password"
               />
 
               <Box sx={{ textAlign: 'right', mb: 3 }}>
@@ -519,7 +539,7 @@ const Login = () => {
                 type="submit"
                 fullWidth
                 variant="contained"
-                disabled={isSubmitting || authLoading}
+                disabled={isSubmitting || loading}
                 sx={{
                   py: 1.5,
                   backgroundColor: '#4A7C59',
@@ -528,7 +548,7 @@ const Login = () => {
                   },
                 }}
               >
-                {isSubmitting || authLoading ? (
+                {isSubmitting || loading ? (
                   <CircularProgress size={20} color="inherit" />
                 ) : (
                   'Log in'
