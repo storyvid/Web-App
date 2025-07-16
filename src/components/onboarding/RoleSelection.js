@@ -30,21 +30,24 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
     {
       id: 'client',
       title: 'Client Portal',
-      subtitle: 'Hire video production services',
+      subtitle: 'I need video production services',
+      description: 'Commission video content, track project progress, and manage deliverables',
       icon: <ClientIcon sx={{ fontSize: 48, color: 'primary.main' }} />,
       color: 'primary'
     },
     {
       id: 'staff',
       title: 'Team Member', 
-      subtitle: 'Work for a production company',
+      subtitle: 'I work for a video production company',
+      description: 'Collaborate on projects, manage assets, and communicate with clients',
       icon: <TeamIcon sx={{ fontSize: 48, color: 'secondary.main' }} />,
       color: 'secondary'
     },
     {
       id: 'admin',
       title: 'Production Company',
-      subtitle: 'Run a video production business',
+      subtitle: 'I run a video production business',
+      description: 'Oversee projects, manage teams, and handle client relationships',
       icon: <BusinessIcon sx={{ fontSize: 48, color: 'error.main' }} />,
       color: 'error'
     }
@@ -100,13 +103,16 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
                   onClick={() => handleRoleSelect(role.id)}
                   sx={{ height: '100%', p: 0 }}
                 >
-                  <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                  <CardContent sx={{ p: 3, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column' }}>
                     {role.icon}
                     <Typography variant="h6" component="h2" gutterBottom sx={{ mt: 2, fontWeight: 600 }}>
                       {role.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
                       {role.subtitle}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1, mt: 1 }}>
+                      {role.description}
                     </Typography>
                     {selectedRole === role.id && (
                       <Box sx={{ mt: 2 }}>
