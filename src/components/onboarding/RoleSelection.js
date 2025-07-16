@@ -73,11 +73,6 @@ const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) 
   return (
     <Container maxWidth="xl" sx={{ py: { xs: 2, md: 3 }, minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
-          {error}
-        </Alert>
-      )}
 
       {!showCompanyForm ? (
         // Role Selection Step
