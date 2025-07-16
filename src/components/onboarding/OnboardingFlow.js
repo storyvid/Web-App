@@ -22,7 +22,7 @@ const OnboardingFlow = () => {
 
   const steps = ['Choose Your Role'];
 
-  const handleRoleSelect = async (role) => {
+  const handleRoleSelect = async (role, companyName) => {
     if (!user?.uid) {
       dispatch(setError({ section: 'global', error: 'User authentication required' }));
       return;
@@ -32,13 +32,14 @@ const OnboardingFlow = () => {
     setSelectedRole(role);
     
     try {
-      // Complete onboarding immediately after role selection
+      // Complete onboarding with role and company information
       const result = await dispatch(completeOnboarding({
         uid: user.uid,
         profileData: {
           role: role,
           email: user.email,
           name: user.name || user.displayName || '',
+          company: companyName || '',
           onboardingComplete: true,
           onboardedAt: new Date().toISOString()
         }

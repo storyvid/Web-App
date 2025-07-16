@@ -44,7 +44,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { styles } from '../pages/dashboardStyles';
 
 // Sidebar Content Component (reusable for both desktop and mobile)
-const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick }) => {
+const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, user }) => {
   const [teamMenuAnchor, setTeamMenuAnchor] = useState(null);
   
   const getRoleMenuItems = (role) => {
@@ -108,7 +108,7 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick }) 
           onClick={(e) => setTeamMenuAnchor(e.currentTarget)}
         >
           <Typography variant="body2" fontWeight={500}>
-            Example Workspace
+            {user?.company || 'My Workspace'}
           </Typography>
           <ArrowDownIcon fontSize="small" />
         </Paper>
@@ -150,6 +150,7 @@ export const Sidebar = ({ activeItem, onMenuItemClick, userRole, mobileOpen, onM
           onMenuItemClick={onMenuItemClick} 
           userRole={userRole}
           onItemClick={onMobileClose}
+          user={user}
         />
       </Drawer>
     );
@@ -161,6 +162,7 @@ export const Sidebar = ({ activeItem, onMenuItemClick, userRole, mobileOpen, onM
         activeItem={activeItem} 
         onMenuItemClick={onMenuItemClick} 
         userRole={userRole}
+        user={user}
       />
     </Box>
   );
