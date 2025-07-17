@@ -229,8 +229,8 @@ const ProjectsList = () => {
           <Box sx={styles.contentWrapper}>
             <Box sx={styles.leftContent}>
               {/* Header */}
-              <Box sx={{ mb: 4, mt: '-10px' }}>
-                <Typography variant="h3" fontWeight={700} gutterBottom>
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h3" fontWeight={700} gutterBottom sx={{ fontSize: '2.3rem' }}>
                   {getRoleTitle(user?.role)}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">

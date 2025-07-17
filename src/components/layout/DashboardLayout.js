@@ -210,7 +210,9 @@ const DashboardLayout = ({
               boxSizing: 'border-box', 
               width: drawerWidth,
               borderRight: 1,
-              borderColor: 'divider'
+              borderColor: 'divider',
+              pt: 0,
+              mt: 0
             },
           }}
         >
@@ -226,7 +228,13 @@ const DashboardLayout = ({
               boxSizing: 'border-box', 
               width: drawerWidth,
               borderRight: 1,
-              borderColor: 'divider'
+              borderColor: 'divider',
+              pt: 0,
+              mt: 0,
+              '& > *:first-child': {
+                mt: 0,
+                pt: 0
+              }
             },
           }}
           open

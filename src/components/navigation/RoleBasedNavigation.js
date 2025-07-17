@@ -161,14 +161,37 @@ const RoleBasedNavigation = ({ activeItem = 'dashboard', onMenuItemClick }) => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
-      {/* Logo */}
-      <Box sx={{ mb: 3, textAlign: 'center' }}>
-        <img src="/storyvid_logo.svg" alt="StoryVid" style={{ width: 120, height: 120 }} />
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100%', 
+      pt: 0, 
+      mt: 0
+    }}>
+      {/* Logo - aligned with header content */}
+      <Box sx={{ 
+        position: 'relative',
+        px: 3, 
+        py: 0, 
+        mt: '-16px',
+        display: 'flex', 
+        alignItems: 'center', 
+        minHeight: 64,
+        overflow: 'hidden' // Hide any overflow from negative margin on image
+      }}>
+        <img 
+          src="/storyvid_logo.svg" 
+          alt="StoryVid" 
+          style={{ 
+            width: 96, // Reduced by 20% (120 * 0.8 = 96)
+            height: 96, // Reduced by 20% (120 * 0.8 = 96)
+            marginTop: '-20px' // Negative margin to crop top whitespace from SVG
+          }} 
+        />
       </Box>
 
       {/* User Role Badge */}
-      <Box sx={{ mb: 3, textAlign: 'center' }}>
+      <Box sx={{ mb: 3, textAlign: 'center', px: 2 }}>
         <Chip 
           label={getRoleLabel(user?.role)}
           color={getRoleColor(user?.role)}
@@ -183,11 +206,11 @@ const RoleBasedNavigation = ({ activeItem = 'dashboard', onMenuItemClick }) => {
       </Box>
 
       {/* Main Navigation */}
-      <Typography variant="caption" sx={{ px: 1, mb: 1, color: 'text.secondary', fontWeight: 'bold' }}>
+      <Typography variant="caption" sx={{ px: 3, mb: 1, color: 'text.secondary', fontWeight: 'bold' }}>
         NAVIGATION
       </Typography>
       
-      <Stack spacing={0.5} sx={{ mb: 3, flex: 1 }}>
+      <Stack spacing={0.5} sx={{ mb: 3, flex: 1, px: 2 }}>
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.id === activeItem || location.pathname === item.path;
@@ -228,7 +251,7 @@ const RoleBasedNavigation = ({ activeItem = 'dashboard', onMenuItemClick }) => {
       <Divider sx={{ my: 2 }} />
 
       {/* Quick Actions */}
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 2, px: 2 }}>
         <Typography variant="caption" sx={{ px: 1, mb: 1, color: 'text.secondary', fontWeight: 'bold' }}>
           QUICK ACTIONS
         </Typography>
@@ -273,7 +296,7 @@ const RoleBasedNavigation = ({ activeItem = 'dashboard', onMenuItemClick }) => {
 
       {/* Role-specific features */}
       {user?.role === 'admin' && (
-        <Box sx={{ mb: 2 }}>
+        <Box sx={{ mb: 2, px: 2 }}>
           <Button
             variant="text"
             fullWidth
@@ -291,7 +314,7 @@ const RoleBasedNavigation = ({ activeItem = 'dashboard', onMenuItemClick }) => {
       )}
 
       {user?.role === 'staff' && user?.staffProfile?.position && (
-        <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2, mb: 2 }}>
+        <Box sx={{ mx: 2, p: 2, bgcolor: 'grey.50', borderRadius: 2, mb: 2 }}>
           <Typography variant="caption" color="text.secondary">
             ROLE
           </Typography>
@@ -307,7 +330,7 @@ const RoleBasedNavigation = ({ activeItem = 'dashboard', onMenuItemClick }) => {
       )}
 
       {user?.role === 'client' && user?.clientProfile?.company && (
-        <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+        <Box sx={{ mx: 2, p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
           <Typography variant="caption" color="text.secondary">
             COMPANY
           </Typography>

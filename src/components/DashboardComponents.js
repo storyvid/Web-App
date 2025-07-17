@@ -337,9 +337,7 @@ export const Header = ({ user, notifications, onMobileMenuClick }) => {
           open={Boolean(userMenuAnchor)}
           onClose={handleClose}
         >
-          <MenuItem onClick={handleClose}>Profile</MenuItem>
-          <MenuItem onClick={handleClose}>Account Settings</MenuItem>
-          <MenuItem onClick={handleClose}>Billing</MenuItem>
+          <MenuItem onClick={() => { handleClose(); window.location.href = '/settings'; }}>Account Settings</MenuItem>
           <Divider />
           <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
@@ -478,10 +476,11 @@ export const ProjectCard = ({ project, onClick }) => {
       sx={{
         ...styles.projectCard,
         cursor: onClick ? 'pointer' : 'default',
+        transition: 'all 0.2s ease-in-out',
         '&:hover': {
           ...(onClick && {
-            transform: 'translateY(-2px)',
-            boxShadow: 3
+            transform: 'translateY(-1px)',
+            boxShadow: 2
           })
         }
       }}
@@ -509,12 +508,9 @@ export const ProjectCard = ({ project, onClick }) => {
         </Stack>
         
         <Box mb={2}>
-          <Stack direction="row" justifyContent="space-between" mb={0.5}>
+          <Stack direction="row" justifyContent="flex-start" mb={0.5}>
             <Typography variant="body2" fontWeight={500}>
               {project.progress}%
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              done
             </Typography>
           </Stack>
           <LinearProgress 

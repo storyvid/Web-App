@@ -328,19 +328,23 @@ const ProjectDetail = () => {
               </Box>
 
               {/* Project Header */}
+              <Box sx={{ mb: 4 }}>
+                <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+                  <StatusIcon sx={{ fontSize: 28, color: `${getStatusColor(project.status)}.main` }} />
+                  <Typography variant="h4" fontWeight={700} gutterBottom>
+                    {project.name}
+                  </Typography>
+                </Stack>
+                
+                <Typography variant="body1" color="text.secondary">
+                  {project.description || project.projectType || 'Video Production Project'}
+                </Typography>
+              </Box>
+
+              {/* Project Status */}
               <Paper sx={{ p: 3, mb: 3 }}>
-                <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={4}>
                   <Box flex={1}>
-                    <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                      <StatusIcon sx={{ fontSize: 28, color: `${getStatusColor(project.status)}.main` }} />
-                      <Typography variant="h3" fontWeight={700}>
-                        {project.name}
-                      </Typography>
-                    </Stack>
-                    
-                    <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
-                      {project.description || project.projectType || 'Video Production Project'}
-                    </Typography>
                     
                     <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap">
                       <Chip
@@ -348,12 +352,6 @@ const ProjectDetail = () => {
                         color={getStatusColor(project.status)}
                         size="medium"
                         sx={{ textTransform: 'capitalize' }}
-                      />
-                      <Chip
-                        icon={<BusinessIcon />}
-                        label={project.client}
-                        variant="outlined"
-                        size="medium"
                       />
                       {project.priority && (
                         <Chip
@@ -375,21 +373,19 @@ const ProjectDetail = () => {
                 </Box>
 
                 {/* Project Progress */}
-                <Box mb={3}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      Overall Progress
-                    </Typography>
-                    <Typography variant="h6" color="primary.main" fontWeight={600}>
-                      {project.progress}%
-                    </Typography>
-                  </Box>
-                  <LinearProgress
+                <Box mb={4}>
+                  <Typography variant="subtitle1" fontWeight={600} mb={1}>
+                    Overall Progress
+                  </Typography>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <LinearProgress
                     variant="determinate"
                     value={project.progress}
                     sx={{ 
                       height: 10, 
                       borderRadius: 5,
+                      width: '25%',
+                      my: 2,
                       '& .MuiLinearProgress-bar': {
                         backgroundColor: project.progress >= 90 ? '#4caf50' : // Green for 90%+
                                        project.progress >= 70 ? '#8bc34a' : // Light green for 70-89%
@@ -399,13 +395,17 @@ const ProjectDetail = () => {
                       }
                     }}
                   />
+                    <Typography variant="h6" color="primary.main" fontWeight={600}>
+                      {project.progress}%
+                    </Typography>
+                  </Box>
                 </Box>
 
                 {/* Key Metrics */}
                 <Grid container spacing={3}>
                   {project.timeline && (
                     <Grid item xs={12} sm={6} md={3}>
-                      <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                      <Card sx={{ p: 3, textAlign: 'center', height: '100%' }}>
                         <CalendarIcon sx={{ fontSize: 32, color: 'primary.main', mb: 1 }} />
                         <Typography variant="h6" fontWeight={600}>
                           {calculateTimeRemaining(project.timeline.endDate)}
@@ -419,7 +419,7 @@ const ProjectDetail = () => {
                   
                   {project.budget && (
                     <Grid item xs={12} sm={6} md={3}>
-                      <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                      <Card sx={{ p: 3, textAlign: 'center', height: '100%' }}>
                         <BudgetIcon sx={{ fontSize: 32, color: 'success.main', mb: 1 }} />
                         <Typography variant="h6" fontWeight={600}>
                           {formatCurrency(project.budget.actual || project.budget.estimated)}
@@ -433,7 +433,7 @@ const ProjectDetail = () => {
                   
                   {project.fileActivity && (
                     <Grid item xs={12} sm={6} md={3}>
-                      <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                      <Card sx={{ p: 3, textAlign: 'center', height: '100%' }}>
                         <FileIcon sx={{ fontSize: 32, color: 'info.main', mb: 1 }} />
                         <Typography variant="h6" fontWeight={600}>
                           {project.fileActivity.recentCount}
@@ -445,17 +445,6 @@ const ProjectDetail = () => {
                     </Grid>
                   )}
                   
-                  <Grid item xs={12} sm={6} md={3}>
-                    <Card variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                      <TeamIcon sx={{ fontSize: 32, color: 'warning.main', mb: 1 }} />
-                      <Typography variant="h6" fontWeight={600}>
-                        {project.team?.length || 0}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Team Members
-                      </Typography>
-                    </Card>
-                  </Grid>
                 </Grid>
               </Paper>
 
@@ -484,11 +473,11 @@ const ProjectDetail = () => {
                     {/* Project Details */}
                     <Grid item xs={12} md={8}>
                       <Card sx={{ mb: 3 }}>
-                        <CardContent>
+                        <CardContent sx={{ p: 3 }}>
                           <Typography variant="h5" gutterBottom>
                             Project Information
                           </Typography>
-                          <Grid container spacing={2}>
+                          <Grid container spacing={3}>
                             <Grid item xs={12} sm={6}>
                               <Typography variant="subtitle1" color="text.secondary">
                                 Project Type
@@ -569,11 +558,11 @@ const ProjectDetail = () => {
                       {/* Budget Information */}
                       {project.budget && (
                         <Card sx={{ mb: 3 }}>
-                          <CardContent>
+                          <CardContent sx={{ p: 3 }}>
                             <Typography variant="h5" gutterBottom>
                               Budget Information
                             </Typography>
-                            <Grid container spacing={2}>
+                            <Grid container spacing={3}>
                               <Grid item xs={12} sm={4}>
                                 <Typography variant="subtitle1" color="text.secondary">
                                   Estimated Budget
@@ -609,7 +598,7 @@ const ProjectDetail = () => {
 
                       {/* Recent Activity */}
                       <Card>
-                        <CardContent>
+                        <CardContent sx={{ p: 3 }}>
                           <Typography variant="h5" gutterBottom>
                             Recent Activity
                           </Typography>
@@ -654,7 +643,7 @@ const ProjectDetail = () => {
                     <Grid item xs={12} md={4}>
                       {/* Team */}
                       <Card sx={{ mb: 3 }}>
-                        <CardContent>
+                        <CardContent sx={{ p: 3 }}>
                           <Typography variant="h5" gutterBottom>
                             Project Team
                           </Typography>
@@ -690,7 +679,7 @@ const ProjectDetail = () => {
                       {/* Next Milestone */}
                       {project.nextMilestoneDetails && (
                         <Card sx={{ mb: 3 }}>
-                          <CardContent>
+                          <CardContent sx={{ p: 3 }}>
                             <Typography variant="h5" gutterBottom>
                               Next Milestone
                             </Typography>
@@ -715,7 +704,7 @@ const ProjectDetail = () => {
                       {/* File Summary */}
                       {project.fileActivity && (
                         <Card>
-                          <CardContent>
+                          <CardContent sx={{ p: 3 }}>
                             <Typography variant="h5" gutterBottom>
                               File Summary
                             </Typography>
@@ -770,7 +759,7 @@ const ProjectDetail = () => {
                 {/* Timeline Tab */}
                 {activeTab === 3 && (
                   <Card>
-                    <CardContent>
+                    <CardContent sx={{ p: 3 }}>
                       <Typography variant="h5" gutterBottom>
                         Project Timeline
                       </Typography>
@@ -784,7 +773,7 @@ const ProjectDetail = () => {
                 {/* Team Tab */}
                 {activeTab === 4 && (
                   <Card>
-                    <CardContent>
+                    <CardContent sx={{ p: 3 }}>
                       <Typography variant="h5" gutterBottom>
                         Team Management
                       </Typography>
