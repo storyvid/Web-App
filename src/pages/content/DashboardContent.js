@@ -320,18 +320,6 @@ const DashboardContent = () => {
             />
           )}
 
-          {/* Show message if no milestones or team data */}
-          {(!data.todaysMilestones || data.todaysMilestones.length === 0) && 
-           (!data.team || data.team.length === 0) && (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body2" color="text.secondary">
-                {data.user.role === 'admin' 
-                  ? 'Project milestones and team information will appear here'
-                  : 'Your project milestones and team information will appear here when available'
-                }
-              </Typography>
-            </Box>
-          )}
 
         </Grid>
       </Grid>
