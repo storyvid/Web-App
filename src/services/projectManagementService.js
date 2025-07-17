@@ -403,10 +403,10 @@ class ProjectManagementService {
     try {
       console.log('🔍 DEBUG: Fetching projects for user:', userId);
       
+      // Use simple query without orderBy to avoid composite index requirement
       const projectsQuery = query(
         collection(this.firebaseService.db, 'projects'),
-        where('assignedTo', '==', userId),
-        orderBy('createdAt', 'desc')
+        where('assignedTo', '==', userId)
       );
 
       const snapshot = await getDocs(projectsQuery);
@@ -430,7 +430,14 @@ class ProjectManagementService {
         };
       });
       
-      console.log('🔍 DEBUG: Returning projects:', projects.length);
+      // Sort client-side by createdAt descending
+      projects.sort((a, b) => {
+        const aDate = new Date(a.createdAt);
+        const bDate = new Date(b.createdAt);
+        return bDate - aDate;
+      });
+      
+      console.log('🔍 DEBUG: Returning projects (sorted):', projects.length);
       return projects;
     } catch (error) {
       console.error('Error getting user projects:', error);
