@@ -7,13 +7,13 @@
 // Copy the firebaseConfig object
 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyA5wuKIdTUyUXuseAfp_3flJceKpgJQrk4",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "storyvid-d1792.firebaseapp.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "storyvid-d1792",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "storyvid-d1792.firebasestorage.app",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "549183398177",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:549183398177:web:b6bca429c71d61a0e7de60",
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "G-6TC35CPQ5C"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyCyw1Uhr9JCTbc3aq2Pz_Fxx4JQQmq9p6s",
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "storyvidportal.firebaseapp.com",
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "storyvidportal",
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "storyvidportal.firebasestorage.app",
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "802482346328",
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:802482346328:web:29b3494c816e2728c6ad2d",
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "G-TMVFB4KPT3"
 };
 
 // Environment-specific configurations
