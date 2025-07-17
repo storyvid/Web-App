@@ -53,10 +53,8 @@ service cloud.firestore {
          !('companyId' in request.resource.data.adminProfile) || 
          resource.data.adminProfile.companyId == request.resource.data.adminProfile.companyId);
       
-      // Admins can read team members in their company
-      allow read: if isAdmin() && 
-        (resource.data.role == 'staff' && 
-         resource.data.staffProfile.companyId == getUserCompany());
+      // Admins can read all users for project assignment
+      allow read: if isAdmin();
       
       // Staff can read other staff members in their company
       allow read: if isStaff() && 
@@ -79,13 +77,13 @@ service cloud.firestore {
         getUserCompany() == companyId;
     }
 
-    // Projects collection rules
+    // Projects collection rules - Admin-centric management
     match /projects/{projectId} {
-      // Clients can read/write projects where they are the client
-      allow read, write: if isClient() && 
-        resource.data.clientId == request.auth.uid;
+      // Clients and staff can read projects assigned to them
+      allow read: if isAuthenticated() && 
+        resource.data.assignedTo == request.auth.uid;
       
-      // Staff can read/write projects where they are assigned
+      // Staff can read/write projects where they are in assignedStaff array
       allow read, write: if isStaff() && 
         request.auth.uid in resource.data.assignedStaff;
       
@@ -93,15 +91,20 @@ service cloud.firestore {
       allow read, write: if isAdmin() && 
         resource.data.companyId == getUserCompany();
       
-      // Allow project creation by admins and staff
-      allow create: if (isAdmin() || isStaff()) && 
-        request.resource.data.companyId == getUserCompany();
+      // Only admins can create projects
+      allow create: if isAdmin() && 
+        request.resource.data.companyId == getUserCompany() &&
+        request.resource.data.createdBy == request.auth.uid;
+      
+      // Only admins can update project status and assignment
+      allow update: if isAdmin() && 
+        resource.data.companyId == getUserCompany();
     }
 
     // Milestones collection rules
     match /milestones/{milestoneId} {
-      // Inherit permissions from parent project
-      allow read, write: if isAuthenticated() && 
+      // Inherit permissions from parent project for read/update
+      allow read, update: if isAuthenticated() && 
         exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) &&
         // User has access to the parent project
         (
@@ -109,6 +112,11 @@ service cloud.firestore {
           (isStaff() && request.auth.uid in get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.assignedStaff) ||
           (isAdmin() && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.companyId == getUserCompany())
         );
+      
+      // Only admins can create and delete milestones
+      allow create, delete: if isAdmin() && 
+        exists(/databases/$(database)/documents/projects/$(request.resource.data.projectId)) &&
+        get(/databases/$(database)/documents/projects/$(request.resource.data.projectId)).data.companyId == getUserCompany();
     }
 
     // Assets collection rules

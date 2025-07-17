@@ -1,4 +1,12 @@
 // Role-Specific Mock Data for StoryVid Dashboard
+import { 
+  Folder as FolderIcon,
+  Schedule as ScheduleIcon,
+  CheckCircle as CheckCircleIcon,
+  Assignment as AssignmentIcon,
+  Group as GroupIcon,
+  Warning as WarningIcon
+} from '@mui/icons-material';
 
 export const getRoleBasedData = (userRole) => {
   const baseUser = {
@@ -28,11 +36,35 @@ export const getRoleBasedData = (userRole) => {
   const roleData = {
     client: {
       user: baseUser.client,
-      stats: {
-        myProjects: 4,
-        pendingApprovals: 2,
-        deliveredVideos: 8
-      },
+      stats: [
+        {
+          icon: FolderIcon,
+          title: "My Projects",
+          value: 4,
+          subtitle: "Active projects",
+          seeAll: true,
+          section: "myProjects",
+          statKey: "myProjects"
+        },
+        {
+          icon: ScheduleIcon,
+          title: "Pending Approvals",
+          value: 2,
+          subtitle: "Awaiting review",
+          seeAll: true,
+          section: "pendingApprovals",
+          statKey: "pendingApprovals"
+        },
+        {
+          icon: CheckCircleIcon,
+          title: "Delivered Videos",
+          value: 8,
+          subtitle: "Completed this month",
+          seeAll: false,
+          section: "deliveredVideos",
+          statKey: "deliveredVideos"
+        }
+      ],
       projects: [
         {
           id: 'project-client-1',
@@ -80,13 +112,7 @@ export const getRoleBasedData = (userRole) => {
             { id: 1, avatar: "https://i.pravatar.cc/150?img=2" },
             { id: 2, avatar: "https://i.pravatar.cc/150?img=3" }
           ],
-          action: "Review",
-          fileActivity: {
-            recentCount: 12,
-            lastUpload: "15 minutes ago",
-            hasNewUploads: true,
-            types: ["video", "pdf", "image"]
-          }
+          action: "Review"
         },
         {
           id: 2,
@@ -107,13 +133,7 @@ export const getRoleBasedData = (userRole) => {
             { id: 4, avatar: "https://i.pravatar.cc/150?img=5" },
             { id: 5, avatar: "https://i.pravatar.cc/150?img=6" }
           ],
-          action: "View Progress",
-          fileActivity: {
-            recentCount: 6,
-            lastUpload: "2 days ago",
-            hasNewUploads: false,
-            types: ["video", "pdf"]
-          }
+          action: "View Progress"
         },
         {
           id: 3,
@@ -134,13 +154,7 @@ export const getRoleBasedData = (userRole) => {
             { id: 6, avatar: "https://i.pravatar.cc/150?img=7" },
             { id: 7, avatar: "https://i.pravatar.cc/150?img=8" }
           ],
-          action: "Review",
-          fileActivity: {
-            recentCount: 24,
-            lastUpload: "3 hours ago",
-            hasNewUploads: true,
-            types: ["video", "image"]
-          }
+          action: "Review"
         },
         {
           id: 4,
@@ -160,13 +174,16 @@ export const getRoleBasedData = (userRole) => {
           team: [
             { id: 8, avatar: "https://i.pravatar.cc/150?img=9" }
           ],
-          action: "View Progress",
-          fileActivity: {
-            recentCount: 4,
-            lastUpload: "1 week ago",
-            hasNewUploads: false,
-            types: ["pdf"]
-          }
+          action: "View Progress"
+        }
+      ],
+      todaysMilestones: [
+        {
+          id: 1,
+          title: "Review Brand Story Cut",
+          project: "Brand Story Campaign", 
+          time: "Today, 2:00pm",
+          type: "review"
         }
       ],
       milestones: [
@@ -192,6 +209,10 @@ export const getRoleBasedData = (userRole) => {
           type: "draft"
         }
       ],
+      team: [
+        { id: 1, name: "Marcus Chen", role: "Video Editor", avatar: "https://i.pravatar.cc/150?img=8" },
+        { id: 2, name: "Sarah Johnson", role: "Motion Graphics", avatar: "https://i.pravatar.cc/150?img=9" }
+      ],
       teamMembers: {
         projects: [
           { id: 1, name: "My Projects", members: 2, logo: "🎬" }
@@ -201,6 +222,22 @@ export const getRoleBasedData = (userRole) => {
           { id: 2, name: "Sarah Johnson", role: "Motion Graphics", avatar: "https://i.pravatar.cc/150?img=9" }
         ]
       },
+      recentActivity: [
+        {
+          id: 1,
+          user: { name: "Marcus Chen", avatar: "https://i.pravatar.cc/150?img=8" },
+          action: "Uploaded new cut for",
+          target: "Brand Story Campaign",
+          time: "15 minutes ago"
+        },
+        {
+          id: 2,
+          user: { name: "You", avatar: "https://i.pravatar.cc/150?img=1" },
+          action: "Approved milestone for",
+          target: "Product Demo Series",
+          time: "1 hour ago"
+        }
+      ],
       activities: [
         {
           id: 1,
@@ -237,11 +274,35 @@ export const getRoleBasedData = (userRole) => {
 
     staff: {
       user: baseUser.staff,
-      stats: {
-        assignedTasks: 12,
-        completedToday: 4,
-        upcomingDeadlines: 6
-      },
+      stats: [
+        {
+          icon: AssignmentIcon,
+          title: "Assigned Tasks",
+          value: 12,
+          subtitle: "Active tasks",
+          seeAll: true,
+          section: "assignedTasks",
+          statKey: "assignedTasks"
+        },
+        {
+          icon: CheckCircleIcon,
+          title: "Completed Today",
+          value: 4,
+          subtitle: "Tasks finished",
+          seeAll: false,
+          section: "completedToday",
+          statKey: "completedToday"
+        },
+        {
+          icon: WarningIcon,
+          title: "Upcoming Deadlines",
+          value: 6,
+          subtitle: "This week",
+          seeAll: true,
+          section: "upcomingDeadlines",
+          statKey: "upcomingDeadlines"
+        }
+      ],
       projects: [
         {
           id: 1,
@@ -262,13 +323,7 @@ export const getRoleBasedData = (userRole) => {
             { id: 1, avatar: "https://i.pravatar.cc/150?img=2" },
             { id: 2, avatar: "https://i.pravatar.cc/150?img=3" }
           ],
-          action: "Continue Edit",
-          fileActivity: {
-            recentCount: 18,
-            lastUpload: "5 minutes ago",
-            hasNewUploads: true,
-            types: ["video", "pdf", "image"]
-          }
+          action: "Continue Edit"
         },
         {
           id: 2,
@@ -290,12 +345,6 @@ export const getRoleBasedData = (userRole) => {
             { id: 5, avatar: "https://i.pravatar.cc/150?img=6" }
           ],
           action: "Start Grading",
-          fileActivity: {
-            recentCount: 9,
-            lastUpload: "1 hour ago",
-            hasNewUploads: true,
-            types: ["video", "image"]
-          }
         },
         {
           id: 3,
@@ -317,12 +366,6 @@ export const getRoleBasedData = (userRole) => {
             { id: 10, avatar: "https://i.pravatar.cc/150?img=11" }
           ],
           action: "Continue Audio",
-          fileActivity: {
-            recentCount: 31,
-            lastUpload: "2 hours ago",
-            hasNewUploads: true,
-            types: ["video", "pdf"]
-          }
         },
         {
           id: 4,
@@ -374,6 +417,20 @@ export const getRoleBasedData = (userRole) => {
           type: "final"
         }
       ],
+      todaysMilestones: [
+        {
+          id: 1,
+          title: "Complete First Cut",
+          project: "Brand Story Campaign",
+          time: "Today, 5:00pm",
+          type: "draft"
+        }
+      ],
+      team: [
+        { id: 1, name: "Marcus Chen", role: "Video Editor", avatar: "https://i.pravatar.cc/150?img=8" },
+        { id: 2, name: "Sarah Johnson", role: "Motion Graphics", avatar: "https://i.pravatar.cc/150?img=9" },
+        { id: 3, name: "David Rodriguez", role: "Producer", avatar: "https://i.pravatar.cc/150?img=10" }
+      ],
       teamMembers: {
         projects: [
           { id: 1, name: "TechFlow Solutions", members: 4, logo: "🎬" },
@@ -386,6 +443,22 @@ export const getRoleBasedData = (userRole) => {
           { id: 3, name: "David Rodriguez", role: "Producer", avatar: "https://i.pravatar.cc/150?img=10" }
         ]
       },
+      recentActivity: [
+        {
+          id: 1,
+          user: { name: "You", avatar: "https://i.pravatar.cc/150?img=2" },
+          action: "Completed editing task for",
+          target: "Brand Story Campaign",
+          time: "30 minutes ago"
+        },
+        {
+          id: 2,
+          user: { name: "David Rodriguez", avatar: "https://i.pravatar.cc/150?img=10" },
+          action: "Assigned new task for",
+          target: "Product Demo Series",
+          time: "2 hours ago"
+        }
+      ],
       activities: [
         {
           id: 1,
@@ -422,12 +495,35 @@ export const getRoleBasedData = (userRole) => {
 
     admin: {
       user: baseUser.admin,
-      stats: {
-        totalClients: 15,
-        activeProjects: 23,
-        pendingApprovals: 8,
-        upcomingDeadlines: 12
-      },
+      stats: [
+        {
+          icon: GroupIcon,
+          title: "Total Clients",
+          value: 15,
+          subtitle: "Active accounts",
+          seeAll: true,
+          section: "totalClients",
+          statKey: "totalClients"
+        },
+        {
+          icon: FolderIcon,
+          title: "Active Projects",
+          value: 23,
+          subtitle: "In production",
+          seeAll: true,
+          section: "activeProjects",
+          statKey: "activeProjects"
+        },
+        {
+          icon: ScheduleIcon,
+          title: "Pending Approvals",
+          value: 8,
+          subtitle: "Awaiting review",
+          seeAll: true,
+          section: "pendingApprovals",
+          statKey: "pendingApprovals"
+        }
+      ],
       projects: [
         {
           id: 1,
@@ -588,6 +684,22 @@ export const getRoleBasedData = (userRole) => {
           type: "final"
         }
       ],
+      todaysMilestones: [
+        {
+          id: 1,
+          title: "Client Review Meeting",
+          project: "TechFlow Solutions",
+          time: "Today, 3:00pm",
+          type: "review"
+        }
+      ],
+      team: [
+        { id: 1, name: "Marcus Chen", role: "Video Editor", avatar: "https://i.pravatar.cc/150?img=8" },
+        { id: 2, name: "Sarah Johnson", role: "Motion Graphics", avatar: "https://i.pravatar.cc/150?img=9" },
+        { id: 3, name: "David Rodriguez", role: "Producer", avatar: "https://i.pravatar.cc/150?img=10" },
+        { id: 4, name: "Lisa Thompson", role: "Colorist", avatar: "https://i.pravatar.cc/150?img=11" },
+        { id: 5, name: "Jake Williams", role: "Sound Designer", avatar: "https://i.pravatar.cc/150?img=12" }
+      ],
       teamMembers: {
         projects: [
           { id: 1, name: "TechFlow Solutions", members: 4, logo: "🎬" },
@@ -604,6 +716,22 @@ export const getRoleBasedData = (userRole) => {
           { id: 5, name: "Jake Williams", role: "Sound Designer", avatar: "https://i.pravatar.cc/150?img=12" }
         ]
       },
+      recentActivity: [
+        {
+          id: 1,
+          user: { name: "TechFlow Solutions", avatar: "https://i.pravatar.cc/150?img=1" },
+          action: "Approved milestone for",
+          target: "Brand Story Campaign",
+          time: "15 minutes ago"
+        },
+        {
+          id: 2,
+          user: { name: "Marcus Chen", avatar: "https://i.pravatar.cc/150?img=8" },
+          action: "Completed task for",
+          target: "Product Demo Series",
+          time: "1 hour ago"
+        }
+      ],
       activities: [
         {
           id: 1,

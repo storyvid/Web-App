@@ -771,6 +771,82 @@ class FirebaseService {
     }
   }
 
+  // Enhanced project methods for admin management
+  async getAllUsers() {
+    if (this.useMockData) {
+      console.log('Mock: Getting all users');
+      return [];
+    }
+
+    try {
+      const usersQuery = query(
+        collection(this.db, 'users'),
+        orderBy('name', 'asc')
+      );
+
+      const snapshot = await getDocs(usersQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        uid: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
+      }));
+    } catch (error) {
+      throw new Error(`Failed to get all users: ${error.message}`);
+    }
+  }
+
+  async getAllProjects() {
+    if (this.useMockData) {
+      console.log('Mock: Getting all projects');
+      return [];
+    }
+
+    try {
+      // Simple query without orderBy to avoid index requirement for initial testing
+      const projectsQuery = collection(this.db, 'projects');
+
+      const snapshot = await getDocs(projectsQuery);
+      const projects = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
+      }));
+      
+      // Sort on client side
+      return projects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } catch (error) {
+      throw new Error(`Failed to get all projects: ${error.message}`);
+    }
+  }
+
+  async getProjectsByUser(userId) {
+    if (this.useMockData) {
+      console.log('Mock: Getting projects by user', userId);
+      return [];
+    }
+
+    try {
+      const projectsQuery = query(
+        collection(this.db, 'projects'),
+        where('assignedTo', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+
+      const snapshot = await getDocs(projectsQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
+      }));
+    } catch (error) {
+      throw new Error(`Failed to get user projects: ${error.message}`);
+    }
+  }
+
   // Milestone Methods
   async getMilestones(projectId = null) {
     try {

@@ -268,6 +268,12 @@ const Settings = () => {
       case 'projects':
         navigate('/projects');
         break;
+      case 'admin-projects':
+        navigate('/admin/projects');
+        break;
+      case 'admin-users':
+        navigate('/admin/users');
+        break;
       case 'settings':
         break;
       case 'assets':

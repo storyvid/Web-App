@@ -102,6 +102,12 @@ const Dashboard = () => {
       case 'projects':
         navigate('/projects');
         break;
+      case 'admin-projects':
+        navigate('/admin/projects');
+        break;
+      case 'admin-users':
+        navigate('/admin/users');
+        break;
       case 'assets':
         // TODO: Add assets page
         console.log('Assets page not implemented yet');

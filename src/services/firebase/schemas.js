@@ -18,6 +18,9 @@ export const UserSchema = {
   updatedAt: null, // Firestore Timestamp
   isActive: true,
   
+  // Project assignment
+  assignedProjects: [], // Array of project IDs assigned to this user
+  
   // Client-specific fields
   clientId: '', // For clients, references client document
   

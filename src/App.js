@@ -19,6 +19,8 @@ import Dashboard from './pages/Dashboard';
 import ProjectDetail from './pages/ProjectDetail';
 import ProjectsList from './pages/ProjectsList';
 import Settings from './pages/Settings';
+import AdminProjects from './pages/AdminProjects';
+import AdminUsers from './pages/AdminUsers';
 import Unauthorized from './pages/Unauthorized';
 import FirebaseTest from './components/FirebaseTest';
 import ReduxTest from './components/ReduxTest';
@@ -28,6 +30,13 @@ import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import RoleBasedRoute from './components/routing/RoleBasedRoute';
 import RoleBasedDashboardTest from './components/testing/RoleBasedDashboardTest';
 import DataDebugger from './components/DataDebugger';
+import ProjectManagementTest from './components/ProjectManagementTest';
+import AppLayout from './components/layout/AppLayout';
+import DashboardContent from './pages/content/DashboardContent';
+import ProjectsListContent from './pages/content/ProjectsListContent';
+import SettingsContent from './pages/content/SettingsContent';
+import AdminProjectsContent from './pages/content/AdminProjectsContent';
+import AdminUsersContent from './pages/content/AdminUsersContent';
 
 function App() {
   return (
@@ -70,47 +79,40 @@ function App() {
                     } 
                   />
 
-                  {/* Protected Routes - require authentication and completed onboarding */}
+                  {/* Protected Routes with Persistent Layout */}
                   <Route
-                    path="/dashboard"
                     element={
                       <ProtectedRoute>
                         <ErrorBoundary>
-                          <Dashboard />
+                          <AppLayout />
                         </ErrorBoundary>
                       </ProtectedRoute>
                     }
-                  />
-                  <Route
-                    path="/project/:projectId"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <ProjectDetail />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/projects"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <ProjectsList />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route 
-                    path="/settings" 
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <Settings />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    } 
-                  />
+                  >
+                    {/* Dashboard routes */}
+                    <Route path="/dashboard" element={<DashboardContent />} />
+                    <Route path="/projects" element={<ProjectsListContent />} />
+                    <Route path="/project/:projectId" element={<ProjectDetail />} />
+                    <Route path="/settings" element={<SettingsContent />} />
+                    
+                    {/* Admin Routes - Require admin role */}
+                    <Route 
+                      path="/admin/projects" 
+                      element={
+                        <RoleBasedRoute allowedRoles={['admin']}>
+                          <AdminProjectsContent />
+                        </RoleBasedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/admin/users" 
+                      element={
+                        <RoleBasedRoute allowedRoles={['admin']}>
+                          <AdminUsersContent />
+                        </RoleBasedRoute>
+                      } 
+                    />
+                  </Route>
                   <Route 
                     path="/profile" 
                     element={
@@ -131,6 +133,7 @@ function App() {
                   <Route path="/profile-test" element={<ProfileTest />} />
                   <Route path="/role-test" element={<RoleBasedDashboardTest />} />
                   <Route path="/debug" element={<DataDebugger />} />
+                  <Route path="/project-management-test" element={<ProjectManagementTest />} />
 
                   {/* Redirect root to login - PublicRoute will handle authenticated users */}
                   <Route path="/" element={<Navigate to="/login" replace />} />

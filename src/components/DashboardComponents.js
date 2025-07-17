@@ -47,7 +47,8 @@ import {
   CloudUpload as UploadIcon,
   VideoFile as VideoIcon,
   PictureAsPdf as PdfIcon,
-  OpenInNew as OpenInNewIcon
+  OpenInNew as OpenInNewIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { styles } from '../pages/dashboardStyles';
@@ -57,16 +58,27 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, us
   const [teamMenuAnchor, setTeamMenuAnchor] = useState(null);
   
   const getRoleMenuItems = (role) => {
-    // MVP pages only - same for all roles
-    const menuItems = [
+    const baseMenuItems = [
       { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
       { id: 'projects', label: 'Projects', icon: FolderIcon },
       { id: 'assets', label: 'Assets', icon: AssetsIcon },
       { id: 'services', label: 'Services', icon: ServicesIcon },
       { id: 'settings', label: 'Settings', icon: SettingsIcon }
     ];
+
+    // Add admin-specific menu items
+    if (role === 'admin') {
+      const adminItems = [
+        { id: 'admin-projects', label: 'Manage Projects', icon: FolderIcon },
+        { id: 'admin-users', label: 'Manage Users', icon: PersonIcon }
+      ];
+      
+      // Insert admin items after projects but before assets
+      const projectsIndex = baseMenuItems.findIndex(item => item.id === 'projects');
+      baseMenuItems.splice(projectsIndex + 1, 0, ...adminItems);
+    }
     
-    return menuItems;
+    return baseMenuItems;
   };
 
   const menuItems = getRoleMenuItems(userRole);
@@ -449,27 +461,6 @@ export const ProjectCard = ({ project, onClick }) => {
   
   const status = statusColors[project.status] || statusColors['in-production'];
   
-  // Get milestone status and urgency
-  const getMilestoneStatus = (milestone) => {
-    if (!milestone) return null;
-    
-    const now = new Date();
-    const dueDate = new Date(milestone.dueDate);
-    const daysDiff = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
-    
-    if (daysDiff < 0) {
-      return { type: 'overdue', color: 'error.main', icon: WarningIcon };
-    } else if (daysDiff <= 2) {
-      return { type: 'urgent', color: 'warning.main', icon: ScheduleIcon };
-    } else if (milestone.status === 'pending_approval') {
-      return { type: 'approval', color: 'info.main', icon: AssignmentIcon };
-    } else if (milestone.status === 'completed') {
-      return { type: 'completed', color: 'success.main', icon: CheckCircleIcon };
-    }
-    return { type: 'normal', color: 'text.secondary', icon: ScheduleIcon };
-  };
-  
-  const milestoneStatus = getMilestoneStatus(project.nextMilestoneDetails);
   
   return (
     <Card 
@@ -492,7 +483,7 @@ export const ProjectCard = ({ project, onClick }) => {
             <Typography variant="h6" fontWeight={600} gutterBottom>
               {project.name}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" fontSize="0.875rem">
               for {project.client}
             </Typography>
           </Box>
@@ -507,10 +498,13 @@ export const ProjectCard = ({ project, onClick }) => {
           />
         </Stack>
         
-        <Box mb={2}>
-          <Stack direction="row" justifyContent="flex-start" mb={0.5}>
+        <Box>
+          <Stack direction="row" justifyContent="space-between" mb={0.5}>
             <Typography variant="body2" fontWeight={500}>
               {project.progress}%
+            </Typography>
+            <Typography variant="caption" color="text.secondary" fontSize="0.75rem">
+              {project.nextMilestone}
             </Typography>
           </Stack>
           <LinearProgress 
@@ -528,146 +522,6 @@ export const ProjectCard = ({ project, onClick }) => {
             }}
           />
         </Box>
-        
-        {/* Enhanced Milestone Section */}
-        <Box mb={2}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Stack direction="row" alignItems="center" spacing={1}>
-              {milestoneStatus && (
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <milestoneStatus.icon 
-                    sx={{ 
-                      fontSize: 16, 
-                      color: milestoneStatus.color,
-                      mr: 0.5
-                    }} 
-                  />
-                </Box>
-              )}
-              <Typography variant="caption" color="text.secondary">
-                {project.nextMilestoneDetails?.status === 'pending_approval' ? 'Approval Due:' : 'Next Due:'}
-              </Typography>
-              <Typography 
-                variant="caption" 
-                fontWeight={500}
-                sx={{ 
-                  color: milestoneStatus?.color || 'text.primary'
-                }}
-              >
-                {project.nextMilestone}
-              </Typography>
-            </Stack>
-            
-            {project.nextMilestoneDetails?.status === 'pending_approval' && (
-              <Chip 
-                label="Needs Approval" 
-                size="small"
-                sx={{
-                  bgcolor: 'warning.50',
-                  color: 'warning.dark',
-                  fontSize: '0.75rem',
-                  height: 20
-                }}
-              />
-            )}
-          </Stack>
-          
-          {project.nextMilestoneDetails?.title && (
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-              {project.nextMilestoneDetails.title}
-            </Typography>
-          )}
-        </Box>
-        
-        {/* File Activity Section */}
-        {project.fileActivity && (
-          <Box mb={2}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <FileIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                <Typography variant="caption" color="text.secondary">
-                  {project.fileActivity.recentCount} files
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  • {project.fileActivity.lastUpload}
-                </Typography>
-              </Stack>
-              
-              {project.fileActivity.hasNewUploads && (
-                <Chip 
-                  label="New" 
-                  size="small"
-                  sx={{
-                    bgcolor: 'success.50',
-                    color: 'success.dark',
-                    fontSize: '0.7rem',
-                    height: 18
-                  }}
-                />
-              )}
-            </Stack>
-            
-            {project.fileActivity.types && project.fileActivity.types.length > 0 && (
-              <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
-                {project.fileActivity.types.map((type, index) => {
-                  const getFileIcon = (fileType) => {
-                    switch(fileType) {
-                      case 'video': return VideoIcon;
-                      case 'pdf': return PdfIcon;
-                      case 'image': return FileIcon;
-                      default: return FileIcon;
-                    }
-                  };
-                  
-                  const FileTypeIcon = getFileIcon(type);
-                  return (
-                    <FileTypeIcon 
-                      key={index}
-                      sx={{ 
-                        fontSize: 14, 
-                        color: 'text.secondary',
-                        opacity: 0.7
-                      }} 
-                    />
-                  );
-                })}
-              </Stack>
-            )}
-          </Box>
-        )}
-        
-        <Stack direction="row" justifyContent="flex-end" alignItems="center">
-          {/* Team avatar group removed as requested */}
-          {/* <Stack direction="row" alignItems="center" spacing={1}>
-            <AvatarGroup max={3} sx={styles.avatarGroup}>
-              {project.team.map(member => (
-                <Avatar
-                  key={member.id}
-                  src={member.avatar}
-                  sx={{ width: 24, height: 24 }}
-                />
-              ))}
-            </AvatarGroup>
-          </Stack> */}
-          
-          {/* Action button (Review & Approve) removed as requested */}
-          {/* <Button size="small" variant="text" sx={styles.actionButton}>
-            {project.fileActivity?.hasNewUploads ? 'View Files' : 
-             project.nextMilestoneDetails?.status === 'pending_approval' ? 'Review' : project.action}
-          </Button> */}
-        </Stack>
-        
-        {project.notStarted && (
-          <Typography 
-            variant="caption" 
-            color="text.secondary" 
-            display="block" 
-            textAlign="center" 
-            mt={2}
-          >
-            Not started yet
-          </Typography>
-        )}
       </CardContent>
     </Card>
   );

@@ -114,6 +114,12 @@ const ProjectsList = () => {
       case 'projects':
         // Stay on projects page
         break;
+      case 'admin-projects':
+        navigate('/admin/projects');
+        break;
+      case 'admin-users':
+        navigate('/admin/users');
+        break;
       case 'settings':
         navigate('/settings');
         break;
