@@ -318,7 +318,8 @@ const ProjectList = ({ viewMode = 'grid' }) => {
                   </IconButton>
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                {/* Status and priority chips removed as requested */}
+                {/* <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                   <Chip 
                     label={project.status.replace('_', ' ').toUpperCase()}
                     color={getStatusColor(project.status)}
@@ -330,7 +331,7 @@ const ProjectList = ({ viewMode = 'grid' }) => {
                     size="small"
                     variant="outlined"
                   />
-                </Box>
+                </Box> */}
 
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -343,8 +344,9 @@ const ProjectList = ({ viewMode = 'grid' }) => {
                   />
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                  {/* Team avatar group removed as requested */}
+                  {/* <Box>
                     <Typography variant="caption" color="text.secondary">
                       Team
                     </Typography>
@@ -360,7 +362,7 @@ const ProjectList = ({ viewMode = 'grid' }) => {
                         </Avatar>
                       ))}
                     </AvatarGroup>
-                  </Box>
+                  </Box> */}
                   
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="caption" color="text.secondary">

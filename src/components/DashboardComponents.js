@@ -622,8 +622,9 @@ export const ProjectCard = ({ project, onClick }) => {
           </Box>
         )}
         
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Stack direction="row" alignItems="center" spacing={1}>
+        <Stack direction="row" justifyContent="flex-end" alignItems="center">
+          {/* Team avatar group removed as requested */}
+          {/* <Stack direction="row" alignItems="center" spacing={1}>
             <AvatarGroup max={3} sx={styles.avatarGroup}>
               {project.team.map(member => (
                 <Avatar
@@ -633,12 +634,13 @@ export const ProjectCard = ({ project, onClick }) => {
                 />
               ))}
             </AvatarGroup>
-          </Stack>
+          </Stack> */}
           
-          <Button size="small" variant="text" sx={styles.actionButton}>
+          {/* Action button (Review & Approve) removed as requested */}
+          {/* <Button size="small" variant="text" sx={styles.actionButton}>
             {project.fileActivity?.hasNewUploads ? 'View Files' : 
              project.nextMilestoneDetails?.status === 'pending_approval' ? 'Review' : project.action}
-          </Button>
+          </Button> */}
         </Stack>
         
         {project.notStarted && (
