@@ -333,12 +333,12 @@ const ProjectDetail = () => {
                   <Box flex={1}>
                     <Stack direction="row" alignItems="center" spacing={2} mb={2}>
                       <StatusIcon sx={{ fontSize: 28, color: `${getStatusColor(project.status)}.main` }} />
-                      <Typography variant="h4" fontWeight={700}>
+                      <Typography variant="h3" fontWeight={700}>
                         {project.name}
                       </Typography>
                     </Stack>
                     
-                    <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+                    <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 2 }}>
                       {project.description || project.projectType || 'Video Production Project'}
                     </Typography>
                     
@@ -485,12 +485,12 @@ const ProjectDetail = () => {
                     <Grid item xs={12} md={8}>
                       <Card sx={{ mb: 3 }}>
                         <CardContent>
-                          <Typography variant="h6" gutterBottom>
+                          <Typography variant="h5" gutterBottom>
                             Project Information
                           </Typography>
                           <Grid container spacing={2}>
                             <Grid item xs={12} sm={6}>
-                              <Typography variant="subtitle2" color="text.secondary">
+                              <Typography variant="subtitle1" color="text.secondary">
                                 Project Type
                               </Typography>
                               <Typography variant="body1" sx={{ mb: 2 }}>
@@ -498,7 +498,7 @@ const ProjectDetail = () => {
                               </Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
-                              <Typography variant="subtitle2" color="text.secondary">
+                              <Typography variant="subtitle1" color="text.secondary">
                                 Client
                               </Typography>
                               <Typography variant="body1" sx={{ mb: 2 }}>
@@ -507,7 +507,7 @@ const ProjectDetail = () => {
                             </Grid>
                             {project.genre && (
                               <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle2" color="text.secondary">
+                                <Typography variant="subtitle1" color="text.secondary">
                                   Genre
                                 </Typography>
                                 <Typography variant="body1" sx={{ mb: 2 }}>
@@ -518,7 +518,7 @@ const ProjectDetail = () => {
                             {project.timeline && (
                               <>
                                 <Grid item xs={12} sm={6}>
-                                  <Typography variant="subtitle2" color="text.secondary">
+                                  <Typography variant="subtitle1" color="text.secondary">
                                     Start Date
                                   </Typography>
                                   <Typography variant="body1" sx={{ mb: 2 }}>
@@ -526,7 +526,7 @@ const ProjectDetail = () => {
                                   </Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                  <Typography variant="subtitle2" color="text.secondary">
+                                  <Typography variant="subtitle1" color="text.secondary">
                                     End Date
                                   </Typography>
                                   <Typography variant="body1" sx={{ mb: 2 }}>
@@ -534,7 +534,7 @@ const ProjectDetail = () => {
                                   </Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                  <Typography variant="subtitle2" color="text.secondary">
+                                  <Typography variant="subtitle1" color="text.secondary">
                                     Estimated Hours
                                   </Typography>
                                   <Typography variant="body1" sx={{ mb: 2 }}>
@@ -547,7 +547,7 @@ const ProjectDetail = () => {
                           
                           {project.deliverables && (
                             <Box sx={{ mt: 3 }}>
-                              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                              <Typography variant="subtitle1" color="text.secondary" gutterBottom>
                                 Deliverables
                               </Typography>
                               <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -570,12 +570,12 @@ const ProjectDetail = () => {
                       {project.budget && (
                         <Card sx={{ mb: 3 }}>
                           <CardContent>
-                            <Typography variant="h6" gutterBottom>
+                            <Typography variant="h5" gutterBottom>
                               Budget Information
                             </Typography>
                             <Grid container spacing={2}>
                               <Grid item xs={12} sm={4}>
-                                <Typography variant="subtitle2" color="text.secondary">
+                                <Typography variant="subtitle1" color="text.secondary">
                                   Estimated Budget
                                 </Typography>
                                 <Typography variant="h6" color="primary.main">
@@ -584,7 +584,7 @@ const ProjectDetail = () => {
                               </Grid>
                               {project.budget.actual && (
                                 <Grid item xs={12} sm={4}>
-                                  <Typography variant="subtitle2" color="text.secondary">
+                                  <Typography variant="subtitle1" color="text.secondary">
                                     Actual Spent
                                   </Typography>
                                   <Typography variant="h6" color="success.main">
@@ -594,7 +594,7 @@ const ProjectDetail = () => {
                               )}
                               {project.budget.estimated && project.budget.actual && (
                                 <Grid item xs={12} sm={4}>
-                                  <Typography variant="subtitle2" color="text.secondary">
+                                  <Typography variant="subtitle1" color="text.secondary">
                                     Remaining
                                   </Typography>
                                   <Typography variant="h6" color="info.main">
@@ -610,7 +610,7 @@ const ProjectDetail = () => {
                       {/* Recent Activity */}
                       <Card>
                         <CardContent>
-                          <Typography variant="h6" gutterBottom>
+                          <Typography variant="h5" gutterBottom>
                             Recent Activity
                           </Typography>
                           <List>
@@ -655,7 +655,7 @@ const ProjectDetail = () => {
                       {/* Team */}
                       <Card sx={{ mb: 3 }}>
                         <CardContent>
-                          <Typography variant="h6" gutterBottom>
+                          <Typography variant="h5" gutterBottom>
                             Project Team
                           </Typography>
                           {project.team && project.team.length > 0 ? (
@@ -691,7 +691,7 @@ const ProjectDetail = () => {
                       {project.nextMilestoneDetails && (
                         <Card sx={{ mb: 3 }}>
                           <CardContent>
-                            <Typography variant="h6" gutterBottom>
+                            <Typography variant="h5" gutterBottom>
                               Next Milestone
                             </Typography>
                             <Box>
@@ -716,7 +716,7 @@ const ProjectDetail = () => {
                       {project.fileActivity && (
                         <Card>
                           <CardContent>
-                            <Typography variant="h6" gutterBottom>
+                            <Typography variant="h5" gutterBottom>
                               File Summary
                             </Typography>
                             <Stack spacing={2}>
@@ -771,7 +771,7 @@ const ProjectDetail = () => {
                 {activeTab === 3 && (
                   <Card>
                     <CardContent>
-                      <Typography variant="h6" gutterBottom>
+                      <Typography variant="h5" gutterBottom>
                         Project Timeline
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -785,7 +785,7 @@ const ProjectDetail = () => {
                 {activeTab === 4 && (
                   <Card>
                     <CardContent>
-                      <Typography variant="h6" gutterBottom>
+                      <Typography variant="h5" gutterBottom>
                         Team Management
                       </Typography>
                       <Typography variant="body2" color="text.secondary">

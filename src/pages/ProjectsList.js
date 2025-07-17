@@ -229,8 +229,8 @@ const ProjectsList = () => {
           <Box sx={styles.contentWrapper}>
             <Box sx={styles.leftContent}>
               {/* Header */}
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h4" fontWeight={700} gutterBottom>
+              <Box sx={{ mb: 4, mt: '-10px' }}>
+                <Typography variant="h3" fontWeight={700} gutterBottom>
                   {getRoleTitle(user?.role)}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
@@ -240,15 +240,14 @@ const ProjectsList = () => {
                 </Typography>
               </Box>
 
-              {/* Controls */}
-              <Paper sx={{ p: 2, mb: 3 }}>
+              {/* Controls - Hidden as requested */}
+              {/* <Paper sx={{ p: 2, mb: 3 }}>
                 <Stack 
                   direction={{ xs: 'column', sm: 'row' }} 
                   spacing={2} 
                   alignItems={{ xs: 'stretch', sm: 'center' }}
                   justifyContent="space-between"
                 >
-                  {/* Search */}
                   <TextField
                     placeholder="Search projects..."
                     value={searchTerm}
@@ -264,7 +263,6 @@ const ProjectsList = () => {
                     }}
                   />
 
-                  {/* View Toggle */}
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Button
                       variant="outlined"
@@ -291,56 +289,8 @@ const ProjectsList = () => {
                   </Stack>
                 </Stack>
 
-                {/* Filter Panel */}
-                {filterOpen && (
-                  <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      <Chip 
-                        label="All Projects" 
-                        variant={currentFilter === 'all' ? 'filled' : 'outlined'} 
-                        size="small" 
-                        onClick={() => setCurrentFilter('all')}
-                        color={currentFilter === 'all' ? 'primary' : 'default'}
-                      />
-                      <Chip 
-                        label="Pending Approvals" 
-                        variant={currentFilter === 'pending-approvals' ? 'filled' : 'outlined'} 
-                        size="small" 
-                        onClick={() => setCurrentFilter('pending-approvals')}
-                        color={currentFilter === 'pending-approvals' ? 'warning' : 'default'}
-                      />
-                      <Chip 
-                        label="Upcoming Deadlines" 
-                        variant={currentFilter === 'upcoming-deadlines' ? 'filled' : 'outlined'} 
-                        size="small" 
-                        onClick={() => setCurrentFilter('upcoming-deadlines')}
-                        color={currentFilter === 'upcoming-deadlines' ? 'error' : 'default'}
-                      />
-                      <Chip 
-                        label="In Production" 
-                        variant={currentFilter === 'in-production' ? 'filled' : 'outlined'} 
-                        size="small" 
-                        onClick={() => setCurrentFilter('in-production')}
-                        color={currentFilter === 'in-production' ? 'info' : 'default'}
-                      />
-                      <Chip 
-                        label="Client Review" 
-                        variant={currentFilter === 'in-review' ? 'filled' : 'outlined'} 
-                        size="small" 
-                        onClick={() => setCurrentFilter('in-review')}
-                        color={currentFilter === 'in-review' ? 'warning' : 'default'}
-                      />
-                      <Chip 
-                        label="Completed" 
-                        variant={currentFilter === 'completed' ? 'filled' : 'outlined'} 
-                        size="small" 
-                        onClick={() => setCurrentFilter('completed')}
-                        color={currentFilter === 'completed' ? 'success' : 'default'}
-                      />
-                    </Stack>
-                  </Box>
                 )}
-              </Paper>
+              </Paper> */}
 
               {/* Projects Grid/List */}
               {filteredProjects.length === 0 ? (
@@ -353,16 +303,15 @@ const ProjectsList = () => {
                     {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
                   </Typography>
                   
-                  <Grid container spacing={3}>
+                  <Box sx={styles.projectsGrid}>
                     {filteredProjects.map(project => (
-                      <Grid item xs={12} sm={viewMode === 'grid' ? 6 : 12} md={viewMode === 'grid' ? 4 : 12} key={project.id}>
-                        <ProjectCard 
-                          project={project} 
-                          onClick={handleProjectClick}
-                        />
-                      </Grid>
+                      <ProjectCard 
+                        key={project.id}
+                        project={project} 
+                        onClick={handleProjectClick}
+                      />
                     ))}
-                  </Grid>
+                  </Box>
                 </Box>
               )}
             </Box>
