@@ -22,8 +22,7 @@ const AppLayout = () => {
   const [data] = useState({
     user: user || {},
     notifications: [
-      ...(roleData.notifications || []),
-      ...activityNotifications
+      ...activityNotifications // Only activity notifications (currently empty)
     ]
   });
 
