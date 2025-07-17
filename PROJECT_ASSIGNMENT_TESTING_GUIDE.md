@@ -1,7 +1,14 @@
 # Project Assignment Testing Guide
 
 ## ✅ **Issue Status: RESOLVED**
-I've added comprehensive debugging and testing utilities to identify and fix the project assignment issue.
+**Root Cause Found and Fixed:** Firebase composite index error in project queries.
+
+**Fix Applied:** 
+- Removed `orderBy('createdAt', 'desc')` from Firebase query to avoid composite index requirement
+- Implemented client-side sorting instead of server-side sorting
+- Query now uses simple `where('assignedTo', '==', userId)` which works with single-field index
+
+**Result:** Project assignment now works without requiring Firebase console index creation.
 
 ## 🧪 **How to Test the Fix**
 
