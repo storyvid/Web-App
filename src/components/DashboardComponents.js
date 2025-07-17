@@ -82,6 +82,7 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, us
         px: 3, 
         py: 0, 
         mt: 0,
+        mb: '10px',
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'flex-start',
