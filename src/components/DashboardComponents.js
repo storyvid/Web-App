@@ -76,14 +76,28 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, us
   };
 
   return (
-    <>
-      <Box sx={styles.logo}>
-        <img src="/storyvid_logo.svg" alt="StoryVid" style={{ width: 144, height: 144 }} />
+    <Box sx={{ pt: 0, mt: 0 }}>
+      {/* Logo - container height matches header, logo vertically centered */}
+      <Box sx={{ 
+        px: 3, 
+        py: 0, 
+        mt: 0,
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'flex-start',
+        height: 100, // Increase container height to accommodate larger logo
+        overflow: 'hidden'
+      }}>
+        <img 
+          src="/storyvid_logo_optimized.svg" 
+          alt="StoryVid" 
+          style={{ 
+            width: '162.12px',
+            height: '162.12px'
+          }} 
+        />
       </Box>
       
-      <Typography variant="caption" sx={styles.menuLabel}>
-        Main Menu
-      </Typography>
       
       <Stack spacing={0.5} sx={{ px: 2, flex: 1 }}>
         {menuItems.map(item => {
@@ -131,7 +145,7 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, us
           <MenuItem onClick={() => setTeamMenuAnchor(null)}>Invite Collaborators</MenuItem>
         </Menu>
       </Box> */}
-    </>
+    </Box>
   );
 };
 
