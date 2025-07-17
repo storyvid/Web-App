@@ -105,8 +105,8 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, us
       
       {/* Mobile app promotion removed */}
       
-      {/* Workspace selector */}
-      <Box sx={{ mt: 'auto', p: 2 }}>
+      {/* Workspace selector - Hidden as requested */}
+      {/* <Box sx={{ mt: 'auto', p: 2 }}>
         <Paper 
           sx={{
             ...styles.teamSelector,
@@ -130,7 +130,7 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, us
           <MenuItem onClick={() => setTeamMenuAnchor(null)}>Production Settings</MenuItem>
           <MenuItem onClick={() => setTeamMenuAnchor(null)}>Invite Collaborators</MenuItem>
         </Menu>
-      </Box>
+      </Box> */}
     </>
   );
 };
@@ -221,7 +221,8 @@ export const Header = ({ user, notifications, onMobileMenuClick }) => {
         <MenuIcon />
       </IconButton>
       
-      <TextField
+      {/* Search field hidden as requested */}
+      {/* <TextField
         placeholder="Search"
         size="small"
         value={searchValue}
@@ -244,7 +245,7 @@ export const Header = ({ user, notifications, onMobileMenuClick }) => {
       
       <IconButton onClick={handleSearch} sx={{ display: { xs: 'block', sm: 'none' }, mr: 2 }}>
         <SearchIcon />
-      </IconButton>
+      </IconButton> */}
       
       <Stack direction="row" alignItems="center" spacing={isMobile ? 1 : 2} sx={{ ml: 'auto' }}>
         
