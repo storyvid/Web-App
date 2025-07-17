@@ -3,13 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
-  Paper,
   Typography,
   TextField,
   Button,
   Switch,
   FormControlLabel,
-  Divider,
   Alert,
   Grid,
   Card,
@@ -30,7 +28,15 @@ import {
   PhotoCamera as PhotoCameraIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
-  ArrowBack as ArrowBackIcon
+  Person as PersonIcon,
+  Security as SecurityIcon,
+  Notifications as NotificationsIcon,
+  Palette as PaletteIcon,
+  Language as LanguageIcon,
+  Email as EmailIcon,
+  Business as BusinessIcon,
+  Phone as PhoneIcon,
+  Badge as BadgeIcon
 } from '@mui/icons-material';
 import { 
   updateUserProfile, 
@@ -56,8 +62,8 @@ const Settings = () => {
   const [activeMenuItem, setActiveMenuItem] = useState('settings');
   const [mobileOpen, setMobileOpen] = useState(false);
   
-  // Mock data for header (consistent with other pages)
-  const [data, setData] = useState({
+  // Mock data for header
+  const [data] = useState({
     user: user || {},
     notifications: [
       {
@@ -65,13 +71,6 @@ const Settings = () => {
         title: 'Profile updated',
         message: 'Your profile information has been updated successfully',
         time: '2 hours ago',
-        unread: false
-      },
-      {
-        id: 2,
-        title: 'Settings saved',
-        message: 'Your notification preferences have been saved',
-        time: '1 day ago',
         unread: false
       }
     ]
@@ -86,8 +85,6 @@ const Settings = () => {
 
   const [settings, setSettings] = useState({
     emailNotifications: user?.settings?.emailNotifications ?? true,
-    pushNotifications: user?.settings?.pushNotifications ?? true,
-    soundNotifications: user?.settings?.soundNotifications ?? false,
     darkTheme: currentTheme === 'dark',
     timezone: user?.settings?.timezone || 'America/New_York',
     language: user?.settings?.language || 'en'
@@ -115,14 +112,13 @@ const Settings = () => {
     confirm: false
   });
 
+  // Handlers
   const handleProfileChange = (field, value) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSettingsChange = (field, value) => {
     setSettings(prev => ({ ...prev, [field]: value }));
-    
-    // Handle theme change immediately
     if (field === 'darkTheme') {
       dispatch(setTheme(value ? 'dark' : 'light'));
     }
@@ -168,7 +164,6 @@ const Settings = () => {
     }
   };
 
-  // Profile picture upload handlers
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
   };
@@ -177,13 +172,12 @@ const Settings = () => {
     const file = event.target.files?.[0];
     if (!file || !user?.uid) return;
 
-    // Validate file type and size
     if (!file.type.startsWith('image/')) {
       setSuccess('Please select an image file.');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
       setSuccess('File size must be less than 5MB.');
       return;
     }
@@ -194,7 +188,6 @@ const Settings = () => {
     try {
       const result = await firebaseService.uploadProfilePicture(user.uid, file);
       
-      // Update local profile data
       await dispatch(updateUserProfile({ 
         uid: user.uid, 
         updates: { avatar: result.downloadURL }
@@ -206,14 +199,12 @@ const Settings = () => {
       setSuccess('Failed to upload profile picture. Please try again.');
     } finally {
       setAvatarLoading(false);
-      // Clear the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
 
-  // Password change handlers
   const handlePasswordChange = (field, value) => {
     setPasswordData(prev => ({ ...prev, [field]: value }));
   };
@@ -267,7 +258,6 @@ const Settings = () => {
     setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
-  // Navigation handlers (consistent with other pages)
   const handleMenuItemClick = (menuId) => {
     setActiveMenuItem(menuId);
     
@@ -279,7 +269,6 @@ const Settings = () => {
         navigate('/projects');
         break;
       case 'settings':
-        // Stay on settings page
         break;
       case 'assets':
         console.log('Assets page not implemented yet');
@@ -364,244 +353,314 @@ const Settings = () => {
                 </Alert>
               )}
 
+              {/* Main Content Grid */}
               <Grid container spacing={3}>
-                {/* Profile Overview */}
-                <Grid item xs={12} md={4}>
+                {/* Profile Information Card */}
+                <Grid item xs={12}>
                   <Card>
-                    <CardContent sx={{ textAlign: 'center' }}>
-                      <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
-                        <Avatar 
-                          src={user.avatar} 
-                          sx={{ width: 100, height: 100, mx: 'auto' }}
-                        >
-                          {user.name?.charAt(0)?.toUpperCase()}
-                        </Avatar>
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant="h6" fontWeight={600} gutterBottom>
+                        Profile Information
+                      </Typography>
+                      
+                      <Grid container spacing={4} alignItems="stretch">
+                        {/* Left Column: Profile Overview */}
+                        <Grid item xs={12} md={4}>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            height: '100%',
+                            py: 2
+                          }}>
+                            {/* Avatar Section */}
+                            <Box sx={{ mb: 3 }}>
+                              <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
+                                <Avatar 
+                                  src={user.avatar} 
+                                  sx={{ 
+                                    width: 120, 
+                                    height: 120,
+                                    border: '4px solid',
+                                    borderColor: 'primary.main',
+                                    boxShadow: 3
+                                  }}
+                                >
+                                  <PersonIcon sx={{ fontSize: 50 }} />
+                                </Avatar>
+                                
+                                <IconButton
+                                  sx={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    right: 0,
+                                    bgcolor: 'primary.main',
+                                    color: 'white',
+                                    width: 36,
+                                    height: 36,
+                                    '&:hover': { bgcolor: 'primary.dark' }
+                                  }}
+                                  onClick={handleAvatarClick}
+                                  disabled={avatarLoading}
+                                >
+                                  {avatarLoading ? (
+                                    <CircularProgress size={18} color="inherit" />
+                                  ) : (
+                                    <PhotoCameraIcon fontSize="small" />
+                                  )}
+                                </IconButton>
+                                
+                                <input
+                                  type="file"
+                                  ref={fileInputRef}
+                                  onChange={handleAvatarUpload}
+                                  accept="image/*"
+                                  style={{ display: 'none' }}
+                                />
+                              </Box>
+                              
+                              <Typography variant="h5" fontWeight={700} gutterBottom>
+                                {user.name}
+                              </Typography>
+                              
+                              <Typography variant="body1" color="text.secondary" gutterBottom>
+                                {user.email}
+                              </Typography>
+                              
+                              {user.company && (
+                                <Typography variant="body2" color="text.secondary" gutterBottom>
+                                  {user.company}
+                                </Typography>
+                              )}
+                              
+                              <Chip 
+                                label={user.role?.toUpperCase()} 
+                                color={getRoleColor(user.role)}
+                                size="medium"
+                                sx={{ mb: 2, fontWeight: 600 }}
+                              />
+                            </Box>
+                            
+                            {/* Change Password Button - Moved to bottom */}
+                            <Box sx={{ mt: 'auto', width: '100%', maxWidth: 250 }}>
+                              <Button
+                                variant="outlined"
+                                startIcon={<SecurityIcon />}
+                                size="large"
+                                fullWidth
+                                onClick={() => setPasswordDialogOpen(true)}
+                                sx={{ py: 1.5 }}
+                              >
+                                Change Password
+                              </Button>
+                            </Box>
+                          </Box>
+                        </Grid>
                         
-                        <IconButton
-                          sx={{
-                            position: 'absolute',
-                            bottom: -8,
-                            right: -8,
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                            width: 32,
-                            height: 32,
-                            '&:hover': {
-                              bgcolor: 'primary.dark'
-                            }
-                          }}
-                          onClick={handleAvatarClick}
-                          disabled={avatarLoading}
-                        >
-                          {avatarLoading ? (
-                            <CircularProgress size={16} color="inherit" />
-                          ) : (
-                            <PhotoCameraIcon fontSize="small" />
-                          )}
-                        </IconButton>
-                        
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleAvatarUpload}
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                        />
-                      </Box>
-                      
-                      <Typography variant="h6" gutterBottom>
-                        {user.name}
-                      </Typography>
-                      
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {user.email}
-                      </Typography>
-                      
-                      <Chip 
-                        label={user.role?.toUpperCase()} 
-                        color={getRoleColor(user.role)}
-                        size="small"
-                        sx={{ mb: 1 }}
-                      />
-                      
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {user.company}
-                      </Typography>
-                      
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => setPasswordDialogOpen(true)}
-                        sx={{ mt: 1 }}
-                      >
-                        Change Password
-                      </Button>
+                        {/* Right Column: Profile Form */}
+                        <Grid item xs={12} md={8}>
+                          <Box sx={{ 
+                            height: '100%', 
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            py: 2
+                          }}>
+                            <Grid container spacing={3}>
+                              {/* Full Name */}
+                              <Grid item xs={12}>
+                                <TextField
+                                  fullWidth
+                                  label="Full Name"
+                                  value={profileData.name}
+                                  onChange={(e) => handleProfileChange('name', e.target.value)}
+                                  InputProps={{
+                                    startAdornment: (
+                                      <InputAdornment position="start">
+                                        <PersonIcon />
+                                      </InputAdornment>
+                                    )
+                                  }}
+                                />
+                              </Grid>
+                              
+                              {/* Company and Account Type Row */}
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Company"
+                                  value={profileData.company}
+                                  onChange={(e) => handleProfileChange('company', e.target.value)}
+                                  InputProps={{
+                                    startAdornment: (
+                                      <InputAdornment position="start">
+                                        <BusinessIcon />
+                                      </InputAdornment>
+                                    )
+                                  }}
+                                />
+                              </Grid>
+                              
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Account Type"
+                                  value={profileData.accountType}
+                                  onChange={(e) => handleProfileChange('accountType', e.target.value)}
+                                  InputProps={{
+                                    startAdornment: (
+                                      <InputAdornment position="start">
+                                        <BadgeIcon />
+                                      </InputAdornment>
+                                    )
+                                  }}
+                                />
+                              </Grid>
+                              
+                              {/* Phone */}
+                              <Grid item xs={12}>
+                                <TextField
+                                  fullWidth
+                                  label="Phone"
+                                  value={profileData.phone}
+                                  onChange={(e) => handleProfileChange('phone', e.target.value)}
+                                  placeholder="+1 (555) 123-4567"
+                                  InputProps={{
+                                    startAdornment: (
+                                      <InputAdornment position="start">
+                                        <PhoneIcon />
+                                      </InputAdornment>
+                                    )
+                                  }}
+                                />
+                              </Grid>
+                            </Grid>
+                            
+                            {/* Update Profile Button - Aligned to right */}
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+                              <Button
+                                variant="contained"
+                                onClick={handleUpdateProfile}
+                                disabled={profileLoading || loading}
+                                startIcon={profileLoading ? <CircularProgress size={20} /> : <PersonIcon />}
+                                size="large"
+                                sx={{ minWidth: 200, py: 1.5 }}
+                              >
+                                {profileLoading ? 'Updating...' : 'Update Profile'}
+                              </Button>
+                            </Box>
+                          </Box>
+                        </Grid>
+                      </Grid>
                     </CardContent>
                   </Card>
                 </Grid>
 
-                {/* Profile Information */}
-                <Grid item xs={12} md={8}>
-                  <Paper sx={{ p: 3, mb: 3 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Profile Information
-                    </Typography>
-                    
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Full Name"
-                          value={profileData.name}
-                          onChange={(e) => handleProfileChange('name', e.target.value)}
-                          margin="normal"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Company"
-                          value={profileData.company}
-                          onChange={(e) => handleProfileChange('company', e.target.value)}
-                          margin="normal"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Phone"
-                          value={profileData.phone}
-                          onChange={(e) => handleProfileChange('phone', e.target.value)}
-                          margin="normal"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Account Type"
-                          value={profileData.accountType}
-                          onChange={(e) => handleProfileChange('accountType', e.target.value)}
-                          margin="normal"
-                        />
-                      </Grid>
-                    </Grid>
-                    
-                    <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-                      <Button
-                        variant="contained"
-                        onClick={handleUpdateProfile}
-                        disabled={profileLoading || loading}
-                        startIcon={profileLoading && <CircularProgress size={20} />}
-                      >
-                        {profileLoading ? 'Updating...' : 'Update Profile'}
-                      </Button>
-                    </Box>
-                  </Paper>
-
-                  {/* User Settings */}
-                  <Paper sx={{ p: 3 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Preferences & Settings
-                    </Typography>
-                    
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Notifications
+                {/* Preferences & Settings Card */}
+                <Grid item xs={12}>
+                  <Card>
+                    <CardContent sx={{ p: 3 }}>
+                      <Typography variant="h6" fontWeight={600} gutterBottom>
+                        Preferences & Settings
                       </Typography>
                       
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={settings.emailNotifications}
-                            onChange={(e) => handleSettingsChange('emailNotifications', e.target.checked)}
-                          />
-                        }
-                        label="Email Notifications"
-                      />
-                      
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={settings.pushNotifications}
-                            onChange={(e) => handleSettingsChange('pushNotifications', e.target.checked)}
-                          />
-                        }
-                        label="Push Notifications"
-                      />
-                      
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={settings.soundNotifications}
-                            onChange={(e) => handleSettingsChange('soundNotifications', e.target.checked)}
-                          />
-                        }
-                        label="Sound Notifications"
-                      />
-                    </Box>
-
-                    <Divider sx={{ my: 2 }} />
-
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Appearance
-                      </Typography>
-                      
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={settings.darkTheme}
-                            onChange={(e) => handleSettingsChange('darkTheme', e.target.checked)}
-                          />
-                        }
-                        label="Dark Theme"
-                      />
-                    </Box>
-
-                    <Divider sx={{ my: 2 }} />
-
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Localization
-                      </Typography>
-                      
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Timezone"
-                            value={settings.timezone}
-                            onChange={(e) => handleSettingsChange('timezone', e.target.value)}
-                            size="small"
-                          />
+                      <Grid container spacing={3} sx={{ mb: 3 }}>
+                        {/* Email Notifications */}
+                        <Grid item xs={12} md={4}>
+                          <Card variant="outlined" sx={{ height: '100%' }}>
+                            <CardContent>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <EmailIcon sx={{ mr: 1, color: 'primary.main' }} />
+                                <Typography variant="subtitle1" fontWeight={600}>
+                                  Email Notifications
+                                </Typography>
+                              </Box>
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={settings.emailNotifications}
+                                    onChange={(e) => handleSettingsChange('emailNotifications', e.target.checked)}
+                                    color="primary"
+                                  />
+                                }
+                                label="Receive email notifications"
+                                sx={{ ml: 0 }}
+                              />
+                            </CardContent>
+                          </Card>
                         </Grid>
-                        
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Language"
-                            value={settings.language}
-                            onChange={(e) => handleSettingsChange('language', e.target.value)}
-                            size="small"
-                          />
+
+                        {/* Appearance */}
+                        <Grid item xs={12} md={4}>
+                          <Card variant="outlined" sx={{ height: '100%' }}>
+                            <CardContent>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <PaletteIcon sx={{ mr: 1, color: 'primary.main' }} />
+                                <Typography variant="subtitle1" fontWeight={600}>
+                                  Appearance
+                                </Typography>
+                              </Box>
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={settings.darkTheme}
+                                    onChange={(e) => handleSettingsChange('darkTheme', e.target.checked)}
+                                    color="primary"
+                                  />
+                                }
+                                label="Dark theme"
+                                sx={{ ml: 0 }}
+                              />
+                            </CardContent>
+                          </Card>
+                        </Grid>
+
+                        {/* Localization */}
+                        <Grid item xs={12} md={4}>
+                          <Card variant="outlined" sx={{ height: '100%' }}>
+                            <CardContent>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <LanguageIcon sx={{ mr: 1, color: 'primary.main' }} />
+                                <Typography variant="subtitle1" fontWeight={600}>
+                                  Localization
+                                </Typography>
+                              </Box>
+                              <TextField
+                                fullWidth
+                                label="Timezone"
+                                value={settings.timezone}
+                                onChange={(e) => handleSettingsChange('timezone', e.target.value)}
+                                size="small"
+                                sx={{ mb: 2 }}
+                              />
+                              <TextField
+                                fullWidth
+                                label="Language"
+                                value={settings.language}
+                                onChange={(e) => handleSettingsChange('language', e.target.value)}
+                                size="small"
+                              />
+                            </CardContent>
+                          </Card>
                         </Grid>
                       </Grid>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <Button
-                        variant="contained"
-                        onClick={handleUpdateSettings}
-                        disabled={settingsLoading || loading}
-                        startIcon={settingsLoading && <CircularProgress size={20} />}
-                      >
-                        {settingsLoading ? 'Saving...' : 'Save Settings'}
-                      </Button>
-                    </Box>
-                  </Paper>
+                      
+                      {/* Save Settings Button - Aligned to left */}
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                        <Button
+                          variant="contained"
+                          onClick={handleUpdateSettings}
+                          disabled={settingsLoading || loading}
+                          startIcon={settingsLoading ? <CircularProgress size={20} /> : <NotificationsIcon />}
+                          size="large"
+                          sx={{ minWidth: 200, py: 1.5 }}
+                        >
+                          {settingsLoading ? 'Saving...' : 'Save Settings'}
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
                 </Grid>
               </Grid>
 
