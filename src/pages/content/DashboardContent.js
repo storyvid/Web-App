@@ -18,6 +18,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { StatsCard, ProjectCard, MilestoneCard, TeamSection } from '../../components/DashboardComponents';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import projectManagementService from '../../services/projectManagementService';
+import { testProjectAssignment } from '../../utils/debugProjectAssignment';
 
 const DashboardContent = () => {
   const { user } = useAuth();
@@ -51,6 +52,16 @@ const DashboardContent = () => {
           });
           userProjects = await projectManagementService.getProjectsByUser(user.uid);
           console.log('🔍 DEBUG: Dashboard found projects for user:', userProjects);
+          
+          // If no projects found, run comprehensive debug test
+          if (userProjects.length === 0 && user.email) {
+            console.log('🔍 DEBUG: No projects found, running comprehensive test...');
+            try {
+              await testProjectAssignment(user.email);
+            } catch (debugError) {
+              console.error('Debug test failed:', debugError);
+            }
+          }
         } catch (error) {
           console.warn('User projects unavailable, showing empty:', error);
           userProjects = [];
