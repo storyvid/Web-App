@@ -206,7 +206,13 @@ const RecentFilesWidget = ({
   if (loading) {
     return (
       <Card>
-        <CardHeader title={title} />
+        <CardHeader 
+          title={
+            <Typography variant="h5" fontWeight={600}>
+              {title}
+            </Typography>
+          }
+        />
         <CardContent>
           {[1, 2, 3].map((i) => (
             <Box key={i} display="flex" alignItems="center" mb={2}>
@@ -226,7 +232,13 @@ const RecentFilesWidget = ({
   if (error) {
     return (
       <Card>
-        <CardHeader title={title} />
+        <CardHeader 
+          title={
+            <Typography variant="h5" fontWeight={600}>
+              {title}
+            </Typography>
+          }
+        />
         <CardContent>
           <Alert severity="error">{error}</Alert>
         </CardContent>

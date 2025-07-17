@@ -160,7 +160,7 @@ const Dashboard = () => {
       client: [
         { key: 'myProjects', title: 'My Projects', subtitle: 'videos' },
         { key: 'pendingApprovals', title: 'Pending Approvals', subtitle: 'reviews' },
-        { key: 'deliveredVideos', title: 'Delivered Videos', subtitle: 'completed' }
+        { key: 'deliveredVideos', title: 'Delivered Assets', subtitle: 'completed' }
       ],
       staff: [
         { key: 'assignedTasks', title: 'Assigned Tasks', subtitle: 'active' },
@@ -235,8 +235,8 @@ const Dashboard = () => {
           
           <Box sx={styles.contentWrapper}>
             <Box sx={styles.leftContent}>
-              <Box mb={4}>
-                <Typography variant="h4" fontWeight={700} gutterBottom>
+              <Box mb={4} sx={{ mt: '-10px' }}>
+                <Typography variant="h3" fontWeight={700} gutterBottom>
                   Hi, {data.user.name}!
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
@@ -281,7 +281,7 @@ const Dashboard = () => {
               
               <Box mb={4}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                  <Typography variant="h6" fontWeight={600}>
+                  <Typography variant="h5" fontWeight={600}>
                     {roleContent.mainSection}
                   </Typography>
                   <Button 

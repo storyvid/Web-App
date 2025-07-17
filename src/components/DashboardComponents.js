@@ -46,7 +46,8 @@ import {
   AttachFile as FileIcon,
   CloudUpload as UploadIcon,
   VideoFile as VideoIcon,
-  PictureAsPdf as PdfIcon
+  PictureAsPdf as PdfIcon,
+  OpenInNew as OpenInNewIcon
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { styles } from '../pages/dashboardStyles';
@@ -112,7 +113,9 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, us
               fullWidth
               onClick={() => handleMenuClick(item.id)}
             >
-              {item.label}
+              <Typography variant="body1" fontWeight={500}>
+                {item.label}
+              </Typography>
             </Button>
           );
         })}
@@ -387,20 +390,20 @@ export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAll
             }}>
               <Icon fontSize="small" />
             </Box>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="subtitle1" color="text.secondary" fontWeight={500}>
               {title}
             </Typography>
           </Stack>
           {seeAll && (
-            <Button size="small" sx={styles.seeAllButton} onClick={onSeeAllClick}>
-              See all
-            </Button>
+            <IconButton size="small" onClick={onSeeAllClick} sx={{ color: 'text.secondary' }}>
+              <OpenInNewIcon fontSize="small" />
+            </IconButton>
           )}
         </Stack>
         
         <Stack direction="row" alignItems="baseline" spacing={0.5}>
           <Typography 
-            variant="h4" 
+            variant="h3" 
             fontWeight={600}
             sx={{ color: statStyle.valueColor }}
           >
@@ -487,7 +490,7 @@ export const ProjectCard = ({ project, onClick }) => {
       <CardContent>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
           <Box flex={1}>
-            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+            <Typography variant="h6" fontWeight={600} gutterBottom>
               {project.name}
             </Typography>
             <Typography variant="caption" color="text.secondary">

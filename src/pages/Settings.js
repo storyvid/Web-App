@@ -359,7 +359,7 @@ const Settings = () => {
                 <Grid item xs={12}>
                   <Card>
                     <CardContent sx={{ p: 3 }}>
-                      <Typography variant="h6" fontWeight={600} gutterBottom>
+                      <Typography variant="h5" fontWeight={600} gutterBottom>
                         Profile Information
                       </Typography>
                       
@@ -561,7 +561,7 @@ const Settings = () => {
                 <Grid item xs={12}>
                   <Card>
                     <CardContent sx={{ p: 3 }}>
-                      <Typography variant="h6" fontWeight={600} gutterBottom>
+                      <Typography variant="h5" fontWeight={600} gutterBottom>
                         Preferences & Settings
                       </Typography>
                       
