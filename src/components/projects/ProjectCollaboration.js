@@ -277,11 +277,11 @@ const ProjectCollaboration = ({ project, onUpdateProject }) => {
 
   const getStatusColor = (status) => {
     const colors = {
-      planning: 'info',
-      in_progress: 'primary',
-      review: 'warning',
-      completed: 'success',
-      cancelled: 'error'
+      'todo': 'info',
+      'in-progress': 'primary',
+      'awaiting-feedback': 'warning',
+      'completed': 'success',
+      'cancelled': 'error'
     };
     return colors[status] || 'default';
   };
@@ -580,9 +580,9 @@ const ProjectCollaboration = ({ project, onUpdateProject }) => {
               label="New Status"
               onChange={(e) => setNewStatus(e.target.value)}
             >
-              <MenuItem value="planning">Planning</MenuItem>
-              <MenuItem value="in_progress">In Progress</MenuItem>
-              <MenuItem value="review">Review</MenuItem>
+              <MenuItem value="todo">To Do</MenuItem>
+              <MenuItem value="in-progress">In Progress</MenuItem>
+              <MenuItem value="awaiting-feedback">Awaiting Feedback</MenuItem>
               <MenuItem value="completed">Completed</MenuItem>
               <PermissionGate allowedRoles={['admin']}>
                 <MenuItem value="cancelled">Cancelled</MenuItem>

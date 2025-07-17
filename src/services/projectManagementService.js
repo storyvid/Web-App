@@ -82,7 +82,7 @@ class ProjectManagementService {
       const projectDoc = {
         ...projectData,
         id: projectRef.id,
-        status: projectData.status || 'planning',
+        status: projectData.status || 'todo',
         progress: projectData.progress || 0,
         createdBy: this.firebaseService.currentUser.uid,
         assignedTo: assignedUserId,
@@ -267,7 +267,7 @@ class ProjectManagementService {
       // Auto-update status based on progress
       if (progress === 100) {
         updates.status = 'completed';
-      } else if (progress > 0 && updates.status === 'planning') {
+      } else if (progress > 0 && updates.status === 'todo') {
         updates.status = 'in-progress';
       }
 
@@ -530,17 +530,16 @@ class ProjectManagementService {
         totalProjects: projects.length,
         activeProjects: projects.filter(p => p.status === 'in-progress').length,
         completedProjects: projects.filter(p => p.status === 'completed').length,
-        projectsInReview: projects.filter(p => p.status === 'review').length,
-        projectsPlanning: projects.filter(p => p.status === 'planning').length,
+        projectsAwaitingFeedback: projects.filter(p => p.status === 'awaiting-feedback').length,
+        projectsTodo: projects.filter(p => p.status === 'todo').length,
         averageProgress: projects.length > 0 
           ? Math.round(projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length)
           : 0,
         projectsByStatus: {
-          planning: projects.filter(p => p.status === 'planning').length,
+          'todo': projects.filter(p => p.status === 'todo').length,
           'in-progress': projects.filter(p => p.status === 'in-progress').length,
-          review: projects.filter(p => p.status === 'review').length,
-          completed: projects.filter(p => p.status === 'completed').length,
-          'on-hold': projects.filter(p => p.status === 'on-hold').length
+          'awaiting-feedback': projects.filter(p => p.status === 'awaiting-feedback').length,
+          'completed': projects.filter(p => p.status === 'completed').length
         }
       };
 
@@ -571,6 +570,47 @@ class ProjectManagementService {
     } catch (error) {
       console.error('Error updating user assigned projects:', error);
       throw new Error(`Failed to update user assigned projects: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete user (Admin only)
+   * @param {string} userId - User ID to delete
+   * @returns {boolean} Success
+   */
+  async deleteUser(userId) {
+    const currentUser = this.checkAdminPermission();
+
+    try {
+      // Get user's assigned projects first
+      const userProjects = await this.getProjectsByUser(userId);
+      
+      // Use batch to delete user and clean up projects
+      const batch = writeBatch(this.firebaseService.db);
+      
+      // Delete user document
+      const userRef = doc(this.firebaseService.db, 'users', userId);
+      batch.delete(userRef);
+      
+      // Remove user from any assigned projects
+      for (const project of userProjects) {
+        const projectRef = doc(this.firebaseService.db, 'projects', project.id);
+        batch.update(projectRef, {
+          assignedTo: null,
+          assignedToName: null,
+          assignedToEmail: null,
+          updatedAt: serverTimestamp(),
+          lastUpdatedBy: currentUser.uid
+        });
+      }
+      
+      await batch.commit();
+      
+      console.log(`User ${userId} deleted successfully`);
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw new Error(`Failed to delete user: ${error.message}`);
     }
   }
 }

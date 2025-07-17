@@ -28,8 +28,6 @@ import {
   ListItemSecondaryAction,
   Badge,
   Tooltip,
-  ThemeProvider,
-  CssBaseline
 } from '@mui/material';
 import {
   MoreVert as MoreIcon,
@@ -64,10 +62,9 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import firebaseService from '../services/firebase/firebaseService';
 import { getRoleBasedData } from '../data/mockData';
-import MilestoneList from '../components/milestones/MilestoneList';
-import FileManager from '../components/files/FileManager';
-import { Sidebar, Header } from '../components/DashboardComponents';
+import FileCategoryTabs from '../components/files/FileCategoryTabs';
 import LoadingSpinner from '../components/LoadingSpinner';
+import TimelineManager from '../components/Admin/TimelineManager';
 import { theme, styles } from './dashboardStyles';
 
 const ProjectDetail = () => {
@@ -81,8 +78,6 @@ const ProjectDetail = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(parseInt(searchParams.get('tab') || '0'));
   const [anchorEl, setAnchorEl] = useState(null);
-  const [activeMenuItem, setActiveMenuItem] = useState('projects');
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     loadProject();
@@ -112,18 +107,60 @@ const ProjectDetail = () => {
       
       setData(finalData);
       
-      // Find the specific project
-      const projectData = finalData.projects.find(p => p.id === projectId || p.id === parseInt(projectId));
+      // Import services to get the project and milestones
+      const { default: projectManagementService } = await import('../services/projectManagementService');
+      const { default: milestoneService } = await import('../services/milestoneService');
+      
+      // Get the specific project and its milestones
+      const [projectData, projectMilestones] = await Promise.all([
+        projectManagementService.getProject(projectId),
+        milestoneService.getProjectMilestones(projectId)
+      ]);
       
       if (!projectData) {
         setError('Project not found');
         return;
       }
       
-      setProject(projectData);
+      // Calculate next milestone
+      const upcomingMilestones = projectMilestones
+        .filter(m => m.status !== 'completed' && m.dueDate)
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+      
+      const nextMilestone = upcomingMilestones[0];
+      
+      // Add any missing fields that the UI expects
+      const enrichedProject = {
+        ...projectData,
+        projectType: projectData.projectType || 'Video Production',
+        description: projectData.description || `${projectData.name} for ${projectData.client}`,
+        timeline: projectData.timeline || {
+          startDate: projectData.createdAt,
+          endDate: projectData.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          estimatedHours: projectData.estimatedHours || 40
+        },
+        files: projectData.files || [],
+        milestones: projectMilestones || [],
+        nextMilestone: nextMilestone ? formatDate(nextMilestone.dueDate) : null,
+        nextMilestoneDetails: nextMilestone ? {
+          title: nextMilestone.title,
+          status: nextMilestone.status || 'pending'
+        } : null,
+        fileActivity: {
+          recentCount: projectData.fileCount || 0,
+          lastUpload: projectData.lastFileUpload || 'No files uploaded',
+          types: ['Video', 'Images', 'Documents']
+        },
+        team: projectData.team || [],
+        budget: projectData.budget || null,
+        deliverables: projectData.deliverables || ['Final Video', 'Raw Footage', 'Project Files'],
+        progress: projectData.progress || 0
+      };
+      
+      setProject(enrichedProject);
     } catch (err) {
       console.error('Error loading project:', err);
-      setError('Failed to load project');
+      setError('Failed to load project: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -138,37 +175,6 @@ const ProjectDetail = () => {
     }
   };
 
-  const handleMenuItemClick = (menuId) => {
-    setActiveMenuItem(menuId);
-    
-    switch (menuId) {
-      case 'dashboard':
-        navigate('/dashboard');
-        break;
-      case 'projects':
-        navigate('/projects');
-        break;
-      case 'settings':
-        navigate('/settings');
-        break;
-      case 'assets':
-        console.log('Assets page not implemented yet');
-        break;
-      case 'services':
-        console.log('Services page not implemented yet');
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleMobileMenuClick = () => {
-    setMobileOpen(true);
-  };
-
-  const handleMobileClose = () => {
-    setMobileOpen(false);
-  };
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -180,22 +186,20 @@ const ProjectDetail = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      'in-production': 'primary',
-      'in-review': 'warning',
-      'completed': 'success',
-      'on-hold': 'error',
-      'pending': 'default'
+      'todo': 'info',
+      'in-progress': 'primary',
+      'awaiting-feedback': 'warning',
+      'completed': 'success'
     };
     return colors[status] || 'default';
   };
 
   const getStatusIcon = (status) => {
     const icons = {
-      'in-production': PlayIcon,
-      'in-review': WarningIcon,
-      'completed': CheckIcon,
-      'on-hold': ErrorIcon,
-      'pending': ScheduleIcon
+      'todo': ScheduleIcon,
+      'in-progress': PlayIcon,
+      'awaiting-feedback': WarningIcon,
+      'completed': CheckIcon
     };
     return icons[status] || ScheduleIcon;
   };
@@ -230,58 +234,33 @@ const ProjectDetail = () => {
   };
 
   if (loading || !data) {
-    return <LoadingSpinner fullScreen message="Loading project..." />;
+    return <LoadingSpinner message="Loading project..." />;
   }
 
   if (error) {
     return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={styles.dashboardContainer}>
-          <Sidebar 
-            activeItem={activeMenuItem} 
-            onMenuItemClick={handleMenuItemClick}
-            userRole={user?.role || 'client'}
-            mobileOpen={mobileOpen}
-            onMobileClose={handleMobileClose}
-            user={user}
-          />
-          
-          <Box sx={styles.mainContent}>
-            <Header 
-              user={data.user} 
-              notifications={data.notifications}
-              onMobileMenuClick={handleMobileMenuClick}
-            />
-            
-            <Box sx={styles.contentWrapper}>
-              <Box sx={styles.leftContent}>
-                {/* Back Button */}
-                <Box sx={{ mb: 2 }}>
-                  <Button
-                    startIcon={<ArrowBackIcon />}
-                    onClick={() => navigate('/projects')}
-                    sx={{ 
-                      color: 'text.secondary',
-                      '&:hover': { backgroundColor: 'action.hover' }
-                    }}
-                  >
-                    Back to Projects
-                  </Button>
-                </Box>
-                
-                <Alert severity="error" action={
-                  <Button onClick={() => navigate('/projects')}>
-                    Back to Projects
-                  </Button>
-                }>
-                  {error}
-                </Alert>
-              </Box>
-            </Box>
-          </Box>
+      <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+        <Box sx={{ mb: 2 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate('/projects')}
+            sx={{ 
+              color: 'text.secondary',
+              '&:hover': { backgroundColor: 'action.hover' }
+            }}
+          >
+            Back to Projects
+          </Button>
         </Box>
-      </ThemeProvider>
+        
+        <Alert severity="error" action={
+          <Button onClick={() => navigate('/projects')}>
+            Back to Projects
+          </Button>
+        }>
+          {error}
+        </Alert>
+      </Box>
     );
   }
 
@@ -292,27 +271,7 @@ const ProjectDetail = () => {
   const StatusIcon = getStatusIcon(project.status);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={styles.dashboardContainer}>
-        <Sidebar 
-          activeItem={activeMenuItem} 
-          onMenuItemClick={handleMenuItemClick}
-          userRole={user?.role || 'client'}
-          mobileOpen={mobileOpen}
-          onMobileClose={handleMobileClose}
-          user={user}
-        />
-        
-        <Box sx={styles.mainContent}>
-          <Header 
-            user={data.user} 
-            notifications={data.notifications}
-            onMobileMenuClick={handleMobileMenuClick}
-          />
-          
-          <Box sx={styles.contentWrapper}>
-            <Box sx={styles.leftContent}>
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
               {/* Back Button */}
               <Box sx={{ mb: 2 }}>
                 <Button
@@ -348,7 +307,13 @@ const ProjectDetail = () => {
                     
                     <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap">
                       <Chip
-                        label={project.status?.replace('-', ' ') || 'Active'}
+                        label={
+                          project.status === 'todo' ? 'To Do' :
+                          project.status === 'in-progress' ? 'In Progress' :
+                          project.status === 'awaiting-feedback' ? 'Awaiting Feedback' :
+                          project.status === 'completed' ? 'Completed' :
+                          project.status?.replace('-', ' ') || 'Active'
+                        }
                         color={getStatusColor(project.status)}
                         size="medium"
                         sx={{ textTransform: 'capitalize' }}
@@ -460,7 +425,6 @@ const ProjectDetail = () => {
                   <Tab label="Overview" icon={<OverviewIcon />} iconPosition="start" />
                   <Tab label="Milestones" icon={<MilestoneIcon />} iconPosition="start" />
                   <Tab label="Files" icon={<FileIcon />} iconPosition="start" />
-                  <Tab label="Timeline" icon={<TimelineIcon />} iconPosition="start" />
                   <Tab label="Team" icon={<TeamIcon />} iconPosition="start" />
                 </Tabs>
               </Paper>
@@ -691,9 +655,21 @@ const ProjectDetail = () => {
                                 Due: {project.nextMilestone}
                               </Typography>
                               <Chip
-                                label={project.nextMilestoneDetails.status.replace('_', ' ')}
+                                label={
+                                  project.nextMilestoneDetails.status === 'pending' ? 'Pending' :
+                                  project.nextMilestoneDetails.status === 'in-progress' ? 'In Progress' :
+                                  project.nextMilestoneDetails.status === 'completed' ? 'Completed' :
+                                  project.nextMilestoneDetails.status === 'overdue' ? 'Overdue' :
+                                  project.nextMilestoneDetails.status.replace('_', ' ')
+                                }
                                 size="small"
-                                color={project.nextMilestoneDetails.status === 'pending_approval' ? 'warning' : 'default'}
+                                color={
+                                  project.nextMilestoneDetails.status === 'pending' ? 'warning' :
+                                  project.nextMilestoneDetails.status === 'in-progress' ? 'info' :
+                                  project.nextMilestoneDetails.status === 'completed' ? 'success' :
+                                  project.nextMilestoneDetails.status === 'overdue' ? 'error' :
+                                  'default'
+                                }
                                 sx={{ textTransform: 'capitalize' }}
                               />
                             </Box>
@@ -739,47 +715,125 @@ const ProjectDetail = () => {
 
                 {/* Milestones Tab */}
                 {activeTab === 1 && (
-                  <MilestoneList
+                  <TimelineManager 
                     projectId={projectId}
-                    onMilestoneUpdate={loadProject}
+                    projectName={project.name}
+                    onClose={() => {}} // No close button needed since it's in a tab
+                    showHeader={false} // Hide header since we're in a tab
                   />
                 )}
 
                 {/* Files Tab */}
                 {activeTab === 2 && (
-                  <FileManager
+                  <FileCategoryTabs
                     projectId={projectId}
-                    title="Project Files"
-                    showTabs={false}
-                    allowUpload={true}
-                    allowDelete={true}
+                    allowUpload={user?.role === 'admin' || user?.role === 'staff'}
+                    allowDelete={user?.role === 'admin'}
+                    allowEdit={user?.role === 'admin' || user?.role === 'staff'}
+                    defaultCategory="videos"
+                    onFileAction={(action, fileOrResults) => {
+                      console.log('File action:', action, fileOrResults);
+                      // Handle file actions like upload, download, edit, etc.
+                    }}
                   />
                 )}
 
-                {/* Timeline Tab */}
+                {/* Team Tab */}
                 {activeTab === 3 && (
                   <Card>
                     <CardContent sx={{ p: 3 }}>
                       <Typography variant="h5" gutterBottom>
-                        Project Timeline
+                        Project Team
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Timeline visualization will be implemented here
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                )}
+                      
+                      {/* Assigned User */}
+                      <Box sx={{ mb: 4 }}>
+                        <Typography variant="h6" gutterBottom>
+                          Assigned To
+                        </Typography>
+                        <Box display="flex" alignItems="center" spacing={2}>
+                          <Avatar 
+                            src={project.assignedToAvatar} 
+                            sx={{ width: 48, height: 48, mr: 2 }}
+                          >
+                            {project.assignedToName?.charAt(0) || 'U'}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body1" fontWeight={600}>
+                              {project.assignedToName || 'Unassigned'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {project.assignedToEmail || 'No email'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Primary Contact
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
 
-                {/* Team Tab */}
-                {activeTab === 4 && (
-                  <Card>
-                    <CardContent sx={{ p: 3 }}>
-                      <Typography variant="h5" gutterBottom>
-                        Team Management
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Team management interface will be implemented here
-                      </Typography>
+                      {/* Created By */}
+                      <Box sx={{ mb: 4 }}>
+                        <Typography variant="h6" gutterBottom>
+                          Project Manager
+                        </Typography>
+                        <Box display="flex" alignItems="center" spacing={2}>
+                          <Avatar sx={{ width: 48, height: 48, mr: 2 }}>
+                            A
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body1" fontWeight={600}>
+                              Admin
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Project Creator
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Created {formatDate(project.createdAt)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+
+                      {/* Additional Team Members */}
+                      {project.team && project.team.length > 0 && (
+                        <Box>
+                          <Typography variant="h6" gutterBottom>
+                            Additional Team Members
+                          </Typography>
+                          <Stack spacing={2}>
+                            {project.team.map((member, index) => (
+                              <Box key={index} display="flex" alignItems="center" spacing={2}>
+                                <Avatar 
+                                  src={member.avatar} 
+                                  sx={{ width: 40, height: 40, mr: 2 }}
+                                >
+                                  {member.name?.charAt(0)}
+                                </Avatar>
+                                <Box>
+                                  <Typography variant="body1" fontWeight={500}>
+                                    {member.name || `Team Member ${index + 1}`}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {member.role || 'Team Member'}
+                                  </Typography>
+                                  {member.email && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      {member.email}
+                                    </Typography>
+                                  )}
+                                </Box>
+                              </Box>
+                            ))}
+                          </Stack>
+                        </Box>
+                      )}
+
+                      {(!project.team || project.team.length === 0) && (
+                        <Alert severity="info">
+                          No additional team members are assigned to this project.
+                        </Alert>
+                      )}
                     </CardContent>
                   </Card>
                 )}
@@ -803,10 +857,6 @@ const ProjectDetail = () => {
                 </MenuItem>
               </Menu>
             </Box>
-          </Box>
-        </Box>
-      </Box>
-    </ThemeProvider>
   );
 };
 

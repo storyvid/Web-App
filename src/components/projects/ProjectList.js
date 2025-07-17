@@ -168,9 +168,9 @@ const ProjectList = ({ viewMode = 'grid' }) => {
 
   const getStatusColor = (status) => {
     const colors = {
-      'planning': 'info',
-      'in_progress': 'primary',
-      'review': 'warning',
+      'todo': 'info',
+      'in-progress': 'primary',
+      'awaiting-feedback': 'warning',
       'completed': 'success',
       'cancelled': 'error'
     };
@@ -511,9 +511,9 @@ const ProjectList = ({ viewMode = 'grid' }) => {
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <MenuItem value="all">All Status</MenuItem>
-            <MenuItem value="planning">Planning</MenuItem>
-            <MenuItem value="in_progress">In Progress</MenuItem>
-            <MenuItem value="review">Review</MenuItem>
+            <MenuItem value="todo">To Do</MenuItem>
+            <MenuItem value="in-progress">In Progress</MenuItem>
+            <MenuItem value="awaiting-feedback">Awaiting Feedback</MenuItem>
             <MenuItem value="completed">Completed</MenuItem>
           </Select>
         </FormControl>
@@ -608,9 +608,9 @@ const ProjectList = ({ viewMode = 'grid' }) => {
               label="New Status"
               onChange={(e) => setNewStatus(e.target.value)}
             >
-              <MenuItem value="planning">Planning</MenuItem>
-              <MenuItem value="in_progress">In Progress</MenuItem>
-              <MenuItem value="review">Review</MenuItem>
+              <MenuItem value="todo">To Do</MenuItem>
+              <MenuItem value="in-progress">In Progress</MenuItem>
+              <MenuItem value="awaiting-feedback">Awaiting Feedback</MenuItem>
               <MenuItem value="completed">Completed</MenuItem>
               <PermissionGate allowedRoles={['admin']}>
                 <MenuItem value="cancelled">Cancelled</MenuItem>

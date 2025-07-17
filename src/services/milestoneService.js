@@ -50,13 +50,28 @@ class MilestoneService {
    * @returns {Object} Created milestone
    */
   async createMilestone(projectId, milestoneData) {
-    const currentUser = this.checkAdminPermission();
+    const currentUser = this.getCurrentUser();
+    
+    if (!currentUser) {
+      throw new Error('User not authenticated. Please log in.');
+    }
 
     try {
-      // Validate project exists
+      // Validate project exists and user has access
       const projectDoc = await getDoc(doc(this.firebaseService.db, 'projects', projectId));
       if (!projectDoc.exists()) {
         throw new Error('Project not found');
+      }
+
+      const project = projectDoc.data();
+      
+      // Check if user is admin OR assigned to this project
+      const hasAccess = currentUser.role === 'admin' || 
+                       project.assignedTo === currentUser.uid ||
+                       project.createdBy === currentUser.uid;
+      
+      if (!hasAccess) {
+        throw new Error('Access denied. You can only create milestones for projects you are assigned to.');
       }
 
       // Generate milestone ID
@@ -74,6 +89,8 @@ class MilestoneService {
       };
 
       await setDoc(milestoneRef, milestone);
+
+      console.log('🔍 DEBUG: Milestone created successfully:', milestone.id);
 
       // Return milestone with serialized timestamps
       return {
@@ -94,14 +111,14 @@ class MilestoneService {
    */
   async getProjectMilestones(projectId) {
     try {
+      // Use simple query without orderBy to avoid composite index requirement
       const milestonesQuery = query(
         collection(this.firebaseService.db, 'milestones'),
-        where('projectId', '==', projectId),
-        orderBy('dueDate', 'asc')
+        where('projectId', '==', projectId)
       );
 
       const snapshot = await getDocs(milestonesQuery);
-      return snapshot.docs.map(doc => ({
+      const milestones = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
@@ -109,6 +126,14 @@ class MilestoneService {
         dueDate: doc.data().dueDate?.toDate?.()?.toISOString() || doc.data().dueDate,
         completedDate: doc.data().completedDate?.toDate?.()?.toISOString() || doc.data().completedDate
       }));
+
+      // Sort by due date client-side
+      return milestones.sort((a, b) => {
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+      });
     } catch (error) {
       console.error('Error getting project milestones:', error);
       throw new Error(`Failed to get milestones: ${error.message}`);

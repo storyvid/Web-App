@@ -48,7 +48,6 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import projectManagementService from '../../services/projectManagementService';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import TimelineManager from '../../components/Admin/TimelineManager';
 
 const AdminProjectsContent = () => {
   const navigate = useNavigate();
@@ -63,7 +62,6 @@ const AdminProjectsContent = () => {
   // UI state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
-  const [showTimelineDialog, setShowTimelineDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [actionAnchor, setActionAnchor] = useState(null);
   const [sortBy, setSortBy] = useState('createdAt');
@@ -78,7 +76,7 @@ const AdminProjectsContent = () => {
     name: '',
     description: '',
     assignedTo: '',
-    status: 'planning',
+    status: 'todo',
     priority: 'medium',
     timeline: {
       startDate: '',
@@ -182,7 +180,7 @@ const AdminProjectsContent = () => {
           name: '',
           description: '',
           assignedTo: '',
-          status: 'planning',
+          status: 'todo',
           priority: 'medium',
           timeline: { startDate: '', endDate: '', estimatedHours: '' },
           budget: { estimated: '', currency: 'USD' }
@@ -322,11 +320,10 @@ const AdminProjectsContent = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      planning: 'info',
+      'todo': 'info',
       'in-progress': 'primary',
-      review: 'warning',
-      completed: 'success',
-      'on-hold': 'error'
+      'awaiting-feedback': 'warning',
+      'completed': 'success'
     };
     return colors[status] || 'default';
   };
@@ -548,11 +545,10 @@ const AdminProjectsContent = () => {
                               onChange={(e) => setTempStatus(e.target.value)}
                               size="small"
                             >
-                              <MenuItem value="planning">Planning</MenuItem>
+                              <MenuItem value="todo">To Do</MenuItem>
                               <MenuItem value="in-progress">In Progress</MenuItem>
-                              <MenuItem value="review">Review</MenuItem>
+                              <MenuItem value="awaiting-feedback">Awaiting Feedback</MenuItem>
                               <MenuItem value="completed">Completed</MenuItem>
-                              <MenuItem value="on-hold">On Hold</MenuItem>
                             </Select>
                           </FormControl>
                           <IconButton size="small" onClick={() => saveStatusEdit(project.id)}>
@@ -637,8 +633,7 @@ const AdminProjectsContent = () => {
                           <IconButton
                             size="small"
                             onClick={() => {
-                              setSelectedProject(project);
-                              setShowTimelineDialog(true);
+                              navigate(`/project/${project.id}/timeline`);
                             }}
                             sx={{ color: 'primary.main' }}
                           >
@@ -714,7 +709,7 @@ const AdminProjectsContent = () => {
           Update Status
         </MenuItem>
         <MenuItem onClick={() => {
-          setShowTimelineDialog(true);
+          navigate(`/project/${selectedProject?.id}/timeline`);
           setActionAnchor(null);
         }}>
           <TimelineIcon sx={{ mr: 1 }} />
@@ -913,11 +908,10 @@ const AdminProjectsContent = () => {
               label="Status"
               onChange={(e) => setStatusUpdate(prev => ({ ...prev, status: e.target.value }))}
             >
-              <MenuItem value="planning">Planning</MenuItem>
+              <MenuItem value="todo">To Do</MenuItem>
               <MenuItem value="in-progress">In Progress</MenuItem>
-              <MenuItem value="review">Review</MenuItem>
+              <MenuItem value="awaiting-feedback">Awaiting Feedback</MenuItem>
               <MenuItem value="completed">Completed</MenuItem>
-              <MenuItem value="on-hold">On Hold</MenuItem>
             </Select>
           </FormControl>
           <TextField
@@ -944,20 +938,6 @@ const AdminProjectsContent = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Timeline Manager Dialog */}
-      <Dialog 
-        open={showTimelineDialog} 
-        onClose={() => setShowTimelineDialog(false)}
-        maxWidth="lg"
-        fullWidth
-        fullScreen
-      >
-        <TimelineManager 
-          projectId={selectedProject?.id}
-          projectName={selectedProject?.name}
-          onClose={() => setShowTimelineDialog(false)}
-        />
-      </Dialog>
     </>
   );
 };

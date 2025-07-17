@@ -36,6 +36,8 @@ import { selectUser } from '../../store/slices/authSlice';
 import RoleBasedNavigation from '../navigation/RoleBasedNavigation';
 import RoleBasedButton from '../common/RoleBasedButton';
 import { useRoleBasedData, useRoleBasedUI } from '../../hooks/useRoleBasedData';
+import { StatsCard } from '../DashboardComponents';
+import { styles } from '../../pages/dashboardStyles';
 
 const ClientDashboard = () => {
   const dispatch = useDispatch();
@@ -184,73 +186,39 @@ const ClientDashboard = () => {
       {/* Quick Stats */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <VideoIcon color="primary" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">
-                    {projects.length}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Active Projects
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatsCard
+            icon={VideoIcon}
+            title="Active Projects"
+            value={projects.length}
+            statKey="activeProjects"
+          />
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <ScheduleIcon color="warning" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">
-                    {projects.filter(p => p.status === 'review').length}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Pending Review
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatsCard
+            icon={ScheduleIcon}
+            title="Pending Review"
+            value={projects.filter(p => p.status === 'review' || p.status === 'awaiting-feedback').length}
+            statKey="pendingApprovals"
+          />
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TrendingIcon color="success" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">
-                    {Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length) || 0}%
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Avg Progress
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatsCard
+            icon={TrendingIcon}
+            title="Avg Progress"
+            value={`${Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length) || 0}%`}
+            statKey="avgProgress"
+          />
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <MessageIcon color="info" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">3</Typography>
-                  <Typography color="text.secondary">
-                    New Messages
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatsCard
+            icon={MessageIcon}
+            title="New Messages"
+            value={3}
+            statKey="newMessages"
+          />
         </Grid>
       </Grid>
 
@@ -275,7 +243,7 @@ const ClientDashboard = () => {
               </Box>
               
               {filteredProjects.map((project) => (
-                <Card key={project.id} variant="outlined" sx={{ mb: 2 }}>
+                <Card key={project.id} variant="outlined" sx={{ mb: 2, width: '500px' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                       <Box>

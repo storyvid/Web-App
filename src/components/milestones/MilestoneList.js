@@ -39,6 +39,7 @@ import MilestoneCard from './MilestoneCard';
 import MilestoneDialog from './MilestoneDialog';
 import { useAuth } from '../../contexts/AuthContext';
 import firebaseService from '../../services/firebase/firebaseService';
+import milestoneService from '../../services/milestoneService';
 
 const SortableMilestoneCard = ({ milestone, onEdit, onDelete, onStatusChange, canReorder }) => {
   const {
@@ -88,8 +89,8 @@ const MilestoneList = ({ projectId, onMilestoneUpdate }) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await firebaseService.getMilestones(projectId);
-      setMilestones(data);
+      const data = await milestoneService.getProjectMilestones(projectId);
+      setMilestones(data || []);
     } catch (err) {
       console.error('Error loading milestones:', err);
       setError('Failed to load milestones');
@@ -113,21 +114,22 @@ const MilestoneList = ({ projectId, onMilestoneUpdate }) => {
       let result;
       
       if (editingMilestone) {
-        // Update existing milestone
-        result = await firebaseService.updateMilestone(editingMilestone.id, milestoneData);
-        setMilestones(prev => 
-          prev.map(m => m.id === editingMilestone.id ? result : m)
-        );
-        showSnackbar('Milestone updated successfully', 'success');
+        // Update existing milestone - for now, reload all milestones since we don't have an update method
+        showSnackbar('Milestone update feature coming soon', 'info');
+        setDialogOpen(false);
+        setEditingMilestone(null);
+        return;
       } else {
         // Create new milestone
-        result = await firebaseService.createMilestone(projectId, milestoneData);
-        setMilestones(prev => [...prev, result].sort((a, b) => a.order - b.order));
+        result = await milestoneService.createMilestone(projectId, milestoneData);
         showSnackbar('Milestone created successfully', 'success');
       }
 
       setDialogOpen(false);
       setEditingMilestone(null);
+      
+      // Reload milestones to get fresh data
+      await loadMilestones();
       
       // Notify parent component
       if (onMilestoneUpdate) {
@@ -145,9 +147,11 @@ const MilestoneList = ({ projectId, onMilestoneUpdate }) => {
     }
 
     try {
-      await firebaseService.deleteMilestone(milestoneId);
-      setMilestones(prev => prev.filter(m => m.id !== milestoneId));
+      await milestoneService.deleteMilestone(milestoneId);
       showSnackbar('Milestone deleted successfully', 'success');
+      
+      // Reload milestones to get fresh data
+      await loadMilestones();
       
       if (onMilestoneUpdate) {
         onMilestoneUpdate();
@@ -160,41 +164,19 @@ const MilestoneList = ({ projectId, onMilestoneUpdate }) => {
 
   const handleStatusChange = async (milestoneId, newStatus, feedback = null) => {
     try {
-      const updates = { status: newStatus };
-      
-      if (feedback) {
-        updates.feedback = feedback;
-        updates.feedbackAt = new Date().toISOString();
-      }
-
-      if (newStatus === 'completed') {
-        updates.completedAt = new Date().toISOString();
-      }
-
-      // Handle revision count
-      if (newStatus === 'revision_requested') {
-        const milestone = milestones.find(m => m.id === milestoneId);
-        updates.revisionCount = (milestone.revisionCount || 0) + 1;
-        
-        if (updates.revisionCount > (milestone.maxRevisions || 2)) {
-          showSnackbar(`Maximum revisions (${milestone.maxRevisions || 2}) exceeded`, 'error');
-          return;
-        }
-      }
-
-      const result = await firebaseService.updateMilestone(milestoneId, updates);
-      setMilestones(prev => 
-        prev.map(m => m.id === milestoneId ? result : m)
-      );
+      // Use milestoneService for status updates
+      const result = await milestoneService.updateMilestoneStatus(milestoneId, newStatus, feedback);
 
       const statusMessages = {
         completed: 'Milestone marked as completed',
-        revision_requested: 'Revision requested',
-        in_progress: 'Milestone started',
-        in_review: 'Milestone submitted for review'
+        'in-progress': 'Milestone started',
+        pending: 'Milestone status updated'
       };
 
       showSnackbar(statusMessages[newStatus] || 'Milestone updated', 'success');
+      
+      // Reload milestones to get fresh data
+      await loadMilestones();
       
       if (onMilestoneUpdate) {
         onMilestoneUpdate();

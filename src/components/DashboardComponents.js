@@ -369,11 +369,65 @@ export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAll
         showBadge: value > 0,
         badgeColor: 'warning'
       },
+      inProgress: {
+        iconColor: 'warning.main',
+        valueColor: 'warning.main',
+        showBadge: false,
+        badgeColor: 'warning'
+      },
+      completed: {
+        iconColor: 'success.main',
+        valueColor: 'success.main',
+        showBadge: false,
+        badgeColor: 'success'
+      },
+      myProjects: {
+        iconColor: 'primary.main',
+        valueColor: 'primary.main',
+        showBadge: false,
+        badgeColor: 'primary'
+      },
+      totalClients: {
+        iconColor: 'info.main',
+        valueColor: 'info.main',
+        showBadge: false,
+        badgeColor: 'info'
+      },
       upcomingDeadlines: {
         iconColor: value > 5 ? 'error.main' : value > 0 ? 'warning.main' : 'text.secondary',
         valueColor: value > 5 ? 'error.main' : value > 0 ? 'warning.main' : 'text.primary',
         showBadge: value > 5,
         badgeColor: value > 5 ? 'error' : 'warning'
+      },
+      activeProjects: {
+        iconColor: 'primary.main',
+        valueColor: 'primary.main',
+        showBadge: false,
+        badgeColor: 'primary'
+      },
+      weeklyHours: {
+        iconColor: 'warning.main',
+        valueColor: 'warning.main',
+        showBadge: false,
+        badgeColor: 'warning'
+      },
+      avgProgress: {
+        iconColor: 'success.main',
+        valueColor: 'success.main',
+        showBadge: false,
+        badgeColor: 'success'
+      },
+      weeklyCapacity: {
+        iconColor: 'info.main',
+        valueColor: 'info.main',
+        showBadge: false,
+        badgeColor: 'info'
+      },
+      newMessages: {
+        iconColor: 'info.main',
+        valueColor: 'info.main',
+        showBadge: false,
+        badgeColor: 'info'
       },
       default: {
         iconColor: 'text.secondary',
@@ -447,19 +501,29 @@ export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAll
 // Project Card Component
 export const ProjectCard = ({ project, onClick }) => {
   const statusColors = {
-    'in-review': {
-      bg: 'warning.50',
-      color: 'warning.dark',
-      label: 'Client Review'
+    'todo': {
+      bg: 'grey.100',
+      color: 'grey.700',
+      label: 'To Do'
     },
-    'in-production': {
+    'in-progress': {
       bg: 'info.50',
       color: 'info.dark',
-      label: 'In Production'
+      label: 'In Progress'
+    },
+    'awaiting-feedback': {
+      bg: 'warning.50',
+      color: 'warning.dark',
+      label: 'Awaiting Feedback'
+    },
+    'completed': {
+      bg: 'success.50',
+      color: 'success.dark',
+      label: 'Completed'
     }
   };
   
-  const status = statusColors[project.status] || statusColors['in-production'];
+  const status = statusColors[project.status] || statusColors['todo'];
   
   
   return (
@@ -475,7 +539,11 @@ export const ProjectCard = ({ project, onClick }) => {
           })
         }
       }}
-      onClick={() => onClick && onClick(project)}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onClick) onClick(project);
+      }}
     >
       <CardContent>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>

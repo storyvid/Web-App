@@ -37,6 +37,7 @@ import ProjectsListContent from './pages/content/ProjectsListContent';
 import SettingsContent from './pages/content/SettingsContent';
 import AdminProjectsContent from './pages/content/AdminProjectsContent';
 import AdminUsersContent from './pages/content/AdminUsersContent';
+import MilestoneDetail from './pages/MilestoneDetail';
 
 function App() {
   return (
@@ -93,6 +94,7 @@ function App() {
                     <Route path="/dashboard" element={<DashboardContent />} />
                     <Route path="/projects" element={<ProjectsListContent />} />
                     <Route path="/project/:projectId" element={<ProjectDetail />} />
+                    <Route path="/project/:projectId/timeline" element={<MilestoneDetail />} />
                     <Route path="/settings" element={<SettingsContent />} />
                     
                     {/* Admin Routes - Require admin role */}
@@ -135,8 +137,8 @@ function App() {
                   <Route path="/debug" element={<DataDebugger />} />
                   <Route path="/project-management-test" element={<ProjectManagementTest />} />
 
-                  {/* Redirect root to login - PublicRoute will handle authenticated users */}
-                  <Route path="/" element={<Navigate to="/login" replace />} />
+                  {/* Redirect root to dashboard for authenticated users, login for others */}
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </Router>
             </AuthProvider>

@@ -33,6 +33,8 @@ import {
 } from '@mui/icons-material';
 
 import { selectUser } from '../../store/slices/authSlice';
+import { StatsCard } from '../DashboardComponents';
+import { styles } from '../../pages/dashboardStyles';
 
 const StaffDashboard = () => {
   const dispatch = useDispatch();
@@ -118,75 +120,39 @@ const StaffDashboard = () => {
       {/* Quick Stats */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TaskIcon color="primary" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">
-                    {activeProjects}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Active Projects
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatsCard
+            icon={TaskIcon}
+            title="Active Projects"
+            value={activeProjects}
+            statKey="activeProjects"
+          />
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TimeIcon color="warning" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">
-                    {totalHoursThisWeek}h
-                  </Typography>
-                  <Typography color="text.secondary">
-                    This Week
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatsCard
+            icon={TimeIcon}
+            title="This Week"
+            value={`${totalHoursThisWeek}h`}
+            statKey="weeklyHours"
+          />
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <PerformanceIcon color="success" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">
-                    {completionRate}%
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Avg Progress
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatsCard
+            icon={PerformanceIcon}
+            title="Avg Progress"
+            value={`${completionRate}%`}
+            statKey="avgProgress"
+          />
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TeamIcon color="info" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">
-                    {user?.staffProfile?.availability?.hoursPerWeek || 40}h
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Weekly Capacity
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+          <StatsCard
+            icon={TeamIcon}
+            title="Weekly Capacity"
+            value={`${user?.staffProfile?.availability?.hoursPerWeek || 40}h`}
+            statKey="weeklyCapacity"
+          />
         </Grid>
       </Grid>
 

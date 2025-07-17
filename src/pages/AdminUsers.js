@@ -19,14 +19,21 @@ import {
   Alert,
   ThemeProvider,
   CssBaseline,
-  Grid
+  Grid,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import {
   Person as PersonIcon,
   Email as EmailIcon,
   Business as BusinessIcon,
   AssignmentInd as RoleIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -53,6 +60,9 @@ const AdminUsers = () => {
   const [sortOrder, setSortOrder] = useState('asc');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Mock data for header
   const [data] = useState({
@@ -163,6 +173,30 @@ const AdminUsers = () => {
     admins: users.filter(u => u.role === 'admin').length,
     staff: users.filter(u => u.role === 'staff').length,
     clients: users.filter(u => u.role === 'client').length
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      setDeleteLoading(true);
+      setError('');
+      
+      // Delete user from Firebase
+      await projectManagementService.deleteUser(userToDelete.uid);
+      
+      setSuccess(`User "${userToDelete.name}" has been deleted successfully.`);
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      
+      // Reload users list
+      await loadData();
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError(`Failed to delete user: ${err.message}`);
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   if (loading) {
@@ -326,6 +360,7 @@ const AdminUsers = () => {
                           <TableCell>Projects</TableCell>
                           <TableCell>Joined</TableCell>
                           <TableCell>Status</TableCell>
+                          <TableCell>Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -392,6 +427,19 @@ const AdminUsers = () => {
                                 size="small"
                               />
                             </TableCell>
+                            <TableCell>
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => {
+                                  setUserToDelete(userData);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                disabled={userData.uid === user?.uid} // Can't delete self
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -414,6 +462,49 @@ const AdminUsers = () => {
           </Box>
         </Box>
       </Box>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => {
+          if (!deleteLoading) {
+            setDeleteDialogOpen(false);
+            setUserToDelete(null);
+          }
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Delete User
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete user "{userToDelete?.name}" ({userToDelete?.email})?
+            <br /><br />
+            <strong>This action cannot be undone.</strong> All user data, including assigned projects, will be removed from the system.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              setUserToDelete(null);
+            }}
+            disabled={deleteLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteUser}
+            color="error"
+            variant="contained"
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? 'Deleting...' : 'Delete User'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </ThemeProvider>
   );
 };

@@ -45,8 +45,10 @@ import {
 } from '@mui/icons-material';
 
 import milestoneService from '../../services/milestoneService';
+import { useAuth } from '../../contexts/AuthContext';
 
-const TimelineManager = ({ projectId, projectName, onClose }) => {
+const TimelineManager = ({ projectId, projectName, onClose, showHeader = true }) => {
+  const { user } = useAuth();
   const [milestones, setMilestones] = useState([]);
   const [timelineData, setTimelineData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -81,12 +83,37 @@ const TimelineManager = ({ projectId, projectName, onClose }) => {
       setLoading(true);
       setError('');
       
-      const timeline = await milestoneService.getProjectTimeline(projectId);
-      setTimelineData(timeline);
-      setMilestones(timeline.milestones);
+      console.log('🔍 DEBUG: Loading timeline data for project:', projectId);
+      
+      // Just get milestones directly, don't worry about the full timeline for now
+      const projectMilestones = await milestoneService.getProjectMilestones(projectId);
+      console.log('🔍 DEBUG: Loaded milestones:', projectMilestones?.length || 0);
+      
+      setMilestones(projectMilestones || []);
+      
+      // Calculate timeline statistics locally
+      const totalMilestones = (projectMilestones || []).length;
+      const completedMilestones = (projectMilestones || []).filter(m => m.status === 'completed').length;
+      const overdueMilestones = (projectMilestones || []).filter(m => {
+        if (!m.dueDate || m.status === 'completed') return false;
+        return new Date(m.dueDate) < new Date();
+      }).length;
+      const completionRate = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
+      
+      setTimelineData({
+        timeline: {
+          totalMilestones,
+          completedMilestones,
+          overdueMilestones,
+          completionRate
+        },
+        milestones: projectMilestones || []
+      });
+      
+      console.log('🔍 DEBUG: Timeline data set successfully');
     } catch (err) {
       console.error('Error loading timeline:', err);
-      setError('Unable to load project timeline. Please try again.');
+      setError(`Unable to load project timeline: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -117,6 +144,9 @@ const TimelineManager = ({ projectId, projectName, onClose }) => {
 
       await milestoneService.createMilestone(projectId, milestoneData);
       
+      // Reload data first, then show success if reload works
+      await loadTimelineData();
+      
       setSuccess(`✅ Milestone "${newMilestone.title}" created successfully!`);
       
       setTimeout(() => {
@@ -132,10 +162,9 @@ const TimelineManager = ({ projectId, projectName, onClose }) => {
         });
       }, 1500);
       
-      loadTimelineData();
     } catch (err) {
       console.error('Error creating milestone:', err);
-      setError('Unable to create milestone. Please try again.');
+      setError(`Unable to create milestone: ${err.message}`);
     } finally {
       setCreateLoading(false);
     }
@@ -211,6 +240,9 @@ const TimelineManager = ({ projectId, projectName, onClose }) => {
     return diffDays;
   };
 
+  // Check if user can create milestones - only admins can create milestones
+  const canCreateMilestones = user?.role === 'admin';
+
   if (loading) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -221,33 +253,55 @@ const TimelineManager = ({ projectId, projectName, onClose }) => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: showHeader ? 3 : 0 }}>
       {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography variant="h5" fontWeight={600} gutterBottom>
-            Project Timeline
-          </Typography>
+      {showHeader && (
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+          <Box>
+            <Typography variant="h5" fontWeight={600} gutterBottom>
+              Project Timeline
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {projectName} • {milestones.length} milestones
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="outlined"
+              onClick={onClose}
+            >
+              Close
+            </Button>
+            {canCreateMilestones && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setShowCreateDialog(true)}
+              >
+                Add Milestone
+              </Button>
+            )}
+          </Stack>
+        </Stack>
+      )}
+
+      {!showHeader && (
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="body2" color="text.secondary">
             {projectName} • {milestones.length} milestones
           </Typography>
-        </Box>
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="outlined"
-            onClick={onClose}
-          >
-            Close
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setShowCreateDialog(true)}
-          >
-            Add Milestone
-          </Button>
+          {canCreateMilestones && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setShowCreateDialog(true)}
+              size="small"
+            >
+              Add Milestone
+            </Button>
+          )}
         </Stack>
-      </Stack>
+      )}
 
       {/* Timeline Statistics */}
       {timelineData.timeline && (
@@ -329,16 +383,21 @@ const TimelineManager = ({ projectId, projectName, onClose }) => {
                 No milestones yet
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Create your first milestone to start tracking project progress.
+                {canCreateMilestones 
+                  ? 'Create your first milestone to start tracking project progress.'
+                  : 'Milestones will appear here once created by the team.'
+                }
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setShowCreateDialog(true)}
-                sx={{ mt: 2 }}
-              >
-                Add First Milestone
-              </Button>
+              {canCreateMilestones && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setShowCreateDialog(true)}
+                  sx={{ mt: 2 }}
+                >
+                  Add First Milestone
+                </Button>
+              )}
             </Box>
           ) : (
             <TableContainer>
@@ -606,13 +665,15 @@ const TimelineManager = ({ projectId, projectName, onClose }) => {
       </Dialog>
 
       {/* Floating Action Button */}
-      <Fab
-        color="primary"
-        sx={{ position: 'fixed', bottom: 24, right: 24 }}
-        onClick={() => setShowCreateDialog(true)}
-      >
-        <AddIcon />
-      </Fab>
+      {canCreateMilestones && (
+        <Fab
+          color="primary"
+          sx={{ position: 'fixed', bottom: 24, right: 24 }}
+          onClick={() => setShowCreateDialog(true)}
+        >
+          <AddIcon />
+        </Fab>
+      )}
     </Box>
   );
 };

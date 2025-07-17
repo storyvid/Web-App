@@ -89,7 +89,7 @@ const AdminProjects = () => {
     name: '',
     description: '',
     assignedTo: '',
-    status: 'planning',
+    status: 'todo',
     priority: 'medium',
     timeline: {
       startDate: '',
@@ -199,7 +199,7 @@ const AdminProjects = () => {
           name: '',
           description: '',
           assignedTo: '',
-          status: 'planning',
+          status: 'todo',
           priority: 'medium',
           timeline: { startDate: '', endDate: '', estimatedHours: '' },
           budget: { estimated: '', currency: 'USD' }
@@ -376,11 +376,10 @@ const AdminProjects = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      planning: 'info',
+      'todo': 'default',
       'in-progress': 'primary',
-      review: 'warning',
-      completed: 'success',
-      'on-hold': 'error'
+      'awaiting-feedback': 'warning',
+      'completed': 'success'
     };
     return colors[status] || 'default';
   };
@@ -622,11 +621,10 @@ const AdminProjects = () => {
                                       onChange={(e) => setTempStatus(e.target.value)}
                                       size="small"
                                     >
-                                      <MenuItem value="planning">Planning</MenuItem>
+                                      <MenuItem value="todo">To Do</MenuItem>
                                       <MenuItem value="in-progress">In Progress</MenuItem>
-                                      <MenuItem value="review">Review</MenuItem>
+                                      <MenuItem value="awaiting-feedback">Awaiting Feedback</MenuItem>
                                       <MenuItem value="completed">Completed</MenuItem>
-                                      <MenuItem value="on-hold">On Hold</MenuItem>
                                     </Select>
                                   </FormControl>
                                   <IconButton size="small" onClick={() => saveStatusEdit(project.id)}>
@@ -987,11 +985,10 @@ const AdminProjects = () => {
                       label="Status"
                       onChange={(e) => setStatusUpdate(prev => ({ ...prev, status: e.target.value }))}
                     >
-                      <MenuItem value="planning">Planning</MenuItem>
+                      <MenuItem value="todo">To Do</MenuItem>
                       <MenuItem value="in-progress">In Progress</MenuItem>
-                      <MenuItem value="review">Review</MenuItem>
+                      <MenuItem value="awaiting-feedback">Awaiting Feedback</MenuItem>
                       <MenuItem value="completed">Completed</MenuItem>
-                      <MenuItem value="on-hold">On Hold</MenuItem>
                     </Select>
                   </FormControl>
                   <TextField
