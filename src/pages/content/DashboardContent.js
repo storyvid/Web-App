@@ -43,9 +43,14 @@ const DashboardContent = () => {
       } else if (user?.uid) {
         // Clients/staff only see their assigned projects
         try {
-          console.log('Fetching projects for user:', user.uid, 'role:', user.role);
+          console.log('🔍 DEBUG: Dashboard fetching projects for user:', {
+            uid: user.uid,
+            email: user.email,
+            role: user.role,
+            name: user.name
+          });
           userProjects = await projectManagementService.getProjectsByUser(user.uid);
-          console.log('Found projects for user:', userProjects);
+          console.log('🔍 DEBUG: Dashboard found projects for user:', userProjects);
         } catch (error) {
           console.warn('User projects unavailable, showing empty:', error);
           userProjects = [];

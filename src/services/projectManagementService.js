@@ -56,11 +56,24 @@ class ProjectManagementService {
     const currentUser = this.checkAdminPermission();
 
     try {
+      console.log('🔍 DEBUG: Creating project with data:', {
+        projectName: projectData.name,
+        assignedUserId,
+        adminUserId: currentUser.uid
+      });
+
       // Validate assigned user exists
       const assignedUser = await this.firebaseService.getUser(assignedUserId);
       if (!assignedUser) {
         throw new Error('Assigned user not found');
       }
+
+      console.log('🔍 DEBUG: Found assigned user:', {
+        uid: assignedUser.id,
+        email: assignedUser.email,
+        name: assignedUser.name,
+        role: assignedUser.role
+      });
 
       // Generate project ID
       const projectRef = doc(collection(this.firebaseService.db, 'projects'));
@@ -98,6 +111,12 @@ class ProjectManagementService {
       });
 
       await batch.commit();
+
+      console.log('🔍 DEBUG: Project created successfully:', {
+        projectId: projectRef.id,
+        assignedTo: assignedUserId,
+        projectName: projectData.name
+      });
 
       // Return project with serialized timestamps
       return {
@@ -382,6 +401,8 @@ class ProjectManagementService {
    */
   async getProjectsByUser(userId) {
     try {
+      console.log('🔍 DEBUG: Fetching projects for user:', userId);
+      
       const projectsQuery = query(
         collection(this.firebaseService.db, 'projects'),
         where('assignedTo', '==', userId),
@@ -389,12 +410,28 @@ class ProjectManagementService {
       );
 
       const snapshot = await getDocs(projectsQuery);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
-        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
-      }));
+      
+      console.log('🔍 DEBUG: Found projects:', snapshot.docs.length);
+      
+      const projects = snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('🔍 DEBUG: Project data:', {
+          id: doc.id,
+          name: data.name,
+          assignedTo: data.assignedTo,
+          assignedToEmail: data.assignedToEmail,
+          createdAt: data.createdAt
+        });
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
+        };
+      });
+      
+      console.log('🔍 DEBUG: Returning projects:', projects.length);
+      return projects;
     } catch (error) {
       console.error('Error getting user projects:', error);
       throw new Error(`Failed to get user projects: ${error.message}`);
