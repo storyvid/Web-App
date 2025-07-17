@@ -134,7 +134,7 @@ const AdminUsersContent = () => {
       {/* Page Header */}
       <Box sx={{ mb: 4 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h5" fontWeight={600}>
             User Management
           </Typography>
           <Button
@@ -218,7 +218,7 @@ const AdminUsersContent = () => {
       {/* Users Table */}
       <Card>
         <CardContent>
-          <Typography variant="h5" fontWeight={600} mb={3}>
+          <Typography variant="h6" fontWeight={500} color="text.secondary" mb={3}>
             All Users
           </Typography>
 

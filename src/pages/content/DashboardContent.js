@@ -6,10 +6,18 @@ import {
   Alert,
   Box
 } from '@mui/material';
+import { 
+  Folder as FolderIcon,
+  Schedule as ScheduleIcon,
+  CheckCircle as CheckCircleIcon,
+  Assignment as AssignmentIcon,
+  Group as GroupIcon,
+  Warning as WarningIcon
+} from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { StatsCard, ProjectCard, MilestoneCard, TeamSection } from '../../components/DashboardComponents';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { getRoleBasedData } from '../../data/mockData';
+import projectManagementService from '../../services/projectManagementService';
 
 const DashboardContent = () => {
   const { user } = useAuth();
@@ -20,20 +28,115 @@ const DashboardContent = () => {
     try {
       setLoading(true);
       
-      // Get role-based data
-      const roleData = getRoleBasedData(user?.role || 'client');
+      // For admins, use project management service to get all projects
+      // For clients/staff, fetch their actual assigned projects
+      let userProjects = [];
+      
+      if (user?.role === 'admin') {
+        // Admins see all projects from project management service
+        try {
+          userProjects = await projectManagementService.getAllProjects();
+        } catch (error) {
+          console.warn('Admin projects unavailable, showing empty:', error);
+          userProjects = [];
+        }
+      } else if (user?.uid) {
+        // Clients/staff only see their assigned projects
+        try {
+          console.log('Fetching projects for user:', user.uid, 'role:', user.role);
+          userProjects = await projectManagementService.getProjectsByUser(user.uid);
+          console.log('Found projects for user:', userProjects);
+        } catch (error) {
+          console.warn('User projects unavailable, showing empty:', error);
+          userProjects = [];
+        }
+      }
+      
+      // Calculate real stats from user's actual projects
+      const realStats = [];
+      
+      if (user?.role === 'admin') {
+        // Admin sees all projects
+        realStats.push(
+          {
+            icon: GroupIcon,
+            title: "Total Clients",
+            value: 0, // Would need to fetch from user service
+            subtitle: "Active accounts",
+            seeAll: true,
+            section: "totalClients",
+            statKey: "totalClients"
+          },
+          {
+            icon: FolderIcon,
+            title: "Active Projects",
+            value: userProjects.filter(p => p.status === 'in-progress').length,
+            subtitle: "In production",
+            seeAll: true,
+            section: "activeProjects",
+            statKey: "activeProjects"
+          },
+          {
+            icon: ScheduleIcon,
+            title: "Pending Approvals",
+            value: userProjects.filter(p => p.status === 'review').length,
+            subtitle: "Awaiting review",
+            seeAll: true,
+            section: "pendingApprovals",
+            statKey: "pendingApprovals"
+          }
+        );
+      } else {
+        // Client/staff sees only their assigned projects
+        realStats.push(
+          {
+            icon: FolderIcon,
+            title: "My Projects",
+            value: userProjects.length,
+            subtitle: "Assigned to you",
+            seeAll: true,
+            section: "myProjects",
+            statKey: "myProjects"
+          },
+          {
+            icon: AssignmentIcon,
+            title: "In Progress",
+            value: userProjects.filter(p => p.status === 'in-progress').length,
+            subtitle: "Active work",
+            seeAll: true,
+            section: "inProgress",
+            statKey: "inProgress"
+          },
+          {
+            icon: CheckCircleIcon,
+            title: "Completed",
+            value: userProjects.filter(p => p.status === 'completed').length,
+            subtitle: "Finished projects",
+            seeAll: false,
+            section: "completed",
+            statKey: "completed"
+          }
+        );
+      }
       
       // Merge with real user data
       const finalData = {
-        ...roleData,
         user: {
-          ...roleData.user,
-          name: user?.name || roleData.user.name,
-          company: user?.company || roleData.user.company,
-          email: user?.email || roleData.user.email,
-          avatar: user?.avatar || roleData.user.avatar,
-          role: user?.role || roleData.user.role
-        }
+          name: user?.name || 'User',
+          company: user?.company || '',
+          email: user?.email || '',
+          avatar: user?.avatar || '',
+          role: user?.role || 'client'
+        },
+        projects: userProjects, // Use actual user projects
+        stats: realStats, // Use calculated stats from real data
+        todaysMilestones: [], // No mock milestones for real accounts
+        milestones: [], // No mock milestones for real accounts
+        team: [], // No mock team for real accounts
+        teamMembers: { projects: [], crew: [] }, // No mock team members
+        recentActivity: [], // No mock activity
+        activities: [], // No mock activities
+        notifications: [] // No mock notifications
       };
       
       setData(finalData);
@@ -41,17 +144,34 @@ const DashboardContent = () => {
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       
-      // Fallback to mock data with real user info
-      const roleData = getRoleBasedData(user?.role || 'client');
+      // Fallback to minimal data with real user info - no mock data
       const fallbackData = {
-        ...roleData,
         user: {
-          ...roleData.user,
-          name: user?.name || roleData.user.name,
-          company: user?.company || roleData.user.company,
-          email: user?.email || roleData.user.email,
-          avatar: user?.avatar || roleData.user.avatar
-        }
+          name: user?.name || 'User',
+          company: user?.company || '',
+          email: user?.email || '',
+          avatar: user?.avatar || '',
+          role: user?.role || 'client'
+        },
+        projects: [], // Show empty projects on error
+        stats: [
+          {
+            icon: null,
+            title: "My Projects",
+            value: 0,
+            subtitle: "No projects available",
+            seeAll: false,
+            section: "myProjects",
+            statKey: "myProjects"
+          }
+        ],
+        todaysMilestones: [],
+        milestones: [],
+        team: [],
+        teamMembers: { projects: [], crew: [] },
+        recentActivity: [],
+        activities: [],
+        notifications: []
       };
       
       setData(fallbackData);
@@ -159,7 +279,7 @@ const DashboardContent = () => {
 
         {/* Right Sidebar */}
         <Grid item xs={12} lg={4}>
-          {/* Today's Milestones */}
+          {/* Today's Milestones - Only show if there are real milestones */}
           {data.todaysMilestones && data.todaysMilestones.length > 0 && (
             <Box mb={3}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
@@ -175,13 +295,26 @@ const DashboardContent = () => {
             </Box>
           )}
 
-          {/* Team Section */}
-          {data.team && (
+          {/* Team Section - Only show if there are real team members */}
+          {data.team && data.team.length > 0 && (
             <TeamSection 
               title="Your Team" 
               items={data.team.members || data.team} 
               type="crew" 
             />
+          )}
+
+          {/* Show message if no milestones or team data */}
+          {(!data.todaysMilestones || data.todaysMilestones.length === 0) && 
+           (!data.team || data.team.length === 0) && (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="body2" color="text.secondary">
+                {data.user.role === 'admin' 
+                  ? 'Project milestones and team information will appear here'
+                  : 'Your project milestones and team information will appear here when available'
+                }
+              </Typography>
+            </Box>
           )}
 
         </Grid>

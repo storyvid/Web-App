@@ -4,7 +4,6 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Sidebar, Header } from '../DashboardComponents';
 import { theme, styles } from '../../pages/dashboardStyles';
-import { getRoleBasedData } from '../../data/mockData';
 
 const AppLayout = () => {
   const navigate = useNavigate();
@@ -15,17 +14,9 @@ const AppLayout = () => {
   const [activeMenuItem, setActiveMenuItem] = useState('dashboard');
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Get role-based data including recent activity
-  const roleData = getRoleBasedData(user?.role || 'client');
-  
-  // Convert recent activity to notifications format
-  const activityNotifications = roleData.recentActivity ? roleData.recentActivity.map(activity => ({
-    id: `activity-${activity.id}`,
-    title: 'Recent Activity',
-    message: `${activity.user.name} ${activity.action} ${activity.target}`,
-    time: activity.time,
-    unread: false
-  })) : [];
+  // For real accounts, don't show mock notifications
+  // TODO: Replace with real notification service
+  const activityNotifications = [];
 
   // Combine role-based notifications with activity notifications
   const [data] = useState({

@@ -7,9 +7,9 @@ import {
   Box
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
-import { StatsCard, ProjectCard, MilestoneCard, TeamSection, ActivityItem } from '../../components/DashboardComponents';
+import { ProjectCard } from '../../components/DashboardComponents';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { getRoleBasedData } from '../../data/mockData';
+import projectManagementService from '../../services/projectManagementService';
 
 const ProjectsListContent = () => {
   const { user } = useAuth();
@@ -22,43 +22,60 @@ const ProjectsListContent = () => {
     try {
       setLoading(true);
       
-      // Get role-based data
-      const roleData = getRoleBasedData(user?.role || 'client');
+      // For admins, use project management service to get all projects
+      // For clients/staff, fetch their actual assigned projects
+      let userProjects = [];
       
-      // Merge with real user data
+      if (user?.role === 'admin') {
+        // Admins see all projects from project management service
+        try {
+          userProjects = await projectManagementService.getAllProjects();
+        } catch (error) {
+          console.warn('Admin projects unavailable, showing empty:', error);
+          userProjects = [];
+        }
+      } else if (user?.uid) {
+        // Clients/staff only see their assigned projects
+        try {
+          console.log('ProjectsList: Fetching projects for user:', user.uid, 'role:', user.role);
+          userProjects = await projectManagementService.getProjectsByUser(user.uid);
+          console.log('ProjectsList: Found projects for user:', userProjects);
+        } catch (error) {
+          console.warn('User projects unavailable, showing empty:', error);
+          userProjects = [];
+        }
+      }
+      
+      // Merge with real user data - no mock data
       const finalData = {
-        ...roleData,
         user: {
-          ...roleData.user,
-          name: user?.name || roleData.user.name,
-          company: user?.company || roleData.user.company,
-          email: user?.email || roleData.user.email,
-          avatar: user?.avatar || roleData.user.avatar,
-          role: user?.role || roleData.user.role
+          name: user?.name || 'User',
+          company: user?.company || '',
+          email: user?.email || '',
+          avatar: user?.avatar || '',
+          role: user?.role || 'client'
         }
       };
       
       setData(finalData);
-      setProjects(finalData.projects || []);
+      setProjects(userProjects); // Use actual user projects
       
     } catch (error) {
       console.error('Error loading projects data:', error);
       
-      // Fallback to mock data with real user info
-      const roleData = getRoleBasedData(user?.role || 'client');
+      // Fallback to minimal data with real user info - no mock data
       const fallbackData = {
-        ...roleData,
         user: {
-          ...roleData.user,
-          name: user?.name || roleData.user.name,
-          company: user?.company || roleData.user.company,
-          email: user?.email || roleData.user.email,
-          avatar: user?.avatar || roleData.user.avatar
+          name: user?.name || 'User',
+          company: user?.company || '',
+          email: user?.email || '',
+          avatar: user?.avatar || '',
+          role: user?.role || 'client'
         }
       };
       
       setData(fallbackData);
-      setProjects(fallbackData.projects || []);
+      setProjects([]); // Show empty projects on error
     } finally {
       setLoading(false);
     }
@@ -90,37 +107,6 @@ const ProjectsListContent = () => {
 
   return (
     <>
-      {/* Page Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={700} gutterBottom>
-          {data.user.role === 'admin' ? 'All Projects' : 
-           data.user.role === 'staff' ? 'Your Projects' : 
-           'Your Projects'}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {data.user.role === 'admin' ? 'View and manage all projects across the organization' : 
-           data.user.role === 'staff' ? 'Projects assigned to you and deadlines to track' : 
-           `Track the progress of your current video projects.`}
-        </Typography>
-      </Box>
-
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {data.stats && data.stats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={4} lg={4} xl={4} key={index} sx={{ width: { md: '30%', lg: '30%', xl: '30%' } }}>
-            <StatsCard
-              icon={stat.icon}
-              title={stat.title}
-              value={stat.value}
-              subtitle={stat.subtitle}
-              seeAll={stat.seeAll}
-              onSeeAllClick={() => handleSeeAllClick(stat.section)}
-              statKey={stat.statKey}
-            />
-          </Grid>
-        ))}
-      </Grid>
-
       {/* Projects Grid */}
       <Grid container spacing={3}>
         <Grid item xs={12}>

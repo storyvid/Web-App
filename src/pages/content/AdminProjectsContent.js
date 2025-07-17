@@ -369,7 +369,7 @@ const AdminProjectsContent = () => {
       {/* Page Header */}
       <Box sx={{ mb: 4 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h5" fontWeight={600}>
             Project Management
           </Typography>
           <Button
@@ -475,7 +475,7 @@ const AdminProjectsContent = () => {
       <Card>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-            <Typography variant="h5" fontWeight={600}>
+            <Typography variant="h6" fontWeight={500} color="text.secondary">
               All Projects
             </Typography>
             <Button
