@@ -9,9 +9,12 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
-// Configuration
+// Load environment variables
+require('dotenv').config({ path: '.env.local' });
+
+// Configuration from environment
 const OLD_PROJECT_CONFIG = {
-  apiKey: "AIzaSyA5wuKIdTUyUXuseAfp_3flJceKpgJQrk4",
+  apiKey: process.env.OLD_FIREBASE_API_KEY || "REPLACE_WITH_OLD_API_KEY",
   authDomain: "storyvidportal.firebaseapp.com",
   projectId: "storyvidportal",
   storageBucket: "storyvidportal.firebasestorage.app",
@@ -21,13 +24,13 @@ const OLD_PROJECT_CONFIG = {
 };
 
 const NEW_PROJECT_CONFIG = {
-  apiKey: "AIzaSyCyw1Uhr9JCTbc3aq2Pz_Fxx4JQQmq9p6s",
-  authDomain: "storyvidportal.firebaseapp.com",
-  projectId: "storyvidportal",
-  storageBucket: "storyvidportal.firebasestorage.app",
-  messagingSenderId: "802482346328",
-  appId: "1:802482346328:web:29b3494c816e2728c6ad2d",
-  measurementId: "G-TMVFB4KPT3"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "REPLACE_WITH_NEW_API_KEY",
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "storyvidportal.firebaseapp.com",
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "storyvidportal",
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "storyvidportal.firebasestorage.app",
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "802482346328",
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:802482346328:web:29b3494c816e2728c6ad2d",
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "G-TMVFB4KPT3"
 };
 
 // Collections to migrate

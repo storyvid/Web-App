@@ -117,7 +117,7 @@ firebase auth:import users.json --hash-algo=SCRYPT --hash-key=base64key --salt-s
 Update your deployment environment variables (Vercel, Netlify, etc.) with the new Firebase configuration:
 
 ```env
-REACT_APP_FIREBASE_API_KEY=AIzaSyCyw1Uhr9JCTbc3aq2Pz_Fxx4JQQmq9p6s
+REACT_APP_FIREBASE_API_KEY=YOUR_NEW_API_KEY_HERE
 REACT_APP_FIREBASE_AUTH_DOMAIN=storyvidportal.firebaseapp.com
 REACT_APP_FIREBASE_PROJECT_ID=storyvidportal
 REACT_APP_FIREBASE_STORAGE_BUCKET=storyvidportal.firebasestorage.app
