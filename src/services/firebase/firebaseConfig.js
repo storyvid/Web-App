@@ -7,13 +7,13 @@
 // Copy the firebaseConfig object
 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyCyw1Uhr9JCTbc3aq2Pz_Fxx4JQQmq9p6s",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "storyvidportal.firebaseapp.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "storyvidportal",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "storyvidportal.firebasestorage.app",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "802482346328",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:802482346328:web:29b3494c816e2728c6ad2d",
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "G-TMVFB4KPT3"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 // Environment-specific configurations

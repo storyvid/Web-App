@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Test</title>
+</head>
+<body>
+    <h1>File Upload Test</h1>
+    <p>Instructions:</p>
+    <ol>
+        <li>Go to <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+        <li>Navigate to any project</li>
+        <li>Go to the Files tab</li>
+        <li>Try uploading a file to any category (Documents, Videos, etc.)</li>
+        <li>Check the browser console for:</li>
+        <ul>
+            <li>🔥 UPLOAD FILE CALLED - FORCING MOCK MODE 🔥</li>
+            <li>Mock: Uploading file [filename]</li>
+            <li>Stored mock file: [filename] category: [category] projectId: [id]</li>
+        </ul>
+        <li>The file should appear in the FileList immediately after upload</li>
+        <li>You should NOT see any Firebase Storage errors</li>
+    </ol>
+    
+    <h2>Expected Console Output:</h2>
+    <pre>
+🔥 UPLOAD FILE CALLED - FORCING MOCK MODE 🔥
+useMockData value: true
+Mock: Uploading file: test.pdf
+Stored mock file: test.pdf category: documents projectId: HQvHO2ZBopWlNGAa4gNw
+Total files stored: 1
+Mock: Getting project files for HQvHO2ZBopWlNGAa4gNw
+All mock files before category filter: 3
+Requested category: documents
+Mock files after category filter: 2
+    </pre>
+</body>
+</html>

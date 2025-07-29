@@ -10,7 +10,7 @@ Before testing, you need to enable the required Firebase services:
 
 #### Enable Authentication:
 1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Select your project: `storyvid-d1792`
+2. Select your project: `storyvidportal`
 3. Go to **Authentication** > **Sign-in method**
 4. Enable **Email/Password** provider
 5. Click **Save**

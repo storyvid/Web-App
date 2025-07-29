@@ -25,7 +25,6 @@ import {
 } from '@mui/material';
 import {
   CalendarToday as CalendarIcon,
-  AttachMoney as MoneyIcon,
   Group as TeamIcon
 } from '@mui/icons-material';
 
@@ -49,7 +48,6 @@ const ProjectCreationForm = ({ open, onClose, onSubmit, loading = false }) => {
     startDate: '',
     endDate: '',
     estimatedHours: '',
-    budget: '',
     communicationMethod: 'email',
     tags: []
   });
@@ -58,8 +56,7 @@ const ProjectCreationForm = ({ open, onClose, onSubmit, loading = false }) => {
 
   const steps = [
     'Project Details',
-    'Team & Timeline', 
-    'Budget & Settings'
+    'Team & Timeline & Settings'
   ];
 
   const projectTypes = [
@@ -140,7 +137,7 @@ const ProjectCreationForm = ({ open, onClose, onSubmit, loading = false }) => {
         if (!formData.projectType) newErrors.projectType = 'Project type is required';
         break;
       
-      case 1: // Team & Timeline
+      case 1: // Team & Timeline & Settings
         if (!formData.startDate) newErrors.startDate = 'Start date is required';
         if (!formData.endDate) newErrors.endDate = 'End date is required';
         if (formData.startDate && formData.endDate && new Date(formData.startDate) >= new Date(formData.endDate)) {
@@ -149,10 +146,6 @@ const ProjectCreationForm = ({ open, onClose, onSubmit, loading = false }) => {
         if (user?.role === 'admin' && !formData.clientId) {
           newErrors.clientId = 'Client selection is required';
         }
-        break;
-      
-      case 2: // Budget & Settings
-        if (!formData.budget || formData.budget <= 0) newErrors.budget = 'Budget is required';
         if (!formData.estimatedHours || formData.estimatedHours <= 0) newErrors.estimatedHours = 'Estimated hours is required';
         break;
     }
@@ -180,10 +173,6 @@ const ProjectCreationForm = ({ open, onClose, onSubmit, loading = false }) => {
           endDate: formData.endDate,
           estimatedHours: parseFloat(formData.estimatedHours)
         },
-        budget: {
-          estimated: parseFloat(formData.budget),
-          currency: 'USD'
-        },
         communications: {
           preferredContactMethod: formData.communicationMethod
         }
@@ -205,7 +194,6 @@ const ProjectCreationForm = ({ open, onClose, onSubmit, loading = false }) => {
       startDate: '',
       endDate: '',
       estimatedHours: '',
-      budget: '',
       communicationMethod: 'email',
       tags: []
     });
@@ -444,32 +432,6 @@ const ProjectCreationForm = ({ open, onClose, onSubmit, loading = false }) => {
                 />
               </Grid>
             </PermissionGate>
-          </Grid>
-        );
-
-      case 2:
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Budget"
-                value={formData.budget}
-                onChange={(e) => handleInputChange('budget', e.target.value)}
-                error={!!errors.budget}
-                helperText={errors.budget}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <MoneyIcon />
-                    </InputAdornment>
-                  ),
-                  endAdornment: <InputAdornment position="end">USD</InputAdornment>
-                }}
-                required
-              />
-            </Grid>
             
             <Grid item xs={12} md={6}>
               <TextField
@@ -487,7 +449,7 @@ const ProjectCreationForm = ({ open, onClose, onSubmit, loading = false }) => {
               />
             </Grid>
             
-            <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>Preferred Communication Method</InputLabel>
                 <Select

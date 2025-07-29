@@ -6,9 +6,9 @@ const { getFirestore, doc, setDoc, getDoc, serverTimestamp } = require('firebase
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyA5wuKIdTUyUXuseAfp_3flJceKpgJQrk4",
-  authDomain: "storyvid-d1792.firebaseapp.com",
-  projectId: "storyvid-d1792",
-  storageBucket: "storyvid-d1792.firebasestorage.app",
+  authDomain: "storyvidportal.firebaseapp.com",
+  projectId: "storyvidportal",
+  storageBucket: "storyvidportal.firebasestorage.app",
   messagingSenderId: "549183398177",
   appId: "1:549183398177:web:b6bca429c71d61a0e7de60",
   measurementId: "G-6TC35CPQ5C"

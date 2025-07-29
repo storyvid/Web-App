@@ -41,7 +41,8 @@ const RecentFilesWidget = ({
   maxItems = 5,
   showProjectName = true,
   onFileClick = null,
-  onViewAll = null
+  onViewAll = null,
+  onUploadClick = null
 }) => {
   const { user } = useAuth();
   const [files, setFiles] = useState([]);
@@ -251,7 +252,17 @@ const RecentFilesWidget = ({
       <Card>
         <CardHeader 
           title={title}
-          avatar={<FolderIcon color="action" />}
+          avatar={
+            onUploadClick ? (
+              <Tooltip title="Upload files">
+                <IconButton onClick={onUploadClick}>
+                  <FolderIcon color="primary" />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <FolderIcon color="action" />
+            )
+          }
         />
         <CardContent>
           <Box textAlign="center" py={3}>
@@ -272,7 +283,17 @@ const RecentFilesWidget = ({
     <Card>
       <CardHeader 
         title={title}
-        avatar={<FolderIcon color="primary" />}
+        avatar={
+          onUploadClick ? (
+            <Tooltip title="Upload files">
+              <IconButton onClick={onUploadClick}>
+                <FolderIcon color="primary" />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <FolderIcon color="primary" />
+          )
+        }
         action={
           <Tooltip title="View all files">
             <IconButton size="small" onClick={onViewAll}>

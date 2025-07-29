@@ -1,7 +1,7 @@
 # Firebase Project Migration Instructions
 
 ## Overview
-This document provides step-by-step instructions to migrate from the old Firebase project (`storyvid-d1792`) to the new Firebase project (`storyvidportal`).
+This document provides step-by-step instructions to migrate from the old Firebase project (`storyvidportal`) to the new Firebase project (`storyvidportal`).
 
 ## ✅ Completed Steps
 - [x] Updated Firebase configuration in codebase
@@ -58,8 +58,8 @@ In the Firebase Console for the new project (`storyvidportal`):
 #### Option A: Using Firebase CLI (Recommended)
 ```bash
 # Export data from old project
-firebase use storyvid-d1792
-firebase firestore:export gs://storyvid-d1792.firebasestorage.app/exports/$(date +%Y%m%d_%H%M%S)
+firebase use storyvidportal
+firebase firestore:export gs://storyvidportal.firebasestorage.app/exports/$(date +%Y%m%d_%H%M%S)
 
 # Import data to new project
 firebase use storyvidportal
@@ -79,16 +79,16 @@ node migrate-firebase-data.js
 ### 6. Storage Migration
 ```bash
 # Using gsutil (Google Cloud SDK)
-gsutil -m cp -r gs://storyvid-d1792.firebasestorage.app/* gs://storyvidportal.firebasestorage.app/
+gsutil -m cp -r gs://storyvidportal.firebasestorage.app/* gs://storyvidportal.firebasestorage.app/
 
 # Or using Firebase CLI
-firebase storage:bucket:transfer gs://storyvid-d1792.firebasestorage.app gs://storyvidportal.firebasestorage.app
+firebase storage:bucket:transfer gs://storyvidportal.firebasestorage.app gs://storyvidportal.firebasestorage.app
 ```
 
 ### 7. Authentication Users Migration
 ```bash
 # Export users from old project
-firebase use storyvid-d1792
+firebase use storyvidportal
 firebase auth:export users.json
 
 # Import users to new project

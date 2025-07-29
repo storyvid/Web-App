@@ -42,14 +42,6 @@ class ProjectService {
           actualHours: 0
         },
         
-        // Initialize budget
-        budget: {
-          estimated: projectData.budget || 0,
-          actual: 0,
-          currency: 'USD',
-          breakdown: projectData.budgetBreakdown || {}
-        },
-        
         // Set permissions
         permissions: {
           viewAccess: this.getInitialViewAccess(projectData, creatorUser),
@@ -407,7 +399,7 @@ class ProjectService {
     
     // Clients can only update certain fields
     if (user.role === 'client') {
-      const clientAllowedFields = ['description', 'communications', 'budget'];
+      const clientAllowedFields = ['description', 'communications'];
       Object.keys(allowed).forEach(key => {
         if (!clientAllowedFields.includes(key)) {
           delete allowed[key];
@@ -415,10 +407,9 @@ class ProjectService {
       });
     }
 
-    // Staff cannot change project assignment or budget
+    // Staff cannot change project assignment
     if (user.role === 'staff') {
       delete allowed.assignedStaff;
-      delete allowed.budget;
       delete allowed.clientId;
       delete allowed.companyId;
     }

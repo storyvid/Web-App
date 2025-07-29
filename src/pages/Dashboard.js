@@ -46,10 +46,21 @@ const Dashboard = () => {
 
   useEffect(() => {
     const loadDashboardData = async () => {
-      if (!user?.uid) return;
+      // Don't load data if user authentication is not ready
+      if (!user || !user.uid || !user.role) {
+        console.log('⏳ Waiting for user authentication to complete before loading dashboard...');
+        // Keep loading state true while waiting for auth
+        setLoading(true);
+        return;
+      }
       
       setLoading(true);
       try {
+        console.log(`📊 Loading dashboard data for ${user.email} with role ${user.role}`);
+        
+        // Ensure firebaseService has the current user context
+        firebaseService.currentUser = user;
+        
         // Try to get real Firebase data first
         const dashboardData = await firebaseService.getDashboardData(user.role, user.uid);
         

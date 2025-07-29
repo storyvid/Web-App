@@ -23,7 +23,7 @@ import {
 
 import { useAuth } from '../../contexts/AuthContext';
 import { FILE_CATEGORIES } from '../../utils/fileCategorization';
-import fileService from '../../services/fileService';
+import firebaseService from '../../services/firebase/firebaseService';
 import FileList from './FileList';
 import FileUploadDropzone from './FileUploadDropzone';
 import FilePreview from './FilePreview';
@@ -64,8 +64,18 @@ const FileCategoryTabs = ({
       setLoading(true);
       setError(null);
       
-      const stats = await fileService.getProjectFileStats(projectId);
-      setFileStats(stats.categories);
+      // Get files for each category to build stats
+      const statsData = {};
+      for (const category of availableCategories) {
+        try {
+          const files = await firebaseService.getProjectFiles(projectId, { category });
+          statsData[category] = { count: files.length };
+        } catch (err) {
+          console.error(`Error loading ${category} files:`, err);
+          statsData[category] = { count: 0 };
+        }
+      }
+      setFileStats(statsData);
     } catch (err) {
       console.error('Failed to load file stats:', err);
       setError('Failed to load file statistics');
@@ -88,12 +98,42 @@ const FileCategoryTabs = ({
   // Handle file upload
   const handleFileUpload = useCallback(async (files) => {
     try {
-      const results = await fileService.uploadFiles(projectId, files.map(f => f.file), {
-        uploadedBy: user?.uid
+      console.log('Uploading files:', files.length);
+      
+      // Upload files individually using firebaseService
+      const uploadPromises = files.map(async (fileObj) => {
+        try {
+          const result = await firebaseService.uploadFile(fileObj.file, {
+            projectId,
+            category: fileObj.category || activeTab,
+            uploadedBy: user?.uid,
+            uploadedByName: user?.name
+          });
+          return { success: true, file: result };
+        } catch (error) {
+          console.error('Failed to upload file:', fileObj.file.name, error);
+          return { success: false, file: fileObj.file, error: error.message };
+        }
       });
 
-      if (results.failed.length > 0) {
-        console.warn('Some files failed to upload:', results.failed);
+      const uploadResults = await Promise.all(uploadPromises);
+      
+      const successful = uploadResults.filter(r => r.success);
+      const failed = uploadResults.filter(r => !r.success);
+
+      const results = {
+        successful: successful.map(r => r.file),
+        failed: failed.map(r => ({ file: r.file, error: r.error })),
+        total: files.length,
+        validCount: successful.length,
+        invalidCount: failed.length,
+        validationErrors: failed.map(r => r.error)
+      };
+
+      console.log('Upload results:', results);
+
+      if (failed.length > 0) {
+        console.warn('Some files failed to upload:', failed);
       }
 
       // Refresh stats and file list
@@ -195,6 +235,7 @@ const FileCategoryTabs = ({
           allowEdit={allowEdit}
           onFileSelect={handleFileSelect}
           refreshTrigger={refreshTrigger}
+          onUpload={canUploadToCategory(activeTab) ? handleFileUpload : null}
         />
       </Box>
     );

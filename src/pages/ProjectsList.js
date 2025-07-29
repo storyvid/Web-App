@@ -59,8 +59,15 @@ const ProjectsList = () => {
   const loadProjects = async () => {
     if (!user?.uid) return;
     
+    // Wait for user role to be loaded before fetching projects data
+    if (!user?.role) {
+      console.log('⏳ Waiting for user role to load before fetching projects...');
+      return;
+    }
+    
     try {
       setLoading(true);
+      console.log(`📋 Loading projects data for ${user.email} with role ${user.role}`);
       
       // Get dashboard data (same as dashboard)
       const dashboardData = await firebaseService.getDashboardData(user.role, user.uid);

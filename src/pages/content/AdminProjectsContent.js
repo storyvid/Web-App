@@ -51,7 +51,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 
 const AdminProjectsContent = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
   
   // Data state
   const [projects, setProjects] = useState([]);
@@ -100,17 +100,31 @@ const AdminProjectsContent = () => {
   const [tempStatus, setTempStatus] = useState('');
 
   useEffect(() => {
-    if (user?.role !== 'admin') {
+    // Don't do anything if auth is still loading or user is incomplete
+    if (authLoading || !user || user === null || !user.uid || !user.role) {
+      return; // Still loading auth state or user data incomplete
+    }
+    
+    if (user.role !== 'admin') {
       navigate('/unauthorized');
       return;
     }
+    
     loadData();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const loadData = async () => {
+    // Don't proceed if auth is still loading or user is incomplete
+    if (authLoading || !user || user === null || !user.uid || !user.role) {
+      return;
+    }
+    
     try {
       setLoading(true);
       setError('');
+      
+      // Ensure projectManagementService has current user context
+      projectManagementService.setCurrentUser(user);
       
       const [projectsData, usersData, statsData] = await Promise.all([
         projectManagementService.getAllProjects(),
@@ -124,18 +138,21 @@ const AdminProjectsContent = () => {
     } catch (err) {
       console.error('Error loading admin data:', err);
       
-      // User-friendly error messages based on error type
-      let userMessage = 'Unable to load project data. ';
-      
-      if (err.message.includes('permission') || err.message.includes('admin')) {
-        userMessage = 'Access denied. Only administrators can view this page.';
-      } else if (err.message.includes('network') || err.message.includes('offline')) {
-        userMessage = 'Connection problem. Please check your internet and try again.';
-      } else {
-        userMessage += 'Please refresh the page or contact support if this continues.';
+      // Only show error if this isn't an auth-related issue
+      if (user && user.role === 'admin') {
+        // User-friendly error messages based on error type
+        let userMessage = 'Unable to load project data. ';
+        
+        if (err.message.includes('permission') || err.message.includes('admin')) {
+          userMessage = 'Access denied. Only administrators can view this page.';
+        } else if (err.message.includes('network') || err.message.includes('offline')) {
+          userMessage = 'Connection problem. Please check your internet and try again.';
+        } else {
+          userMessage += 'Please refresh the page or contact support if this continues.';
+        }
+        
+        setError(userMessage);
       }
-      
-      setError(userMessage);
     } finally {
       setLoading(false);
     }
@@ -357,7 +374,7 @@ const AdminProjectsContent = () => {
     return aValue > bValue ? 1 : -1;
   });
 
-  if (loading) {
+  if (loading || authLoading || !user || user === null || !user.uid || !user.role) {
     return <LoadingSpinner message="Loading admin dashboard..." />;
   }
 

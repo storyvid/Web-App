@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Storage Permission Test</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+</head>
+<body>
+    <h1>Storage Permission Test</h1>
+    <div id="status">Initializing...</div>
+    <button onclick="testUpload()" style="margin: 10px;">Test Upload</button>
+    <input type="file" id="fileInput" style="margin: 10px;">
+    
+    <script>
+        // Firebase config pointing to storyvidportal
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyw1Uhr9JCTbc3aq2Pz_Fxx4JQQmq9p6s",
+            authDomain: "storyvidportal.firebaseapp.com",
+            projectId: "storyvidportal",
+            storageBucket: "storyvidportal.firebasestorage.app",
+            messagingSenderId: "802482346328",
+            appId: "1:802482346328:web:29b3494c816e2728c6ad2d"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+
+        document.getElementById('status').textContent = 'Configured for: ' + firebaseConfig.storageBucket;
+
+        // Sign in the test admin user
+        auth.signInWithEmailAndPassword('admin@test.com', 'test123')
+            .then(user => {
+                document.getElementById('status').textContent = 'Signed in as: ' + user.user.email + ' (UID: ' + user.user.uid + ')';
+            })
+            .catch(error => {
+                document.getElementById('status').textContent = 'Auth error: ' + error.message;
+            });
+
+        function testUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert('Please sign in first');
+                return;
+            }
+
+            const storageRef = storage.ref();
+            const fileRef = storageRef.child(`files/${user.uid}/${Date.now()}-${file.name}`);
+            
+            console.log('Testing upload to:', fileRef.fullPath);
+            console.log('Storage bucket:', storage.app.options.storageBucket);
+            
+            fileRef.put(file)
+                .then(snapshot => {
+                    console.log('Upload successful!', snapshot);
+                    document.getElementById('status').textContent = 'Upload successful! File: ' + snapshot.ref.fullPath;
+                })
+                .catch(error => {
+                    console.error('Upload failed:', error);
+                    document.getElementById('status').textContent = 'Upload failed: ' + error.message;
+                });
+        }
+    </script>
+</body>
+</html>

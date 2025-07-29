@@ -249,40 +249,6 @@ const ProjectDetails = ({ project, open, onClose, onUpdateProject, onDeleteProje
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                <MoneyIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Budget
-              </Typography>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Estimated Budget"
-                    secondary={`$${projectData.budget?.estimated?.toLocaleString() || 0} ${projectData.budget?.currency || 'USD'}`}
-                  />
-                </ListItem>
-                {projectData.budget?.actual && (
-                  <ListItem>
-                    <ListItemText
-                      primary="Actual Spent"
-                      secondary={`$${projectData.budget.actual.toLocaleString()} ${projectData.budget.currency || 'USD'}`}
-                    />
-                  </ListItem>
-                )}
-                {projectData.budget?.estimated && projectData.budget?.actual && (
-                  <ListItem>
-                    <ListItemText
-                      primary="Remaining"
-                      secondary={`$${(projectData.budget.estimated - projectData.budget.actual).toLocaleString()} ${projectData.budget.currency || 'USD'}`}
-                    />
-                  </ListItem>
-                )}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
 
         {/* Team */}
         <Grid item xs={12}>

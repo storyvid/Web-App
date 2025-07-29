@@ -39,7 +39,8 @@ import {
   Image as ImageIcon,
   AttachFile as FileIcon,
   Person as PersonIcon,
-  AccessTime as TimeIcon
+  AccessTime as TimeIcon,
+  CloudUpload as UploadIcon
 } from '@mui/icons-material';
 import firebaseService from '../../services/firebase/firebaseService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -47,9 +48,12 @@ import { useAuth } from '../../contexts/AuthContext';
 const FileList = ({ 
   projectId = null, 
   milestoneId = null, 
+  category = null,
   onFileUpdate,
   showUploadedBy = true,
-  allowDelete = true 
+  allowDelete = true,
+  onUpload = null,
+  refreshTrigger = 0
 }) => {
   const { user } = useAuth();
   const [files, setFiles] = useState([]);
@@ -63,6 +67,8 @@ const FileList = ({
     search: ''
   });
   const [previewDialog, setPreviewDialog] = useState({ open: false, file: null });
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   // File type configurations
   const fileTypeConfig = {
@@ -116,7 +122,7 @@ const FileList = ({
   // Load files
   useEffect(() => {
     loadFiles();
-  }, [projectId, milestoneId]);
+  }, [projectId, milestoneId, category, refreshTrigger]);
 
   const loadFiles = async () => {
     try {
@@ -127,11 +133,15 @@ const FileList = ({
       if (milestoneId) {
         data = await firebaseService.getMilestoneFiles(milestoneId);
       } else if (projectId) {
-        data = await firebaseService.getProjectFiles(projectId);
+        // Pass category as an option to getProjectFiles
+        const options = category ? { category } : {};
+        data = await firebaseService.getProjectFiles(projectId, options);
       } else {
         data = [];
       }
       
+      console.log('FileList loaded files:', data.length, 'for category:', category);
+      console.log('First few files:', data.slice(0, 3));
       setFiles(data);
     } catch (err) {
       console.error('Error loading files:', err);
@@ -189,14 +199,47 @@ const FileList = ({
     try {
       const downloadData = await firebaseService.downloadFile(file.id);
       
-      // Create temporary link and trigger download
-      const link = document.createElement('a');
-      link.href = downloadData.downloadURL;
-      link.download = downloadData.fileName;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Show appropriate message for metadata-only files
+      if (downloadData.isMetadataOnly) {
+        console.log('📄 Downloading file information for metadata-only file');
+      }
+      
+      // For Firebase Storage URLs, we need to force download differently
+      if (!downloadData.isMetadataOnly && !downloadData.downloadURL.startsWith('data:')) {
+        console.log('🔄 Using Firebase Storage download with token...');
+        
+        // Method 1: Try adding download parameter to Firebase URL
+        let downloadUrl = downloadData.downloadURL;
+        if (downloadUrl.includes('firebasestorage.googleapis.com')) {
+          // Add response-content-disposition parameter to force download
+          const separator = downloadUrl.includes('?') ? '&' : '?';
+          downloadUrl += `${separator}response-content-disposition=attachment%3B%20filename%3D"${encodeURIComponent(downloadData.fileName)}"`;
+        }
+        
+        // Create temporary link and trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = downloadData.fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+      } else {
+        // For data URLs and metadata files, use direct approach
+        const link = document.createElement('a');
+        link.href = downloadData.downloadURL;
+        link.download = downloadData.fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up object URL for metadata-only files
+        if (downloadData.isMetadataOnly) {
+          setTimeout(() => URL.revokeObjectURL(downloadData.downloadURL), 1000);
+        }
+      }
 
       // Update download count in UI
       setFiles(prev => prev.map(f => 
@@ -261,6 +304,68 @@ const FileList = ({
       file.uploadedBy === user?.uid
     );
   };
+
+  // Handle drag events for direct upload
+  const handleDrag = React.useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  }, []);
+
+  // Handle file drop for direct upload
+  const handleDrop = React.useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (onUpload && e.dataTransfer.files) {
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      if (droppedFiles.length > 0) {
+        // Create file objects that match the expected format
+        const fileObjects = droppedFiles.map((file, index) => ({
+          file,
+          id: `${Date.now()}_${index}`,
+          category: 'documents', // Default category
+          status: 'selected',
+          progress: 0
+        }));
+        onUpload(fileObjects);
+      }
+    }
+  }, [onUpload]);
+
+  // Handle file input change for direct upload
+  const handleFileInput = React.useCallback((e) => {
+    if (onUpload && e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      if (selectedFiles.length > 0) {
+        // Create file objects that match the expected format
+        const fileObjects = selectedFiles.map((file, index) => ({
+          file,
+          id: `${Date.now()}_${index}`,
+          category: 'documents', // Default category
+          status: 'selected',
+          progress: 0
+        }));
+        onUpload(fileObjects);
+      }
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [onUpload]);
+
+  // Handle click to open file browser
+  const handleUploadClick = React.useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  }, []);
 
   // Get file icon
   const getFileIcon = (file) => {
@@ -342,7 +447,7 @@ const FileList = ({
           </Grid>
           
           <Grid item xs={12} sm={3} md={2}>
-            <FormControl fullWidth size="small">
+            <FormControl size="small" sx={{ width: '150px' }}>
               <InputLabel>Type</InputLabel>
               <Select
                 value={filters.type}
@@ -359,7 +464,7 @@ const FileList = ({
           </Grid>
           
           <Grid item xs={12} sm={3} md={2}>
-            <FormControl fullWidth size="small">
+            <FormControl size="small" sx={{ width: '150px' }}>
               <InputLabel>Category</InputLabel>
               <Select
                 value={filters.category}
@@ -392,33 +497,72 @@ const FileList = ({
 
       {/* Files Grid */}
       {filteredFiles.length === 0 ? (
-        <Box 
-          textAlign="center" 
-          py={4}
-          sx={{ 
-            border: '2px dashed',
-            borderColor: 'divider',
-            borderRadius: 2,
-            backgroundColor: 'grey.50'
-          }}
-        >
-          <FileIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            {files.length === 0 ? 'No files uploaded yet' : 'No files match your filters'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {files.length === 0 
-              ? 'Files will appear here once uploaded' 
-              : 'Try adjusting your search criteria'
-            }
-          </Typography>
-        </Box>
+        <>
+          {onUpload && files.length === 0 && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileInput}
+              style={{ display: 'none' }}
+              accept="*/*"
+            />
+          )}
+          <Box 
+            textAlign="center" 
+            py={4}
+            sx={{ 
+              border: '2px dashed',
+              borderColor: dragActive ? 'primary.main' : 'divider',
+              borderRadius: 2,
+              backgroundColor: dragActive ? 'primary.50' : 'grey.50',
+              cursor: onUpload && files.length === 0 ? 'pointer' : 'default',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': onUpload && files.length === 0 ? {
+                borderColor: 'primary.main',
+                backgroundColor: 'primary.50'
+              } : {}
+            }}
+            onClick={onUpload && files.length === 0 ? handleUploadClick : undefined}
+            onDragEnter={onUpload && files.length === 0 ? handleDrag : undefined}
+            onDragLeave={onUpload && files.length === 0 ? handleDrag : undefined}
+            onDragOver={onUpload && files.length === 0 ? handleDrag : undefined}
+            onDrop={onUpload && files.length === 0 ? handleDrop : undefined}
+          >
+            {onUpload && files.length === 0 ? (
+              <Tooltip title="Click to select files or drag & drop here">
+                <IconButton 
+                  sx={{ 
+                    mb: 2,
+                    pointerEvents: 'none', // Let the parent Box handle clicks
+                    '&:hover': {
+                      backgroundColor: 'transparent'
+                    }
+                  }}
+                >
+                  <UploadIcon sx={{ fontSize: 48, color: dragActive ? 'primary.main' : 'primary.main' }} />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <FileIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+            )}
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              {files.length === 0 ? 'No files uploaded yet' : 'No files match your filters'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {files.length === 0 
+                ? onUpload ? 'Click here to select files or drag & drop files to upload' : 'Files will appear here once uploaded'
+                : 'Try adjusting your search criteria'
+              }
+            </Typography>
+          </Box>
+        </>
       ) : (
         <Grid container spacing={2}>
           {filteredFiles.map((file) => {
             const FileIconComponent = getFileIcon(file);
             return (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={file.id}>
+              <Grid item xs={12} sm={6} md={4} key={file.id}>
                 <Card
                   sx={{
                     height: '100%',

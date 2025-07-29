@@ -1,6 +1,3 @@
-// Firebase Storage Security Rules for StoryVid Client Portal
-// These rules secure file uploads and downloads based on user authentication and permissions
-
 rules_version = '2';
 
 service firebase.storage {

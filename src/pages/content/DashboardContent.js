@@ -26,15 +26,25 @@ const DashboardContent = () => {
   const [loading, setLoading] = useState(true);
 
   const loadDashboardData = async () => {
+    // Don't load data if user authentication is not ready
+    if (!user || !user.uid || !user.role) {
+      console.log('⏳ Waiting for user authentication to complete before loading dashboard content...');
+      return;
+    }
+
     try {
       setLoading(true);
+      console.log(`📊 Loading dashboard content for authenticated user: ${user.email} (${user.role})`);
+
+      // Ensure projectManagementService has the current user context
+      projectManagementService.setCurrentUser(user);
 
       // For admins, use project management service to get all projects
       // For clients/staff, fetch their actual assigned projects
       let userProjects = [];
       let totalUsers = 0;
 
-      if (user?.role === "admin") {
+      if (user.role === "admin") {
         // Admins see all projects from project management service
         try {
           userProjects = await projectManagementService.getAllProjects();
@@ -214,14 +224,7 @@ const DashboardContent = () => {
 
   useEffect(() => {
     loadDashboardData();
-  }, [
-    user?.role,
-    user?.name,
-    user?.company,
-    user?.email,
-    user?.avatar,
-    user?.uid,
-  ]);
+  }, [user?.role, user?.uid]); // Only depend on essential authentication fields
 
   const navigate = useNavigate();
 

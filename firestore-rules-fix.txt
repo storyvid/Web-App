@@ -7,7 +7,7 @@ are blocking read/write operations.
 🔧 IMMEDIATE FIX - Update your Firestore Rules:
 
 1. Go to Firebase Console: https://console.firebase.google.com/
-2. Select your project (storyvid-d1792)
+2. Select your project (storyvidportal)
 3. Go to Firestore Database → Rules
 4. Replace your current rules with:
 

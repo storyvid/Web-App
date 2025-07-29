@@ -30,7 +30,7 @@ const LoadingSpinner = ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '200px',
+    minHeight: '80vh', // Use 80% viewport height for better centering
     p: 3
   };
 

@@ -700,16 +700,38 @@ class DataMigrationService {
       { email: 'client@test.com', role: 'client' }
     ];
 
+    // Store user IDs for cross-referencing
+    const userIds = {};
+    
+    // First pass: collect all user IDs
     for (const account of dummyAccounts) {
       try {
-        // Get the actual Firebase Auth UID for this account
-        const userId = await this.getAuthUidForEmail(account.email);
-        
-        if (!userId) {
-          console.log(`❌ Could not get UID for ${account.email}, skipping data population`);
-          continue;
-        }
+        const credential = await signInWithEmailAndPassword(
+          firebaseService.auth,
+          account.email,
+          this.dummyPassword
+        );
+        userIds[account.role] = credential.user.uid;
+        await firebaseService.auth.signOut();
+      } catch (error) {
+        console.error(`Error getting UID for ${account.email}:`, error);
+      }
+    }
 
+    console.log('📋 User IDs collected:', userIds);
+
+    for (const account of dummyAccounts) {
+      try {
+        console.log(`🔐 Signing in as ${account.email} to create data...`);
+        
+        // Sign in as this user and keep the session active for data creation
+        const credential = await signInWithEmailAndPassword(
+          firebaseService.auth,
+          account.email,
+          this.dummyPassword
+        );
+        
+        const userId = credential.user.uid;
         console.log(`📝 Creating data for ${account.email} with UID: ${userId}`);
         const dummyData = this.getDummyData(account.role, account.email, userId);
         
@@ -723,14 +745,34 @@ class DataMigrationService {
 
         const batch = writeBatch(firebaseService.db);
 
-        // Add projects
+        // Add projects with proper role-based structure
         dummyData.projects.forEach(project => {
           const projectRef = doc(collection(firebaseService.db, 'projects'));
-          batch.set(projectRef, {
-            ...project,
-            userId: userId, // Link to real user
-            createdBy: userId
-          });
+          
+          if (account.role === 'admin') {
+            // Admin projects should be created by clients but visible to admin through companyId
+            batch.set(projectRef, {
+              ...project,
+              createdBy: userIds.client, // Use client's actual UID
+              companyId: 'storyvid-productions' // This makes it visible to admin
+            });
+          } else if (account.role === 'staff') {
+            // Staff projects should be created by clients but assigned to staff
+            batch.set(projectRef, {
+              ...project,
+              createdBy: userIds.client, // Use client's actual UID
+              assignedStaff: [userId], // Assign to this staff member
+              companyId: 'storyvid-productions'
+            });
+          } else {
+            // Client projects - created by the client user
+            batch.set(projectRef, {
+              ...project,
+              userId: userId, // Link to real user
+              createdBy: userId, // Client is the creator
+              companyId: 'storyvid-productions' // Same company
+            });
+          }
         });
 
         // Add notifications
@@ -776,9 +818,19 @@ class DataMigrationService {
         await batch.commit();
         console.log(`✅ Populated data for ${account.email} (UID: ${userId})`);
         console.log(`📊 Batch committed with ${(dummyData.projects.length + dummyData.notifications.length + dummyData.activities.length + (dummyData.milestones?.length || 0) + (dummyData.files?.length || 0))} total documents`);
+        
+        // Sign out after successful data creation
+        await firebaseService.signOut();
+        console.log(`🔐 Signed out from ${account.email}`);
 
       } catch (error) {
         console.error(`❌ Error populating data for ${account.email}:`, error);
+        // Sign out even if there was an error
+        try {
+          await firebaseService.signOut();
+        } catch (signOutError) {
+          console.error('Error signing out:', signOutError);
+        }
       }
     }
   }
@@ -826,8 +878,16 @@ class DataMigrationService {
     console.log('🗑️ Clearing existing dummy data...');
     
     try {
+      // Sign in as admin to have permission to delete data
+      console.log('🔐 Signing in as admin to clear data...');
+      await signInWithEmailAndPassword(
+        firebaseService.auth,
+        'admin@test.com',
+        this.dummyPassword
+      );
+      
       // Get all collections and delete dummy data
-      const collections = ['projects', 'notifications', 'activities'];
+      const collections = ['projects', 'notifications', 'activities', 'milestones', 'files', 'system'];
       
       for (const collectionName of collections) {
         const snapshot = await getDocs(collection(firebaseService.db, collectionName));
@@ -841,8 +901,14 @@ class DataMigrationService {
           
           await batch.commit();
           console.log(`✅ Cleared ${snapshot.size} documents from ${collectionName}`);
+        } else {
+          console.log(`ℹ️ No documents to clear in ${collectionName}`);
         }
       }
+      
+      // Sign out after clearing
+      await firebaseService.signOut();
+      console.log('🔐 Signed out after clearing data');
     } catch (error) {
       console.error('Error clearing existing data:', error);
     }

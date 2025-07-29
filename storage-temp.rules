@@ -1,0 +1,14 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Temporary permissive rules for testing file uploads
+    // TODO: Replace with proper security rules based on user roles
+    
+    match /{allPaths=**} {
+      // Allow any authenticated user to read/write files
+      // This is temporary for testing purposes
+      allow read, write: if request.auth != null;
+    }
+  }
+}

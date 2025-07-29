@@ -2,7 +2,7 @@
 // This provides an abstraction layer between the app and Firebase
 // Making it easy to swap mock data for real Firebase calls
 
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, deleteApp } from 'firebase/app';
 import { 
   getFirestore, 
   collection, 
@@ -27,7 +27,13 @@ import {
   signOut,
   onAuthStateChanged 
 } from 'firebase/auth';
-import { getStorage } from 'firebase/storage';
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL,
+  deleteObject 
+} from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 
 import { 
@@ -53,10 +59,13 @@ import {
 // Mock data import (will be replaced with Firebase imports)
 import { getRoleBasedData } from '../../data/mockData';
 import getFirebaseConfig from './firebaseConfig';
+import { debugFirebaseConfig } from '../../utils/debugFirebaseConfig';
 
 class FirebaseService {
   constructor() {
-    this.useMockData = true; // Temporarily use mock data to show file activity features
+    console.log('🔥 FirebaseService constructor called');
+    console.log('🔥 useMockData set to:', this.useMockData);
+    this.useMockData = false; // Use real Firebase for production service
     this.currentUser = null;
     this.app = null;
     this.db = null;
@@ -69,13 +78,44 @@ class FirebaseService {
   async initialize() {
     try {
       const config = getFirebaseConfig();
-      this.app = initializeApp(config);
+      console.log('🔍 Initializing Firebase with config:');
+      console.log('  Project ID:', config.projectId);
+      console.log('  Storage Bucket:', config.storageBucket);
+      console.log('  Auth Domain:', config.authDomain);
+      
+      // Debug Firebase configuration
+      debugFirebaseConfig();
+      
+      // Check if Firebase app already exists and force refresh if config changed
+      try {
+        this.app = initializeApp(config, 'storyvid-main');
+      } catch (error) {
+        if (error.code === 'app/duplicate-app') {
+          console.log('🔄 Firebase app already exists, checking if config changed');
+          const existingApp = getApp('storyvid-main');
+          
+          // Check if storage bucket changed - if so, delete and recreate
+          if (existingApp.options.storageBucket !== config.storageBucket) {
+            console.log('🔄 Config changed! Deleting existing app and recreating');
+            console.log('  Old bucket:', existingApp.options.storageBucket);
+            console.log('  New bucket:', config.storageBucket);
+            await deleteApp(existingApp);
+            this.app = initializeApp(config, 'storyvid-main');
+          } else {
+            console.log('🔄 Config unchanged, using existing app');
+            this.app = existingApp;
+          }
+        } else {
+          throw error;
+        }
+      }
       this.db = getFirestore(this.app);
       this.auth = getAuth(this.app);
       this.storage = getStorage(this.app);
-      this.analytics = getAnalytics(this.app);
+      // this.analytics = getAnalytics(this.app); // Analytics disabled for now
       
-      console.log('Firebase initialized successfully');
+      console.log('✅ Firebase initialized successfully');
+      console.log('📊 Actual Storage Instance:', this.storage.app.options.storageBucket);
     } catch (error) {
       console.error('Firebase initialization error:', error);
       throw new Error('Firebase initialization failed. Please check your configuration.');
@@ -478,7 +518,7 @@ class FirebaseService {
       
       // Get user-specific data from Firestore
       const [projects, notifications, activities] = await Promise.all([
-        this.getUserProjects(userId),
+        this.getUserProjects(userId, userRole),
         this.getUserNotifications(userId),
         this.getUserActivities(userId)
       ]);
@@ -513,12 +553,13 @@ class FirebaseService {
   }
 
   // Get user-specific projects
-  async getUserProjects(userId) {
+  async getUserProjects(userId, roleOverride = null) {
     try {
-      console.log(`🗂️ Getting projects for user ${userId} with role ${this.currentUser?.role}`);
+      // Use the provided role or fall back to currentUser role
+      const userRole = roleOverride || this.currentUser?.role;
+      console.log(`🗂️ Getting projects for user ${userId} with role ${userRole}`);
       
       let projectsQuery;
-      const userRole = this.currentUser?.role;
       
       if (userRole === 'admin') {
         // Admin sees all projects in their company
@@ -1039,60 +1080,32 @@ class FirebaseService {
     // TODO: Replace with Firestore query with filters
   }
 
+  // Helper function to convert file to base64
+  fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        // Remove the data URL prefix to get just the base64 data
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  }
+
   // File/Asset Methods
   async uploadFile(file, options = {}) {
-    // Handle mock data mode
-    if (this.useMockData) {
-      console.log('Mock: Uploading file', file.name);
-      
-      // Simulate upload progress
-      const { onProgress } = options;
-      if (onProgress) {
-        const simulateProgress = () => {
-          let progress = 0;
-          const interval = setInterval(() => {
-            progress += 10;
-            onProgress(progress);
-            if (progress >= 100) {
-              clearInterval(interval);
-            }
-          }, 100);
-        };
-        simulateProgress();
-      }
-      
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Return mock file data
-      return {
-        id: `mock-file-${Date.now()}`,
-        name: file.name,
-        originalName: file.name,
-        size: file.size,
-        type: file.type.startsWith('video/') ? 'video' : 
-              file.type.startsWith('image/') ? 'image' :
-              file.type.startsWith('audio/') ? 'audio' : 'document',
-        mimeType: file.type,
-        downloadURL: `https://mock-storage.example.com/files/${file.name}`,
-        storagePath: `files/mock-user/${Date.now()}-${file.name}`,
-        projectId: options.projectId,
-        milestoneId: options.milestoneId,
-        category: options.category || 'general',
-        uploadedBy: this.currentUser?.uid || 'mock-user',
-        uploadedByName: this.currentUser?.name || 'Mock User',
-        isPublic: false,
-        downloadCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-    }
+    console.log('🚀 uploadFile called');
+    console.log('🚀 currentUser:', this.currentUser);
+    console.log('🚀 user uid:', this.currentUser?.uid);
+    console.log('🚀 user role:', this.currentUser?.role);
     
     try {
       const {
         projectId = null,
         milestoneId = null,
-        category = 'general',
+        category = 'documents',
         onProgress = null
       } = options;
 
@@ -1100,37 +1113,11 @@ class FirebaseService {
         throw new Error('User must be authenticated to upload files');
       }
 
-      // Generate unique file path
-      const timestamp = Date.now();
-      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const storagePath = `files/${this.currentUser.uid}/${timestamp}-${sanitizedFileName}`;
-      
-      // Create storage reference
-      const { ref, uploadBytes, uploadBytesResumable, getDownloadURL } = await import('firebase/storage');
-      const storageRef = ref(this.storage, storagePath);
-
-      // Upload file with progress tracking
-      let uploadTask;
-      if (onProgress) {
-        uploadTask = uploadBytesResumable(storageRef, file);
-        
-        uploadTask.on('state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            onProgress(progress);
-          },
-          (error) => {
-            throw error;
-          }
-        );
-        
-        await uploadTask;
-      } else {
-        await uploadBytes(storageRef, file);
+      if (!this.storage) {
+        throw new Error('Firebase Storage not initialized');
       }
 
-      // Get download URL
-      const downloadURL = await getDownloadURL(storageRef);
+      console.log('📁 Using Firebase Storage for file upload');
 
       // Determine file type
       const extension = file.name.split('.').pop().toLowerCase();
@@ -1141,7 +1128,7 @@ class FirebaseService {
         audio: ['mp3', 'wav', 'aac', 'm4a']
       };
       
-      let fileType = 'other';
+      let fileType = 'document';
       for (const [type, extensions] of Object.entries(typeMap)) {
         if (extensions.includes(extension)) {
           fileType = type;
@@ -1149,15 +1136,61 @@ class FirebaseService {
         }
       }
 
-      // Create file document in Firestore
+      // Create unique file path in storage
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const storagePath = `files/${this.currentUser.uid}/${timestamp}-${sanitizedFileName}`;
+      const storageRef = ref(this.storage, storagePath);
+
+      console.log('📤 Uploading file to Firebase Storage:', storagePath);
+      console.log('🔍 Storage bucket being used:', this.storage.app.options.storageBucket);
+
+      // Upload file to Firebase Storage
+      if (onProgress) {
+        onProgress(10); // Initial progress
+      }
+
+      let downloadURL;
+      let status = 'uploaded';
+      
+      try {
+        const snapshot = await uploadBytes(storageRef, file);
+        console.log('✅ File uploaded to Firebase Storage');
+
+        if (onProgress) {
+          onProgress(50); // Upload complete, getting URL
+        }
+
+        // Get download URL
+        downloadURL = await getDownloadURL(snapshot.ref);
+        console.log('✅ Download URL obtained:', downloadURL);
+      } catch (storageError) {
+        console.error('❌ Firebase Storage upload failed:', storageError);
+        console.log('🔄 Falling back to base64 storage in Firestore');
+        
+        // Fallback: convert file to base64 and store in Firestore
+        const base64Data = await this.fileToBase64(file);
+        downloadURL = `data:${file.type};base64,${base64Data}`;
+        status = 'base64-stored';
+        
+        if (onProgress) {
+          onProgress(50);
+        }
+      }
+
+      if (onProgress) {
+        onProgress(80); // URL obtained, saving metadata
+      }
+
+      // Create file document in Firestore with actual storage data
       const fileData = {
         name: file.name,
         originalName: file.name,
         size: file.size,
         type: fileType,
         mimeType: file.type,
-        downloadURL,
-        storagePath,
+        downloadURL: downloadURL,
+        storagePath: storagePath,
         projectId,
         milestoneId,
         category,
@@ -1166,11 +1199,14 @@ class FirebaseService {
         isPublic: false,
         downloadCount: 0,
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        status: status // Indicates how file is stored (uploaded, base64-stored, etc.)
       };
 
       const docRef = doc(collection(this.db, 'files'));
       await setDoc(docRef, fileData);
+
+      console.log('✅ File metadata stored in Firestore:', docRef.id);
 
       return {
         id: docRef.id,
@@ -1179,89 +1215,75 @@ class FirebaseService {
         updatedAt: new Date().toISOString()
       };
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('❌ Error uploading file:', error);
       throw new Error(`Failed to upload file: ${error.message}`);
     }
   }
 
   async getProjectFiles(projectId, options = {}) {
-    // Handle mock data mode
-    if (this.useMockData) {
-      console.log('Mock: Getting project files for', projectId);
-      
-      // Return mock files for demonstration
-      const mockFiles = [
-        {
-          id: 'mock-file-1',
-          name: 'project-brief.pdf',
-          originalName: 'project-brief.pdf',
-          size: 1024000,
-          type: 'document',
-          mimeType: 'application/pdf',
-          downloadURL: 'https://mock-storage.example.com/files/project-brief.pdf',
-          storagePath: 'files/mock-user/project-brief.pdf',
-          projectId: projectId,
-          category: 'general',
-          uploadedBy: 'mock-user',
-          uploadedByName: 'Mock User',
-          isPublic: false,
-          downloadCount: 0,
-          createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-          updatedAt: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          id: 'mock-file-2',
-          name: 'demo-video.mp4',
-          originalName: 'demo-video.mp4',
-          size: 50000000,
-          type: 'video',
-          mimeType: 'video/mp4',
-          downloadURL: 'https://mock-storage.example.com/files/demo-video.mp4',
-          storagePath: 'files/mock-user/demo-video.mp4',
-          projectId: projectId,
-          category: 'draft',
-          uploadedBy: 'mock-user',
-          uploadedByName: 'Mock User',
-          isPublic: false,
-          downloadCount: 5,
-          createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-          updatedAt: new Date(Date.now() - 3600000).toISOString()
-        }
-      ];
-      
-      return mockFiles;
-    }
+    console.log('🔍 getProjectFiles called with:', { projectId, ...options });
     
     try {
       const { category = null, type = null, limitCount = 100 } = options;
-
-      let filesQuery = query(
+      
+      // Use simple query with only projectId to avoid composite index issues
+      console.log('🔍 Executing simple Firestore query (projectId only)...');
+      const filesQuery = query(
         collection(this.db, 'files'),
-        where('projectId', '==', projectId),
-        orderBy('createdAt', 'desc')
+        where('projectId', '==', projectId)
       );
 
-      if (category) {
-        filesQuery = query(filesQuery, where('category', '==', category));
-      }
-
-      if (type) {
-        filesQuery = query(filesQuery, where('type', '==', type));
-      }
-
-      if (limitCount) {
-        filesQuery = query(filesQuery, limit(limitCount));
-      }
-
       const snapshot = await getDocs(filesQuery);
-      return snapshot.docs.map(doc => ({
+      
+      let files = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
         updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
       }));
+
+      console.log(`✅ Found ${files.length} total files for project ${projectId}`);
+
+      // Filter by category in JavaScript if specified
+      if (category) {
+        console.log('🔍 Filtering by category in JavaScript:', category);
+        files = files.filter(file => file.category === category);
+        console.log(`✅ After category filter: ${files.length} files`);
+      }
+
+      // Filter by type in JavaScript if specified
+      if (type) {
+        console.log('🔍 Filtering by type in JavaScript:', type);
+        files = files.filter(file => file.type === type);
+        console.log(`✅ After type filter: ${files.length} files`);
+      }
+
+      // Sort by createdAt in JavaScript (newest first)
+      files.sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return dateB - dateA;
+      });
+
+      // Limit results in JavaScript if specified
+      if (limitCount && files.length > limitCount) {
+        console.log(`🔍 Limiting results to ${limitCount} files`);
+        files = files.slice(0, limitCount);
+      }
+
+      console.log(`📄 Final files after filter/sort/limit: ${files.length}`);
+      return files;
+      
     } catch (error) {
-      console.error('Error getting project files:', error);
+      console.error('❌ Error getting project files:', error);
+      console.error('❌ Error details:', {
+        code: error.code,
+        message: error.message,
+        projectId,
+        options
+      });
+      
+      // Return empty array on any error
       return [];
     }
   }
@@ -1270,27 +1292,43 @@ class FirebaseService {
     try {
       const { type = null, limitCount = 50 } = options;
 
-      let filesQuery = query(
-        collection(this.db, 'files'),
-        where('milestoneId', '==', milestoneId),
-        orderBy('createdAt', 'desc')
-      );
+      // Build query constraints array
+      let queryConstraints = [
+        where('milestoneId', '==', milestoneId)
+      ];
 
+      // Add type filter if provided
       if (type) {
-        filesQuery = query(filesQuery, where('type', '==', type));
+        queryConstraints.push(where('type', '==', type));
       }
 
-      if (limitCount) {
-        filesQuery = query(filesQuery, limit(limitCount));
+      // Only add orderBy if no type filter to avoid composite index requirement
+      if (!type) {
+        queryConstraints.push(orderBy('createdAt', 'desc'));
+        if (limitCount) {
+          queryConstraints.push(limit(limitCount));
+        }
       }
+
+      // Create the query with all constraints at once
+      const filesQuery = query(collection(this.db, 'files'), ...queryConstraints);
 
       const snapshot = await getDocs(filesQuery);
-      return snapshot.docs.map(doc => ({
+      let files = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
         updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
       }));
+
+      // If we have type filter, sort and limit in JavaScript
+      if (type) {
+        files = files
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, limitCount);
+      }
+
+      return files;
     } catch (error) {
       console.error('Error getting milestone files:', error);
       return [];
@@ -1298,6 +1336,8 @@ class FirebaseService {
   }
 
   async downloadFile(fileId) {
+    console.log('📥 downloadFile called for:', fileId);
+    
     try {
       const fileDoc = await getDoc(doc(this.db, 'files', fileId));
       
@@ -1306,6 +1346,52 @@ class FirebaseService {
       }
 
       const fileData = fileDoc.data();
+      
+      // Check if this is a metadata-only file (no actual storage)
+      if (fileData.status === 'metadata-only' || fileData.downloadURL?.startsWith('#file-not-stored')) {
+        console.log('⚠️ File is metadata-only - creating downloadable content from metadata');
+        
+        // Create a downloadable text file with file information
+        const fileInfo = `File Information
+=================
+
+Name: ${fileData.name || fileData.originalName}
+Type: ${fileData.type || 'Unknown'}
+Category: ${fileData.category || 'Unknown'}
+Size: ${fileData.size ? (fileData.size / 1024).toFixed(2) + ' KB' : 'Unknown'}
+Uploaded: ${fileData.createdAt ? new Date(fileData.createdAt).toLocaleString() : 'Unknown'}
+Uploaded by: ${fileData.uploadedByName || 'Unknown'}
+
+Note: This file was uploaded as metadata-only. 
+The actual file content is not stored in Firebase Storage.
+To enable full file storage, configure Firebase Storage in your project.`;
+
+        // Create a blob and download URL
+        const blob = new Blob([fileInfo], { type: 'text/plain' });
+        const downloadURL = URL.createObjectURL(blob);
+        
+        // Track the download
+        await updateDoc(doc(this.db, 'files', fileId), {
+          downloadCount: (fileData.downloadCount || 0) + 1,
+          lastDownloadAt: serverTimestamp(),
+          lastDownloadBy: this.currentUser?.uid
+        });
+        
+        return {
+          downloadURL,
+          fileName: `${fileData.name || 'file'}_info.txt`,
+          fileData,
+          isMetadataOnly: true
+        };
+      }
+
+      // Handle files with actual storage (Firebase Storage URLs or base64)
+      if (fileData.status === 'base64-stored' || fileData.downloadURL?.startsWith('data:')) {
+        console.log('📁 File is base64-stored, creating blob URL');
+        // For base64 files, the downloadURL is already a data URL that can be used directly
+      } else {
+        console.log('📁 File has Firebase Storage, using direct download URL');
+      }
       
       // Track the download
       await updateDoc(doc(this.db, 'files', fileId), {
@@ -1317,8 +1403,8 @@ class FirebaseService {
       return {
         downloadURL: fileData.downloadURL,
         fileName: fileData.name,
-        size: fileData.size,
-        type: fileData.type
+        fileData,
+        isMetadataOnly: false
       };
     } catch (error) {
       console.error('Error downloading file:', error);
@@ -1330,6 +1416,16 @@ class FirebaseService {
     // Handle mock data mode
     if (this.useMockData) {
       console.log('Mock: Deleting file', fileId);
+      
+      // Remove from uploaded files if it exists
+      if (this.mockUploadedFiles) {
+        const index = this.mockUploadedFiles.findIndex(f => f.id === fileId);
+        if (index !== -1) {
+          this.mockUploadedFiles.splice(index, 1);
+          console.log('Removed file from mock storage, remaining files:', this.mockUploadedFiles.length);
+        }
+      }
+      
       return { success: true };
     }
     
@@ -1461,4 +1557,11 @@ class FirebaseService {
 
 // Singleton instance
 const firebaseService = new FirebaseService();
+
+// Expose for debugging (only in development)
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  window.firebaseService = firebaseService;
+  console.log('🔧 firebaseService exposed to window for debugging');
+}
+
 export default firebaseService;

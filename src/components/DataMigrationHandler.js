@@ -33,23 +33,9 @@ const DataMigrationHandler = ({ children }) => {
           return;
         }
 
-        // Check if migration is needed
-        const isCompleted = await dataMigrationService.checkMigrationStatus();
-        
-        if (isCompleted) {
-          console.log('✅ Data migration already completed');
-          setMigrationStatus('completed');
-          return;
-        }
-
-        // Run migration
-        console.log('🚀 Starting data migration...');
-        setMigrationStatus('running');
-        
-        await dataMigrationService.runMigration();
-        
+        // Skip migration - use manual data creation
+        console.log('✅ Using manual data creation mode');
         setMigrationStatus('completed');
-        console.log('✅ Data migration completed successfully');
         
       } catch (error) {
         console.error('❌ Migration error:', error);

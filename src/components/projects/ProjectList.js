@@ -110,11 +110,6 @@ const ProjectList = ({ viewMode = 'grid' }) => {
           estimatedHours: 120,
           actualHours: 80
         },
-        budget: {
-          estimated: 15000,
-          actual: 10000,
-          currency: 'USD'
-        },
         projectType: 'Corporate Video',
         progress: 65,
         team: [
@@ -138,11 +133,6 @@ const ProjectList = ({ viewMode = 'grid' }) => {
           endDate: '2024-01-30',
           estimatedHours: 80,
           actualHours: 75
-        },
-        budget: {
-          estimated: 8000,
-          actual: 7500,
-          currency: 'USD'
         },
         projectType: 'Product Demo',
         progress: 90,
@@ -363,15 +353,6 @@ const ProjectList = ({ viewMode = 'grid' }) => {
                       ))}
                     </AvatarGroup>
                   </Box> */}
-                  
-                  <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      Budget
-                    </Typography>
-                    <Typography variant="body2" fontWeight="bold">
-                      ${project.budget.estimated.toLocaleString()}
-                    </Typography>
-                  </Box>
                 </Box>
               </CardContent>
             </Card>
@@ -405,7 +386,6 @@ const ProjectList = ({ viewMode = 'grid' }) => {
               <TableCell>Status</TableCell>
               <TableCell>Progress</TableCell>
               <TableCell>Team</TableCell>
-              <TableCell>Budget</TableCell>
               <TableCell>Due Date</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
@@ -453,7 +433,6 @@ const ProjectList = ({ viewMode = 'grid' }) => {
                     ))}
                   </AvatarGroup>
                 </TableCell>
-                <TableCell>${project.budget.estimated.toLocaleString()}</TableCell>
                 <TableCell>
                   {new Date(project.timeline.endDate).toLocaleDateString()}
                 </TableCell>

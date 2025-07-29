@@ -40,7 +40,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 
 const AdminUsersContent = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
   
   // Data state
   const [users, setUsers] = useState([]);
@@ -57,17 +57,31 @@ const AdminUsersContent = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.role !== 'admin') {
+    // Don't do anything if auth is still loading or user is incomplete
+    if (authLoading || !user || user === null || !user.uid || !user.role) {
+      return; // Still loading auth state or user data incomplete
+    }
+    
+    if (user.role !== 'admin') {
       navigate('/unauthorized');
       return;
     }
+    
     loadData();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const loadData = async () => {
+    // Don't proceed if auth is still loading or user is incomplete
+    if (authLoading || !user || user === null || !user.uid || !user.role) {
+      return;
+    }
+    
     try {
       setLoading(true);
       setError('');
+      
+      // Ensure projectManagementService has current user context
+      projectManagementService.setCurrentUser(user);
       
       const usersData = await projectManagementService.getAllUsers();
       setUsers(usersData);
@@ -93,7 +107,10 @@ const AdminUsersContent = () => {
       setUserProjects(projectCounts);
     } catch (err) {
       console.error('Error loading users:', err);
-      setError('Failed to load users. Please try again.');
+      // Only show error if this isn't an auth-related issue
+      if (user && user.role === 'admin') {
+        setError('Failed to load users. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -159,7 +176,7 @@ const AdminUsersContent = () => {
     clients: users.filter(u => u.role === 'client').length
   };
 
-  if (loading) {
+  if (loading || authLoading || !user || user === null || !user.uid || !user.role) {
     return <LoadingSpinner message="Loading users..." />;
   }
 

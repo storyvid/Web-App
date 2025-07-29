@@ -16,9 +16,9 @@
 | Variable Name | Value |
 |---------------|-------|
 | `REACT_APP_FIREBASE_API_KEY` | `AIzaSyA5wuKIdTUyUXuseAfp_3flJceKpgJQrk4` |
-| `REACT_APP_FIREBASE_AUTH_DOMAIN` | `storyvid-d1792.firebaseapp.com` |
-| `REACT_APP_FIREBASE_PROJECT_ID` | `storyvid-d1792` |
-| `REACT_APP_FIREBASE_STORAGE_BUCKET` | `storyvid-d1792.firebasestorage.app` |
+| `REACT_APP_FIREBASE_AUTH_DOMAIN` | `storyvidportal.firebaseapp.com` |
+| `REACT_APP_FIREBASE_PROJECT_ID` | `storyvidportal` |
+| `REACT_APP_FIREBASE_STORAGE_BUCKET` | `storyvidportal.firebasestorage.app` |
 | `REACT_APP_FIREBASE_MESSAGING_SENDER_ID` | `549183398177` |
 | `REACT_APP_FIREBASE_APP_ID` | `1:549183398177:web:b6bca429c71d61a0e7de60` |
 | `REACT_APP_FIREBASE_MEASUREMENT_ID` | `G-6TC35CPQ5C` |
@@ -51,7 +51,7 @@ When you add `REACT_APP_FIREBASE_API_KEY`, Vercel will show a warning about expo
 ### Step 1: Add Authorized Domains in Firebase Console
 
 1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Select your project: `storyvid-d1792`
+2. Select your project: `storyvidportal`
 3. Navigate to **Authentication** → **Settings** → **Authorized domains**
 4. Add your Vercel URLs:
    - Production: `https://your-app-name.vercel.app`

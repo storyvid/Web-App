@@ -29,6 +29,13 @@ class ProjectManagementService {
     return user;
   }
 
+  // Set current user (called from components that have access to AuthContext)
+  setCurrentUser(user) {
+    if (user) {
+      this.firebaseService.currentUser = user;
+    }
+  }
+
   // Helper method to check admin permissions
   checkAdminPermission() {
     const currentUser = this.getCurrentUser();
