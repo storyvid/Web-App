@@ -81,9 +81,12 @@ const SimpleFileManager = ({
       
       // Extract the actual File object if it's wrapped
       let fileToUpload = uploadedFiles[0];
-      if (fileToUpload && fileToUpload.file) {
+      if (fileToUpload && typeof fileToUpload === 'object' && fileToUpload.file && fileToUpload.file instanceof File) {
         console.log('📤 File is wrapped, extracting actual file object');
         fileToUpload = fileToUpload.file;
+      } else if (!(fileToUpload instanceof File)) {
+        console.error('📤 Invalid file object received:', fileToUpload);
+        throw new Error('Invalid file object - expected File instance');
       }
       
       const uploadResults = await firebaseService.uploadFile(fileToUpload, {
