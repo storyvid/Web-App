@@ -4,6 +4,7 @@
 
 // Allowed file types by category
 export const ALLOWED_FILE_TYPES = {
+  files: [], // Special category - accepts all file types
   videos: [
     'video/mp4',
     'video/mov',
@@ -52,6 +53,7 @@ export const ALLOWED_FILE_TYPES = {
 
 // File size limits (in bytes)
 export const FILE_SIZE_LIMITS = {
+  files: 100 * 1024 * 1024, // 100MB for general files
   videos: 500 * 1024 * 1024, // 500MB
   invoices: 10 * 1024 * 1024, // 10MB
   licenses: 10 * 1024 * 1024, // 10MB
@@ -80,12 +82,16 @@ export const validateFile = (file, category = null) => {
   }
 
   // Check file type
-  const allowedTypes = ALLOWED_FILE_TYPES[category] || ALLOWED_FILE_TYPES.documents;
-  if (!allowedTypes.includes(file.type)) {
-    return {
-      isValid: false,
-      error: `File type ${file.type} is not allowed for ${category}. Allowed types: ${getAllowedExtensions(category).join(', ')}`
-    };
+  if (category === 'files') {
+    // "files" category accepts all file types - skip type validation
+  } else {
+    const allowedTypes = ALLOWED_FILE_TYPES[category] || ALLOWED_FILE_TYPES.documents;
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        isValid: false,
+        error: `File type ${file.type} is not allowed for ${category}. Allowed types: ${getAllowedExtensions(category).join(', ')}`
+      };
+    }
   }
 
   // Check file size
@@ -201,7 +207,7 @@ export const categorizeSingleFile = (file) => {
     return 'documents';
   }
 
-  return 'documents'; // Default category
+  return 'files'; // Default category - all files go to general files category
 };
 
 /**

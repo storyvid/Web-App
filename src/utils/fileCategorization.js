@@ -8,6 +8,13 @@ import { categorizeSingleFile } from './fileValidation';
  * File categories configuration
  */
 export const FILE_CATEGORIES = {
+  files: {
+    label: 'Files',
+    description: 'All file types accepted',
+    icon: 'Folder',
+    color: 'primary',
+    acceptTypes: '*/*'
+  },
   videos: {
     label: 'Videos',
     description: 'Video files (MP4, MOV, AVI, etc.)',
@@ -52,6 +59,7 @@ export const FILE_CATEGORIES = {
  */
 export const categorizeFiles = (files) => {
   const categorized = {
+    files: [],
     videos: [],
     invoices: [],
     licenses: [],

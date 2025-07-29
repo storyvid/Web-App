@@ -2,7 +2,6 @@ import React, { useState, useCallback, useRef } from 'react';
 import {
   Box,
   Typography,
-  Button,
   IconButton,
   LinearProgress,
   Alert,
@@ -19,7 +18,6 @@ import {
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
-  Add as AddIcon,
   Delete as DeleteIcon,
   CheckCircle as CheckIcon,
   Error as ErrorIcon,
@@ -253,20 +251,8 @@ const FileUploadDropzone = ({
           </Typography>
           
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            or click to browse files
+            or click anywhere to browse files
           </Typography>
-          
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            disabled={disabled}
-            onClick={(e) => {
-              e.stopPropagation();
-              fileInputRef.current?.click();
-            }}
-          >
-            Select Files
-          </Button>
           
           <Typography variant="caption" display="block" sx={{ mt: 2 }}>
             Max {maxFiles} files • Supported: {allowedCategories.map(cat => 
@@ -312,21 +298,14 @@ const FileUploadDropzone = ({
                 Selected Files ({selectedFiles.length})
               </Typography>
               <Stack direction="row" spacing={1}>
-                <Button
-                  size="small"
+                <IconButton
                   onClick={clearAllFiles}
                   disabled={uploading}
+                  color="error"
+                  title="Clear all files"
                 >
-                  Clear All
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleUpload}
-                  disabled={uploading || selectedFiles.length === 0}
-                  startIcon={uploading ? null : <UploadIcon />}
-                >
-                  {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} Files`}
-                </Button>
+                  <DeleteIcon />
+                </IconButton>
               </Stack>
             </Stack>
 
@@ -345,23 +324,37 @@ const FileUploadDropzone = ({
                   
                   return (
                     <Box key={category} sx={{ mb: 1 }}>
-                      <Button
-                        fullWidth
-                        variant="outlined"
-                        startIcon={<CategoryIcon />}
-                        endIcon={isExpanded ? <CollapseIcon /> : <ExpandIcon />}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          p: 2,
+                          border: 1,
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          '&:hover': {
+                            bgcolor: 'action.hover'
+                          }
+                        }}
                         onClick={() => toggleCategory(category)}
-                        sx={{ justifyContent: 'space-between', mb: 1 }}
                       >
-                        <Box sx={{ textAlign: 'left' }}>
-                          <Typography variant="body2">
-                            {FILE_CATEGORIES[category]?.label || category} ({files.length})
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {formatFileSize(files.reduce((sum, f) => sum + f.file.size, 0))}
-                          </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CategoryIcon />
+                          <Box>
+                            <Typography variant="body2">
+                              {FILE_CATEGORIES[category]?.label || category} ({files.length})
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {formatFileSize(files.reduce((sum, f) => sum + f.file.size, 0))}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Button>
+                        <Box>
+                          {isExpanded ? <CollapseIcon /> : <ExpandIcon />}
+                        </Box>
+                      </Box>
                       
                       <Collapse in={isExpanded}>
                         <List dense sx={{ bgcolor: 'grey.50', borderRadius: 1 }}>

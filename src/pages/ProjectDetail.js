@@ -61,7 +61,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import firebaseService from "../services/firebase/firebaseService";
 import { getRoleBasedData } from "../data/mockData";
-import FileCategoryTabs from "../components/files/FileCategoryTabs";
+import SimpleFileManager from "../components/files/SimpleFileManager";
 import LoadingSpinner from "../components/LoadingSpinner";
 import TimelineManager from "../components/Admin/TimelineManager";
 import { theme, styles } from "./dashboardStyles";
@@ -362,7 +362,7 @@ const ProjectDetail = () => {
                 sx={{
                   ...projectDetailStyles.compactCard,
                   mb: 3,
-                  height: "350px",
+                  height: "400px", // Use minHeight instead of fixed height
                 }}
               >
                 <CardContent>
@@ -531,19 +531,38 @@ const ProjectDetail = () => {
                 </Tabs>
               </Card>
 
-              {/* Tab Content */}
-              <Box>
+              {/* Tab Content - IMPORTANT: Keep consistent height to prevent jumping */}
+              {/* 
+                DO NOT MODIFY THIS CONTAINER WITHOUT CONSIDERATION:
+                This Box maintains a consistent minimum height across all tabs to prevent
+                the page from jumping when switching between tabs. Each tab content should
+                be designed to work within this container height.
+                
+                If you need to change tab content, ensure:
+                1. minHeight is maintained or adjusted for ALL tabs
+                2. Test switching between all tabs to verify no jumping
+                3. Consider using CSS Grid or Flexbox for consistent layouts
+                
+                Last fixed: 2025-07-29 - Tab jumping issue
+              */}
+              <Box sx={{ 
+                position: 'relative', // Fixed positioning to prevent jumping
+                width: '100%',
+                minHeight: '600px', // Minimum height to prevent jumping
+                overflow: 'hidden' // Prevent scrollbar jumping
+              }}>
                 {/* Overview Tab */}
                 {activeTab === 0 && (
-                  <Grid container spacing={3}>
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                    <Grid container spacing={3}>
                     {/* Project Details */}
                     <Grid item xs={12} md={8}>
                       <Card
                         sx={{
                           ...projectDetailStyles.compactCard,
                           mb: 3,
-                          height: "300px",
-                          width: "800px",
+                          minHeight: "300px", // Use minHeight instead of fixed height
+                          maxWidth: "800px", // Use maxWidth instead of fixed width
                         }}
                       >
                         <CardContent>
@@ -647,7 +666,7 @@ const ProjectDetail = () => {
                     </Grid>
 
                     {/* Sidebar */}
-                    <Grid item xs={12} md={4} height="300px">
+                    <Grid item xs={12} md={4} sx={{ minHeight: "300px" }}>
                       {/* Team */}
                       <Card sx={{ ...projectDetailStyles.compactCard, mb: 3 }}>
                         <CardContent>
@@ -763,37 +782,42 @@ const ProjectDetail = () => {
                         </Card>
                       )}
                     </Grid>
-                  </Grid>
+                    </Grid>
+                  </Box>
                 )}
 
                 {/* Milestones Tab */}
                 {activeTab === 1 && (
-                  <TimelineManager
-                    projectId={projectId}
-                    projectName={project.name}
-                    onClose={() => {}} // No close button needed since it's in a tab
-                    showHeader={false} // Hide header since we're in a tab
-                  />
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                    <TimelineManager
+                      projectId={projectId}
+                      projectName={project.name}
+                      onClose={() => {}} // No close button needed since it's in a tab
+                      showHeader={false} // Hide header since we're in a tab
+                    />
+                  </Box>
                 )}
 
                 {/* Files Tab */}
                 {activeTab === 2 && (
-                  <FileCategoryTabs
-                    projectId={projectId}
-                    allowUpload={true}
-                    allowDelete={user?.role === "admin"}
-                    allowEdit={user?.role === "admin" || user?.role === "staff"}
-                    defaultCategory="videos"
-                    onFileAction={(action, fileOrResults) => {
-                      console.log("File action:", action, fileOrResults);
-                      // Handle file actions like upload, download, edit, etc.
-                    }}
-                  />
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                    <SimpleFileManager
+                      projectId={projectId}
+                      allowUpload={true}
+                      allowDelete={user?.role === "admin"}
+                      allowEdit={user?.role === "admin" || user?.role === "staff"}
+                      onFileAction={(action, fileOrResults) => {
+                        console.log("File action:", action, fileOrResults);
+                        // Handle file actions like upload, download, edit, etc.
+                      }}
+                    />
+                  </Box>
                 )}
 
                 {/* Team Tab */}
                 {activeTab === 3 && (
-                  <Card sx={projectDetailStyles.compactCard}>
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                    <Card sx={projectDetailStyles.compactCard}>
                     <CardContent>
                       <Typography variant="h5" gutterBottom>
                         Project Team
@@ -894,6 +918,7 @@ const ProjectDetail = () => {
                       )}
                     </CardContent>
                   </Card>
+                  </Box>
                 )}
               </Box>
 

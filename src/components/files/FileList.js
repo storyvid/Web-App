@@ -23,7 +23,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@mui/material';
 import {
   Download as DownloadIcon,
@@ -40,7 +41,8 @@ import {
   AttachFile as FileIcon,
   Person as PersonIcon,
   AccessTime as TimeIcon,
-  CloudUpload as UploadIcon
+  CloudUpload as UploadIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import firebaseService from '../../services/firebase/firebaseService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -53,12 +55,15 @@ const FileList = ({
   showUploadedBy = true,
   allowDelete = true,
   onUpload = null,
+  onRefresh = null,
+  refreshLoading = false,
   refreshTrigger = 0
 }) => {
   const { user } = useAuth();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [downloadingFiles, setDownloadingFiles] = useState(new Set());
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [filters, setFilters] = useState({
@@ -197,36 +202,17 @@ const FileList = ({
   // Handle file download
   const handleDownload = async (file) => {
     try {
+      // Add file to downloading set
+      setDownloadingFiles(prev => new Set([...prev, file.id]));
+      
+      console.log('🔥 Starting download for file:', file.name);
       const downloadData = await firebaseService.downloadFile(file.id);
       
       // Show appropriate message for metadata-only files
       if (downloadData.isMetadataOnly) {
         console.log('📄 Downloading file information for metadata-only file');
-      }
-      
-      // For Firebase Storage URLs, we need to force download differently
-      if (!downloadData.isMetadataOnly && !downloadData.downloadURL.startsWith('data:')) {
-        console.log('🔄 Using Firebase Storage download with token...');
         
-        // Method 1: Try adding download parameter to Firebase URL
-        let downloadUrl = downloadData.downloadURL;
-        if (downloadUrl.includes('firebasestorage.googleapis.com')) {
-          // Add response-content-disposition parameter to force download
-          const separator = downloadUrl.includes('?') ? '&' : '?';
-          downloadUrl += `${separator}response-content-disposition=attachment%3B%20filename%3D"${encodeURIComponent(downloadData.fileName)}"`;
-        }
-        
-        // Create temporary link and trigger download
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = downloadData.fileName;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-      } else {
-        // For data URLs and metadata files, use direct approach
+        // For metadata files, use direct download
         const link = document.createElement('a');
         link.href = downloadData.downloadURL;
         link.download = downloadData.fileName;
@@ -235,10 +221,41 @@ const FileList = ({
         link.click();
         document.body.removeChild(link);
         
-        // Clean up object URL for metadata-only files
-        if (downloadData.isMetadataOnly) {
-          setTimeout(() => URL.revokeObjectURL(downloadData.downloadURL), 1000);
+        // Clean up blob URL
+        setTimeout(() => URL.revokeObjectURL(downloadData.downloadURL), 1000);
+        
+      } else if (downloadData.downloadURL && downloadData.downloadURL.includes('firebasestorage.googleapis.com')) {
+        console.log('📁 Handling Firebase Storage file download');
+        
+        // Use Firebase Storage URL with response-content-disposition parameter
+        let downloadUrl = downloadData.downloadURL;
+        const separator = downloadUrl.includes('?') ? '&' : '?';
+        const encodedFilename = encodeURIComponent(downloadData.fileName);
+        downloadUrl += `${separator}response-content-disposition=attachment%3B%20filename%3D"${encodedFilename}"`;
+        
+        console.log('🔄 Opening download URL:', downloadUrl);
+        
+        // Open the download URL directly in a new window
+        // This bypasses CORS issues and respects content-disposition headers
+        const downloadWindow = window.open(downloadUrl, '_blank');
+        
+        // For browsers that block popups, provide fallback
+        if (!downloadWindow) {
+          console.log('🔄 Popup blocked, using direct navigation');
+          window.location.href = downloadUrl;
         }
+        
+      } else {
+        console.log('📁 Downloading file with direct URL');
+        
+        // For other files (base64, etc.), use direct download
+        const link = document.createElement('a');
+        link.href = downloadData.downloadURL;
+        link.download = downloadData.fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
 
       // Update download count in UI
@@ -252,6 +269,13 @@ const FileList = ({
     } catch (err) {
       console.error('Error downloading file:', err);
       setError('Failed to download file: ' + err.message);
+    } finally {
+      // Remove file from downloading set
+      setDownloadingFiles(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(file.id);
+        return newSet;
+      });
     }
   };
 
@@ -492,6 +516,21 @@ const FileList = ({
               </Button>
             </Grid>
           )}
+          
+          {onRefresh && (
+            <Grid item>
+              <Button
+                variant="outlined"
+                startIcon={<RefreshIcon />}
+                onClick={onRefresh}
+                disabled={refreshLoading}
+                size="small"
+                sx={{ height: '40px', minWidth: '100px' }} // Match dropdown height and width
+              >
+                Refresh
+              </Button>
+            </Grid>
+          )}
         </Grid>
       </Box>
 
@@ -544,7 +583,32 @@ const FileList = ({
                 </IconButton>
               </Tooltip>
             ) : (
-              <FileIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <IconButton 
+                onClick={onUpload && files.length === 0 ? handleUploadClick : undefined}
+                disabled={!onUpload || files.length > 0}
+                sx={{ 
+                  p: 2,
+                  borderRadius: 4,
+                  cursor: onUpload && files.length === 0 ? 'pointer' : 'default',
+                  '&:hover': onUpload && files.length === 0 ? {
+                    backgroundColor: 'action.hover',
+                    transform: 'scale(1.05)',
+                  } : {
+                    backgroundColor: 'transparent'
+                  },
+                  '&:active': onUpload && files.length === 0 ? {
+                    transform: 'scale(0.95)',
+                  } : {},
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              >
+                <FileIcon sx={{ 
+                  fontSize: 48, 
+                  color: onUpload && files.length === 0 ? 'primary.main' : 'text.secondary', 
+                  mb: 2,
+                  transition: 'color 0.2s ease-in-out'
+                }} />
+              </IconButton>
             )}
             <Typography variant="h6" color="text.secondary" gutterBottom>
               {files.length === 0 ? 'No files uploaded yet' : 'No files match your filters'}
@@ -666,11 +730,12 @@ const FileList = ({
                   <CardActions>
                     <Button
                       size="small"
-                      startIcon={<DownloadIcon />}
+                      startIcon={downloadingFiles.has(file.id) ? <CircularProgress size={16} /> : <DownloadIcon />}
                       onClick={() => handleDownload(file)}
+                      disabled={downloadingFiles.has(file.id)}
                       sx={{ flex: 1 }}
                     >
-                      Download
+                      {downloadingFiles.has(file.id) ? 'Downloading...' : 'Download'}
                     </Button>
                   </CardActions>
                 </Card>
@@ -688,9 +753,15 @@ const FileList = ({
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem onClick={() => handleDownload(selectedFile)}>
-          <DownloadIcon sx={{ mr: 1, fontSize: 20 }} />
-          Download
+        <MenuItem 
+          onClick={() => handleDownload(selectedFile)}
+          disabled={downloadingFiles.has(selectedFile?.id)}
+        >
+          {downloadingFiles.has(selectedFile?.id) ? 
+            <CircularProgress size={20} sx={{ mr: 1 }} /> : 
+            <DownloadIcon sx={{ mr: 1, fontSize: 20 }} />
+          }
+          {downloadingFiles.has(selectedFile?.id) ? 'Downloading...' : 'Download'}
         </MenuItem>
         
         {selectedFile?.type === 'image' && (
@@ -742,7 +813,8 @@ const FileList = ({
           </Button>
           <Button
             variant="contained"
-            startIcon={<DownloadIcon />}
+            startIcon={downloadingFiles.has(previewDialog.file?.id) ? <CircularProgress size={16} /> : <DownloadIcon />}
+            disabled={downloadingFiles.has(previewDialog.file?.id)}
             onClick={() => {
               handleDownload(previewDialog.file);
               setPreviewDialog({ open: false, file: null });

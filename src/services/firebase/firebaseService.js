@@ -32,7 +32,8 @@ import {
   ref, 
   uploadBytes, 
   getDownloadURL,
-  deleteObject 
+  deleteObject,
+  getBlob
 } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 
@@ -1100,12 +1101,24 @@ class FirebaseService {
     console.log('🚀 currentUser:', this.currentUser);
     console.log('🚀 user uid:', this.currentUser?.uid);
     console.log('🚀 user role:', this.currentUser?.role);
+    console.log('🚀 file object:', file);
+    console.log('🚀 file name:', file?.name);
+    console.log('🚀 file type:', file?.type);
     
     try {
+      // Validate file object first
+      if (!file) {
+        throw new Error('No file provided for upload');
+      }
+      
+      if (!file.name) {
+        throw new Error('File object is missing name property');
+      }
+      
       const {
         projectId = null,
         milestoneId = null,
-        category = 'documents',
+        category = 'files', // Changed default to 'files'
         onProgress = null
       } = options;
 
@@ -1386,11 +1399,22 @@ To enable full file storage, configure Firebase Storage in your project.`;
       }
 
       // Handle files with actual storage (Firebase Storage URLs or base64)
+      let downloadURL = fileData.downloadURL;
+      let forceDownload = false;
+
       if (fileData.status === 'base64-stored' || fileData.downloadURL?.startsWith('data:')) {
-        console.log('📁 File is base64-stored, creating blob URL');
+        console.log('📁 File is base64-stored, using data URL directly');
         // For base64 files, the downloadURL is already a data URL that can be used directly
+      } else if (fileData.downloadURL && fileData.downloadURL.includes('firebasestorage.googleapis.com')) {
+        console.log('📁 File is in Firebase Storage, modifying URL for download');
+        // For Firebase Storage URLs, add response-content-disposition parameter
+        const separator = fileData.downloadURL.includes('?') ? '&' : '?';
+        const encodedFilename = encodeURIComponent(fileData.name);
+        downloadURL = `${fileData.downloadURL}${separator}response-content-disposition=attachment%3B%20filename%3D"${encodedFilename}"`;
+        forceDownload = true;
+        console.log('✅ Modified Firebase Storage URL for forced download');
       } else {
-        console.log('📁 File has Firebase Storage, using direct download URL');
+        console.log('📁 File has download URL, using direct URL');
       }
       
       // Track the download
@@ -1401,10 +1425,11 @@ To enable full file storage, configure Firebase Storage in your project.`;
       });
 
       return {
-        downloadURL: fileData.downloadURL,
+        downloadURL,
         fileName: fileData.name,
         fileData,
-        isMetadataOnly: false
+        isMetadataOnly: false,
+        forceDownload
       };
     } catch (error) {
       console.error('Error downloading file:', error);
