@@ -534,93 +534,80 @@ const FileList = ({
         </Grid>
       </Box>
 
-      {/* Files Grid */}
-      {filteredFiles.length === 0 ? (
+      {/* Upload Area - Always available when onUpload exists */}
+      {onUpload && (
         <>
-          {onUpload && files.length === 0 && (
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileInput}
-              style={{ display: 'none' }}
-              accept="*/*"
-            />
-          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileInput}
+            style={{ display: 'none' }}
+            accept="*/*"
+          />
           <Box 
             textAlign="center" 
-            py={4}
+            py={2}
+            mb={3}
             sx={{ 
               border: '2px dashed',
               borderColor: dragActive ? 'primary.main' : 'divider',
               borderRadius: 2,
               backgroundColor: dragActive ? 'primary.50' : 'grey.50',
-              cursor: onUpload && files.length === 0 ? 'pointer' : 'default',
+              cursor: 'pointer',
               transition: 'all 0.2s ease-in-out',
-              '&:hover': onUpload && files.length === 0 ? {
+              '&:hover': {
                 borderColor: 'primary.main',
                 backgroundColor: 'primary.50'
-              } : {}
+              }
             }}
-            onClick={onUpload && files.length === 0 ? handleUploadClick : undefined}
-            onDragEnter={onUpload && files.length === 0 ? handleDrag : undefined}
-            onDragLeave={onUpload && files.length === 0 ? handleDrag : undefined}
-            onDragOver={onUpload && files.length === 0 ? handleDrag : undefined}
-            onDrop={onUpload && files.length === 0 ? handleDrop : undefined}
+            onClick={handleUploadClick}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
           >
-            {onUpload && files.length === 0 ? (
-              <Tooltip title="Click to select files or drag & drop here">
-                <IconButton 
-                  sx={{ 
-                    mb: 2,
-                    pointerEvents: 'none', // Let the parent Box handle clicks
-                    '&:hover': {
-                      backgroundColor: 'transparent'
-                    }
-                  }}
-                >
-                  <UploadIcon sx={{ fontSize: 48, color: dragActive ? 'primary.main' : 'primary.main' }} />
-                </IconButton>
-              </Tooltip>
-            ) : (
+            <Tooltip title="Click to select files or drag & drop here">
               <IconButton 
-                onClick={onUpload && files.length === 0 ? handleUploadClick : undefined}
-                disabled={!onUpload || files.length > 0}
+                onClick={handleUploadClick}
                 sx={{ 
                   p: 2,
                   borderRadius: 4,
-                  cursor: onUpload && files.length === 0 ? 'pointer' : 'default',
-                  '&:hover': onUpload && files.length === 0 ? {
+                  cursor: 'pointer',
+                  '&:hover': {
                     backgroundColor: 'action.hover',
                     transform: 'scale(1.05)',
-                  } : {
-                    backgroundColor: 'transparent'
                   },
-                  '&:active': onUpload && files.length === 0 ? {
+                  '&:active': {
                     transform: 'scale(0.95)',
-                  } : {},
+                  },
                   transition: 'all 0.2s ease-in-out'
                 }}
               >
-                <FileIcon sx={{ 
-                  fontSize: 48, 
-                  color: onUpload && files.length === 0 ? 'primary.main' : 'text.secondary', 
-                  mb: 2,
-                  transition: 'color 0.2s ease-in-out'
-                }} />
+                <UploadIcon sx={{ fontSize: 48, color: 'primary.main', transition: 'color 0.2s ease-in-out' }} />
               </IconButton>
-            )}
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              {files.length === 0 ? 'No files uploaded yet' : 'No files match your filters'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {files.length === 0 
-                ? onUpload ? 'Click here to select files or drag & drop files to upload' : 'Files will appear here once uploaded'
-                : 'Try adjusting your search criteria'
-              }
+            </Tooltip>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {files.length === 0 ? 'Click to upload your first files' : 'Click to add more files'}
             </Typography>
           </Box>
         </>
+      )}
+
+      {/* Empty State Message */}
+      {filteredFiles.length === 0 ? (
+        <Box textAlign="center" py={4}>
+          <FileIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            {files.length === 0 ? 'No files uploaded yet' : 'No files match your filters'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {files.length === 0 
+              ? onUpload ? 'Use the upload area above to add your first files' : 'Files will appear here once uploaded'
+              : 'Try adjusting your search criteria or use the upload area above to add more files'
+            }
+          </Typography>
+        </Box>
       ) : (
         <Grid container spacing={2}>
           {filteredFiles.map((file) => {
