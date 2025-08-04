@@ -18,7 +18,6 @@ import {
 } from "../../components/DashboardComponents";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import firebaseService from "../../services/firebase/firebaseService";
-import { testProjectAssignment } from "../../utils/debugProjectAssignment";
 
 const DashboardContent = () => {
   const { user } = useAuth();
