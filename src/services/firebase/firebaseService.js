@@ -1502,19 +1502,53 @@ To enable full file storage, configure Firebase Storage in your project.`;
       
       // Query files by uploadedBy field for user assets
       console.log('🔍 Executing user files query...');
-      const filesQuery = query(
-        collection(this.db, 'files'),
-        where('uploadedBy', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
+      
+      // Note: The compound query (where + orderBy) requires a composite index
+      // Check if the error is an index error and handle gracefully
+      let snapshot;
+      let needsClientSideSort = false;
+      
+      try {
+        const filesQuery = query(
+          collection(this.db, 'files'),
+          where('uploadedBy', '==', userId),
+          orderBy('createdAt', 'desc')
+        );
+        snapshot = await getDocs(filesQuery);
+      } catch (queryError) {
+        // Check if this is specifically an index error
+        if (queryError.code === 'failed-precondition' || queryError.message?.includes('requires an index')) {
+          console.warn('Composite index not available, using fallback query without orderBy');
+          console.log('To create the index, visit the Firebase Console or click the link in the error message');
+          
+          // Fallback to simple query without orderBy
+          const filesQuery = query(
+            collection(this.db, 'files'),
+            where('uploadedBy', '==', userId)
+          );
+          snapshot = await getDocs(filesQuery);
+          needsClientSideSort = true;
+        } else {
+          // Re-throw if it's not an index error
+          throw queryError;
+        }
+      }
 
-      const snapshot = await getDocs(filesQuery);
       let files = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
         updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
       }));
+
+      // Sort client-side if we used the fallback query
+      if (needsClientSideSort) {
+        files.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateB - dateA; // Descending order
+        });
+      }
 
       // Apply client-side filtering if needed
       if (category) {

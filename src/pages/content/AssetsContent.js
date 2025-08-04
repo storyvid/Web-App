@@ -252,8 +252,8 @@ const AssetsContent = () => {
         </Typography>
       </BrandHeader>
 
-      {/* Stats Cards */}
-      <EnhancedStatsGrid container spacing={3} sx={{ mb: 4 }}>
+      {/* Stats Cards - Hidden per user request */}
+      {/* <EnhancedStatsGrid container spacing={3} sx={{ mb: 4 }}>
         {data.stats &&
           data.stats.map((stat, index) => (
             <Grid
@@ -282,7 +282,7 @@ const AssetsContent = () => {
               />
             </Grid>
           ))}
-      </EnhancedStatsGrid>
+      </EnhancedStatsGrid> */}
 
       {/* Main Assets Manager */}
       <Box sx={{ mb: 4 }}>

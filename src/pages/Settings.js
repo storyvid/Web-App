@@ -277,7 +277,7 @@ const Settings = () => {
       case 'settings':
         break;
       case 'assets':
-        console.log('Assets page not implemented yet');
+        navigate('/assets');
         break;
       case 'services':
         navigate('/services');

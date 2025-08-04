@@ -72,8 +72,7 @@ const AppLayout = () => {
         navigate('/settings');
         break;
       case 'assets':
-        // TODO: Add assets page
-        console.log('Assets page not implemented yet');
+        navigate('/assets');
         break;
       case 'services':
         navigate('/services');

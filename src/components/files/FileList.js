@@ -51,6 +51,7 @@ const FileList = ({
   projectId = null,
   milestoneId = null,
   category = null,
+  files: propFiles = null, // Accept files as prop
   onFileUpdate,
   showUploadedBy = true,
   allowDelete = true,
@@ -60,7 +61,7 @@ const FileList = ({
   refreshTrigger = 0,
 }) => {
   const { user } = useAuth();
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState(propFiles || []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [downloadingFiles, setDownloadingFiles] = useState(new Set());
@@ -127,10 +128,22 @@ const FileList = ({
     { value: "other", label: "Other" },
   ];
 
+  // Update files when propFiles changes
+  useEffect(() => {
+    if (propFiles !== null) {
+      console.log("FileList using prop files:", propFiles.length);
+      setFiles(propFiles);
+      setLoading(false);
+    }
+  }, [propFiles]);
+
   // Load files
   useEffect(() => {
-    loadFiles();
-  }, [projectId, milestoneId, category, refreshTrigger]);
+    // Only load files if not using propFiles
+    if (propFiles === null) {
+      loadFiles();
+    }
+  }, [projectId, milestoneId, category, refreshTrigger, propFiles]);
 
   const loadFiles = async () => {
     try {
