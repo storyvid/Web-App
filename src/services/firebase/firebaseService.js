@@ -1493,6 +1493,105 @@ To enable full file storage, configure Firebase Storage in your project.`;
     }
   }
 
+  // Get all files for a specific user (for Assets page)
+  async getUserFiles(userId, options = {}) {
+    console.log('🔍 getUserFiles called with:', { userId, ...options });
+    
+    try {
+      const { category = null, type = null, limitCount = 100 } = options;
+      
+      // Query files by uploadedBy field for user assets
+      console.log('🔍 Executing user files query...');
+      const filesQuery = query(
+        collection(this.db, 'files'),
+        where('uploadedBy', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+
+      const snapshot = await getDocs(filesQuery);
+      let files = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt
+      }));
+
+      // Apply client-side filtering if needed
+      if (category) {
+        files = files.filter(file => file.category === category);
+      }
+      
+      if (type) {
+        files = files.filter(file => file.type === type);
+      }
+
+      // Apply limit
+      if (limitCount) {
+        files = files.slice(0, limitCount);
+      }
+
+      console.log(`🔍 Found ${files.length} files for user`);
+      return files;
+    } catch (error) {
+      console.error('Error getting user files:', error);
+      return [];
+    }
+  }
+
+  // Get storage statistics for a user
+  async getUserStorageStats(userId) {
+    console.log('📊 getUserStorageStats called for:', userId);
+    
+    try {
+      const files = await this.getUserFiles(userId);
+      
+      const stats = {
+        totalFiles: files.length,
+        totalSize: files.reduce((sum, file) => sum + (file.size || 0), 0),
+        typeBreakdown: {},
+        recentUploads: 0, // Files uploaded in last 7 days
+        lastUpload: null
+      };
+
+      // Calculate type breakdown and recent uploads
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      files.forEach(file => {
+        // Type breakdown
+        const type = file.type || 'other';
+        if (!stats.typeBreakdown[type]) {
+          stats.typeBreakdown[type] = { count: 0, size: 0 };
+        }
+        stats.typeBreakdown[type].count++;
+        stats.typeBreakdown[type].size += file.size || 0;
+
+        // Recent uploads
+        const fileDate = new Date(file.createdAt);
+        if (fileDate > weekAgo) {
+          stats.recentUploads++;
+        }
+
+        // Last upload
+        if (!stats.lastUpload || fileDate > new Date(stats.lastUpload)) {
+          stats.lastUpload = file.createdAt;
+        }
+      });
+
+      console.log('📊 User storage stats:', stats);
+      return stats;
+    } catch (error) {
+      console.error('Error getting user storage stats:', error);
+      return {
+        totalFiles: 0,
+        totalSize: 0,
+        typeBreakdown: {},
+        recentUploads: 0,
+        lastUpload: null
+      };
+    }
+  }
+
   // Profile picture upload
   async uploadProfilePicture(uid, file) {
 

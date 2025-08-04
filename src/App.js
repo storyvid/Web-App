@@ -33,6 +33,7 @@ import AdminProjectsContent from './pages/content/AdminProjectsContent';
 import AdminUsersContent from './pages/content/AdminUsersContent';
 import MilestoneDetail from './pages/MilestoneDetail';
 import ServicesContent from './pages/content/ServicesContent';
+import AssetsContent from './pages/content/AssetsContent';
 
 function App() {
   return (
@@ -91,6 +92,9 @@ function App() {
                     <Route path="/project/:projectId" element={<ProjectDetail />} />
                     <Route path="/project/:projectId/timeline" element={<MilestoneDetail />} />
                     <Route path="/settings" element={<SettingsContent />} />
+                    
+                    {/* Assets Route - Available to all authenticated users */}
+                    <Route path="/assets" element={<AssetsContent />} />
                     
                     {/* Services Route - Only for Client and Admin roles */}
                     <Route 
