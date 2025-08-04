@@ -384,7 +384,7 @@ const ServicesContent = () => {
             >
               <ServiceCard 
                 service={service}
-                onActionClick={handleServiceAction}
+                onClick={handleServiceAction}
               />
             </Grid>
           ))}
