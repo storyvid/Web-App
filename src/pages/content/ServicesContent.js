@@ -4,7 +4,6 @@ import {
   Typography,
   Grid,
   Container,
-  LinearProgress,
   Card,
   CardContent,
   Button,
@@ -323,9 +322,26 @@ const ServicesContent = () => {
 
   if (loading) {
     return (
-      <Box sx={{ p: 3 }}>
-        <LinearProgress />
-        <Typography sx={{ mt: 2 }}>Loading services...</Typography>
+      <Box 
+        sx={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '80vh',
+          gap: 2
+        }}
+      >
+        <CircularProgress 
+          size={60}
+          sx={{ 
+            color: '#FFC535',
+            '& .MuiCircularProgress-circle': {
+              strokeLinecap: 'round'
+            }
+          }} 
+        />
+        <Typography color="text.secondary">Loading services...</Typography>
       </Box>
     );
   }
