@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Grid,
@@ -41,6 +42,7 @@ import { styles } from '../../pages/dashboardStyles';
 
 const ClientDashboard = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = useSelector(selectUser);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -86,11 +88,15 @@ const ClientDashboard = () => {
       case 'review': return 'warning';
       case 'completed': return 'success';
       case 'planning': return 'info';
+      case 'service_request': return 'info';
       default: return 'default';
     }
   };
 
   const getStatusText = (status) => {
+    if (status === 'service_request') {
+      return 'PENDING APPROVAL';
+    }
     return status.replace('_', ' ').toUpperCase();
   };
 
@@ -236,7 +242,7 @@ const ClientDashboard = () => {
                   startIcon={<AddIcon />}
                   size="small"
                   allowedRoles={['client']}
-                  onClick={() => console.log('Request new project')}
+                  onClick={() => navigate('/services')}
                 >
                   Request Project
                 </RoleBasedButton>

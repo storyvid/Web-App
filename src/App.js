@@ -38,6 +38,11 @@ import SettingsContent from './pages/content/SettingsContent';
 import AdminProjectsContent from './pages/content/AdminProjectsContent';
 import AdminUsersContent from './pages/content/AdminUsersContent';
 import MilestoneDetail from './pages/MilestoneDetail';
+import ServicesContent from './pages/content/ServicesContent';
+import ServicesTest from './components/services/ServicesTest';
+import FirebaseDebug from './components/services/FirebaseDebug';
+import SimpleTest from './components/services/SimpleTest';
+import NotificationTest from './components/services/NotificationTest';
 
 function App() {
   return (
@@ -97,6 +102,16 @@ function App() {
                     <Route path="/project/:projectId/timeline" element={<MilestoneDetail />} />
                     <Route path="/settings" element={<SettingsContent />} />
                     
+                    {/* Services Route - Only for Client and Admin roles */}
+                    <Route 
+                      path="/services" 
+                      element={
+                        <RoleBasedRoute allowedRoles={['client', 'admin']}>
+                          <ServicesContent />
+                        </RoleBasedRoute>
+                      } 
+                    />
+                    
                     {/* Admin Routes - Require admin role */}
                     <Route 
                       path="/admin/projects" 
@@ -136,6 +151,10 @@ function App() {
                   <Route path="/role-test" element={<RoleBasedDashboardTest />} />
                   <Route path="/debug" element={<DataDebugger />} />
                   <Route path="/project-management-test" element={<ProjectManagementTest />} />
+                  <Route path="/services-test" element={<ServicesTest />} />
+                  <Route path="/firebase-debug" element={<FirebaseDebug />} />
+                  <Route path="/simple-test" element={<SimpleTest />} />
+                  <Route path="/notification-test" element={<NotificationTest />} />
 
                   {/* Redirect root to dashboard for authenticated users, login for others */}
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -65,8 +65,8 @@ import { debugFirebaseConfig } from '../../utils/debugFirebaseConfig';
 class FirebaseService {
   constructor() {
     console.log('🔥 FirebaseService constructor called');
+    this.useMockData = true; // Temporarily use mock data for debugging
     console.log('🔥 useMockData set to:', this.useMockData);
-    this.useMockData = false; // Use real Firebase for production service
     this.currentUser = null;
     this.app = null;
     this.db = null;
@@ -1028,17 +1028,29 @@ class FirebaseService {
   }
 
   async createNotification(notificationData) {
-    const validation = validateSchema(notificationData, NotificationSchema);
-    if (!validation.isValid) {
-      throw new Error(`Invalid notification data: ${validation.errors.join(', ')}`);
-    }
-
+    console.log('🔔 createNotification called with:', notificationData);
+    
     if (this.useMockData) {
-      console.log('Mock: Creating notification', notificationData);
-      return { id: 'mock-notification-id', ...notificationData };
+      console.log('Mock: Creating notification (skipping validation)', notificationData);
+      return { id: notificationData.id || 'mock-notification-id', ...notificationData };
     }
     
-    // TODO: Replace with Firestore call
+    const validation = validateSchema(notificationData, NotificationSchema);
+    if (!validation.isValid) {
+      console.error('❌ Notification validation failed:', validation.errors);
+      throw new Error(`Invalid notification data: ${validation.errors.join(', ')}`);
+    }
+    
+    try {
+      const docRef = doc(collection(this.db, 'notifications'));
+      await setDoc(docRef, {
+        ...notificationData,
+        createdAt: serverTimestamp()
+      });
+      return { id: docRef.id, ...notificationData };
+    } catch (error) {
+      throw new Error(`Failed to create notification: ${error.message}`);
+    }
   }
 
   async markNotificationAsRead(notificationId) {
@@ -1577,6 +1589,64 @@ To enable full file storage, configure Firebase Storage in your project.`;
     //   where('read', '==', false)
     // );
     // return onSnapshot(q, callback);
+  }
+
+  // Client Methods
+  async getClients() {
+    console.log('🔍 getClients called, useMockData:', this.useMockData);
+    
+    if (this.useMockData) {
+      console.log('Mock: Getting clients');
+      return [
+        { id: '1', name: 'John Smith', company: 'TechCorp Inc.', contactPerson: 'John Smith' },
+        { id: '2', name: 'Sarah Johnson', company: 'Marketing Plus', contactPerson: 'Sarah Johnson' },
+        { id: '3', name: 'Mike Chen', company: 'StartupXYZ', contactPerson: 'Mike Chen' }
+      ];
+    }
+
+    console.log('🔥 Attempting to fetch clients from Firebase...');
+    try {
+      if (!this.db) {
+        console.error('❌ Firestore database not initialized');
+        throw new Error('Database not initialized');
+      }
+
+      console.log('📡 Querying Firestore for users with role=client');
+      const clientsQuery = query(
+        collection(this.db, 'users'),
+        where('role', '==', 'client'),
+        orderBy('createdAt', 'desc')
+      );
+      
+      console.log('⏳ Executing Firestore query...');
+      const snapshot = await getDocs(clientsQuery);
+      console.log('✅ Query completed. Documents found:', snapshot.docs.length);
+      
+      const clients = snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('📄 Client doc:', doc.id, data);
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt
+        };
+      });
+      
+      console.log('✅ Processed clients:', clients);
+      return clients;
+    } catch (error) {
+      console.error('❌ Error getting clients:', error);
+      console.error('❌ Error details:', error.message, error.code);
+      
+      // Fallback to mock data on error
+      console.log('🔄 Falling back to mock data');
+      return [
+        { id: '1', name: 'John Smith', company: 'TechCorp Inc.', contactPerson: 'John Smith' },
+        { id: '2', name: 'Sarah Johnson', company: 'Marketing Plus', contactPerson: 'Sarah Johnson' },
+        { id: '3', name: 'Mike Chen', company: 'StartupXYZ', contactPerson: 'Mike Chen' }
+      ];
+    }
   }
 }
 

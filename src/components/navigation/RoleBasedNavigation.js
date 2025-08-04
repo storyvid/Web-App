@@ -51,6 +51,7 @@ const RoleBasedNavigation = ({ activeItem = 'dashboard', onMenuItemClick }) => {
         return [
           ...baseItems,
           { id: 'projects', label: 'My Projects', icon: ProjectsIcon, path: '/projects' },
+          { id: 'services', label: 'Services', icon: ServicesIcon, path: '/services' },
           { id: 'assets', label: 'Assets', icon: AssetsIcon, path: '/assets' },
           { id: 'messages', label: 'Messages', icon: MessagesIcon, path: '/messages', badge: 3 },
           { id: 'billing', label: 'Billing', icon: BillingIcon, path: '/billing' },
@@ -72,6 +73,7 @@ const RoleBasedNavigation = ({ activeItem = 'dashboard', onMenuItemClick }) => {
         return [
           ...baseItems,
           { id: 'projects', label: 'Projects', icon: ProjectsIcon, path: '/projects' },
+          { id: 'services', label: 'Services', icon: ServicesIcon, path: '/services' },
           { id: 'team', label: 'Team', icon: TeamIcon, path: '/team' },
           { id: 'clients', label: 'Clients', icon: ClientsIcon, path: '/clients' },
           { id: 'assets', label: 'Assets', icon: AssetsIcon, path: '/assets' },
@@ -138,8 +140,38 @@ const RoleBasedNavigation = ({ activeItem = 'dashboard', onMenuItemClick }) => {
 
   const handleQuickAction = (action) => {
     setQuickActionsAnchor(null);
-    console.log('Quick action triggered:', action.id);
-    // TODO: Implement quick action handlers
+    
+    switch (action.id) {
+      case 'new-project':
+        navigate('/services');
+        break;
+      case 'message-team':
+        navigate('/messages');
+        break;
+      case 'view-assets':
+        navigate('/assets');
+        break;
+      case 'log-time':
+        console.log('Log time action');
+        break;
+      case 'upload-asset':
+        navigate('/assets');
+        break;
+      case 'update-task':
+        navigate('/assignments');
+        break;
+      case 'invite-member':
+        navigate('/team');
+        break;
+      case 'add-client':
+        navigate('/clients');
+        break;
+      case 'view-analytics':
+        navigate('/analytics');
+        break;
+      default:
+        console.log('Quick action triggered:', action.id);
+    }
   };
 
   const getRoleColor = (role) => {

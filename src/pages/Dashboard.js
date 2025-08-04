@@ -124,8 +124,7 @@ const Dashboard = () => {
         console.log('Assets page not implemented yet');
         break;
       case 'services':
-        // TODO: Add services page
-        console.log('Services page not implemented yet');
+        navigate('/services');
         break;
       case 'dashboard':
       default:

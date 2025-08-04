@@ -56,6 +56,8 @@ const PersistentDashboardLayout = () => {
       setActiveMenuItem('admin-users');
     } else if (path === '/settings') {
       setActiveMenuItem('settings');
+    } else if (path === '/services') {
+      setActiveMenuItem('services');
     } else if (path.startsWith('/project/')) {
       setActiveMenuItem('projects'); // Keep projects active when viewing project details
     } else {
@@ -90,8 +92,7 @@ const PersistentDashboardLayout = () => {
         console.log('Assets page not implemented yet');
         break;
       case 'services':
-        // TODO: Add services page
-        console.log('Services page not implemented yet');
+        navigate('/services');
         break;
       default:
         break;

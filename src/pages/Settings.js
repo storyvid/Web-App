@@ -280,7 +280,7 @@ const Settings = () => {
         console.log('Assets page not implemented yet');
         break;
       case 'services':
-        console.log('Services page not implemented yet');
+        navigate('/services');
         break;
       default:
         break;
