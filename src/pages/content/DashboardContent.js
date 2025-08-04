@@ -17,7 +17,7 @@ import {
   TeamSection,
 } from "../../components/DashboardComponents";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import projectManagementService from "../../services/projectManagementService";
+import firebaseService from "../../services/firebase/firebaseService";
 import { testProjectAssignment } from "../../utils/debugProjectAssignment";
 
 const DashboardContent = () => {
@@ -36,8 +36,7 @@ const DashboardContent = () => {
       setLoading(true);
       console.log(`📊 Loading dashboard content for authenticated user: ${user.email} (${user.role})`);
 
-      // Ensure projectManagementService has the current user context
-      projectManagementService.setCurrentUser(user);
+      // FirebaseService doesn't need user context setup
 
       // For admins, use project management service to get all projects
       // For clients/staff, fetch their actual assigned projects
@@ -45,11 +44,11 @@ const DashboardContent = () => {
       let totalUsers = 0;
 
       if (user.role === "admin") {
-        // Admins see all projects from project management service
+        // Admins see all projects from Firebase
         try {
-          userProjects = await projectManagementService.getAllProjects();
+          userProjects = await firebaseService.getProjects();
           // Also get all users for admin stats
-          const allUsers = await projectManagementService.getAllUsers();
+          const allUsers = await firebaseService.getAllUsers();
           totalUsers = allUsers.filter(
             (u) => u.role === "client" || u.role === "staff"
           ).length;
@@ -66,24 +65,28 @@ const DashboardContent = () => {
             role: user.role,
             name: user.name,
           });
-          userProjects = await projectManagementService.getProjectsByUser(
-            user.uid
-          );
+          // Get all projects and filter by clientId for clients
+          const allProjects = await firebaseService.getProjects();
+          if (user.role === 'client') {
+            userProjects = allProjects.filter(project => project.clientId === user.uid);
+          } else if (user.role === 'staff') {
+            // Staff ONLY see projects they are assigned to - NO fallback for security
+            userProjects = allProjects.filter(project => 
+              project.assignedStaff?.includes(user.uid) || 
+              project.projectManager === user.uid
+            );
+            console.log(`👥 Staff found ${userProjects.length} assigned projects (out of ${allProjects.length} total)`);
+          } else {
+            userProjects = allProjects;
+          }
           console.log(
             "🔍 DEBUG: Dashboard found projects for user:",
             userProjects
           );
 
-          // If no projects found, run comprehensive debug test
-          if (userProjects.length === 0 && user.email) {
-            console.log(
-              "🔍 DEBUG: No projects found, running comprehensive test..."
-            );
-            try {
-              await testProjectAssignment(user.email);
-            } catch (debugError) {
-              console.error("Debug test failed:", debugError);
-            }
+          // Debug: Log if no projects found for user
+          if (userProjects.length === 0) {
+            console.log("🔍 No projects found for user:", user.uid, user.role);
           }
         } catch (error) {
           console.warn("User projects unavailable, showing empty:", error);

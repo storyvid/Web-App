@@ -47,7 +47,7 @@ import {
 } from '@mui/icons-material';
 
 import { selectUser } from '../../store/slices/authSlice';
-import { useRoleBasedData } from '../../hooks/useRoleBasedData';
+import firebaseService from '../../services/firebase/firebaseService';
 import PermissionGate from '../common/PermissionGate';
 import RoleBasedButton from '../common/RoleBasedButton';
 import ProjectCreationForm from './ProjectCreationForm';
@@ -70,8 +70,19 @@ const ProjectList = ({ viewMode = 'grid' }) => {
   const [showProjectDetails, setShowProjectDetails] = useState(false);
   const [selectedProjectForDetails, setSelectedProjectForDetails] = useState(null);
 
-  // Use role-based data filtering
-  const { data: filteredProjects, permissions } = useRoleBasedData(projects, 'projects');
+  // Note: We're doing our own project filtering in loadProjects, so no need for useRoleBasedData filtering
+  const permissions = { canView: true, canEdit: true, canDelete: false, canCreate: true };
+
+  // Force refresh mechanism
+  useEffect(() => {
+    const handleForceRefresh = () => {
+      console.log('🔄 Force refresh triggered for ProjectList');
+      loadProjects();
+    };
+    
+    window.addEventListener('forceProjectRefresh', handleForceRefresh);
+    return () => window.removeEventListener('forceProjectRefresh', handleForceRefresh);
+  }, [user]);
 
   useEffect(() => {
     loadProjects();
@@ -80,12 +91,35 @@ const ProjectList = ({ viewMode = 'grid' }) => {
   const loadProjects = async () => {
     try {
       setLoading(true);
-      // TODO: Load from API
-      // For now, using mock data based on user role
-      const mockProjects = getMockProjectsForRole(user?.role);
-      setProjects(mockProjects);
+      console.log('📋 ProjectList: Loading projects for user:', user?.uid, 'role:', user?.role);
+      
+      // Load real projects from Firebase
+      const allProjects = await firebaseService.getProjects();
+      console.log('📋 ProjectList: All projects from Firebase:', allProjects);
+      
+      let userProjects = [];
+      switch (user?.role) {
+        case 'client':
+          userProjects = allProjects.filter(project => project.clientId === user.uid);
+          break;
+        case 'admin':
+          userProjects = allProjects; // Admins see all projects
+          break;
+        case 'staff':
+          userProjects = allProjects.filter(project => 
+            project.assignedStaff?.includes(user.uid) || 
+            project.projectManager === user.uid
+          );
+          break;
+        default:
+          userProjects = [];
+      }
+      
+      console.log('📋 ProjectList: Filtered projects for user:', userProjects);
+      setProjects(userProjects);
     } catch (error) {
       console.error('Failed to load projects:', error);
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -243,7 +277,7 @@ const ProjectList = ({ viewMode = 'grid' }) => {
   };
 
   const getFilteredAndSortedProjects = () => {
-    let filtered = filteredProjects;
+    let filtered = projects;
 
     // Apply search filter
     if (searchTerm) {

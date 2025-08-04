@@ -4,7 +4,7 @@ import { Typography, Grid, Alert, Box } from "@mui/material";
 import { useAuth } from "../../contexts/AuthContext";
 import { ProjectCard } from "../../components/DashboardComponents";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import projectManagementService from "../../services/projectManagementService";
+import firebaseService from "../../services/firebase/firebaseService";
 
 const ProjectsListContent = () => {
   const { user } = useAuth();
@@ -28,38 +28,43 @@ const ProjectsListContent = () => {
       // For clients/staff, fetch their actual assigned projects
       let userProjects = [];
 
-      // Ensure projectManagementService has the current user context
-      projectManagementService.setCurrentUser(user);
+      // FirebaseService doesn't need user context setup
 
-      if (user.role === "admin") {
-        // Admins see all projects from project management service
-        try {
-          userProjects = await projectManagementService.getAllProjects();
+      console.log("🔍 DEBUG: ProjectsList fetching projects for user:", {
+        uid: user.uid,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+      });
+
+      // Get all projects and filter based on role
+      try {
+        const allProjects = await firebaseService.getProjects();
+        
+        if (user.role === "admin") {
+          userProjects = allProjects;
           console.log(`📊 Admin found ${userProjects.length} total projects`);
-        } catch (error) {
-          console.warn("Admin projects unavailable, showing empty:", error);
+        } else if (user.role === 'client') {
+          userProjects = allProjects.filter(project => project.clientId === user.uid);
+          console.log(`👤 Client found ${userProjects.length} assigned projects`);
+        } else if (user.role === 'staff') {
+          // Staff ONLY see projects they are assigned to - NO fallback for security
+          userProjects = allProjects.filter(project => 
+            project.assignedStaff?.includes(user.uid) || 
+            project.projectManager === user.uid
+          );
+          console.log(`👥 Staff found ${userProjects.length} assigned projects (out of ${allProjects.length} total)`);
+        } else {
           userProjects = [];
         }
-      } else if (user.uid) {
-        // Clients/staff only see their assigned projects
-        try {
-          console.log("🔍 DEBUG: ProjectsList fetching projects for user:", {
-            uid: user.uid,
-            email: user.email,
-            role: user.role,
-            name: user.name,
-          });
-          userProjects = await projectManagementService.getProjectsByUser(
-            user.uid
-          );
-          console.log(
-            "🔍 DEBUG: ProjectsList found projects for user:",
-            userProjects
-          );
-        } catch (error) {
-          console.warn("User projects unavailable, showing empty:", error);
-          userProjects = [];
-        }
+        
+        console.log(
+          "🔍 DEBUG: ProjectsList found projects for user:",
+          userProjects
+        );
+      } catch (error) {
+        console.warn("User projects unavailable, showing empty:", error);
+        userProjects = [];
       }
 
       // Merge with real user data - no mock data

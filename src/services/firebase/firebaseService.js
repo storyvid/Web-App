@@ -65,7 +65,7 @@ import { debugFirebaseConfig } from '../../utils/debugFirebaseConfig';
 class FirebaseService {
   constructor() {
     console.log('🔥 FirebaseService constructor called');
-    this.useMockData = true; // Temporarily use mock data for debugging
+    this.useMockData = false; // Production: Use real Firebase
     console.log('🔥 useMockData set to:', this.useMockData);
     this.currentUser = null;
     this.app = null;
@@ -1028,16 +1028,12 @@ class FirebaseService {
   }
 
   async createNotification(notificationData) {
-    console.log('🔔 createNotification called with:', notificationData);
-    
     if (this.useMockData) {
-      console.log('Mock: Creating notification (skipping validation)', notificationData);
       return { id: notificationData.id || 'mock-notification-id', ...notificationData };
     }
     
     const validation = validateSchema(notificationData, NotificationSchema);
     if (!validation.isValid) {
-      console.error('❌ Notification validation failed:', validation.errors);
       throw new Error(`Invalid notification data: ${validation.errors.join(', ')}`);
     }
     
@@ -1593,10 +1589,7 @@ To enable full file storage, configure Firebase Storage in your project.`;
 
   // Client Methods
   async getClients() {
-    console.log('🔍 getClients called, useMockData:', this.useMockData);
-    
     if (this.useMockData) {
-      console.log('Mock: Getting clients');
       return [
         { id: '1', name: 'John Smith', company: 'TechCorp Inc.', contactPerson: 'John Smith' },
         { id: '2', name: 'Sarah Johnson', company: 'Marketing Plus', contactPerson: 'Sarah Johnson' },
@@ -1604,27 +1597,21 @@ To enable full file storage, configure Firebase Storage in your project.`;
       ];
     }
 
-    console.log('🔥 Attempting to fetch clients from Firebase...');
     try {
       if (!this.db) {
-        console.error('❌ Firestore database not initialized');
         throw new Error('Database not initialized');
       }
 
-      console.log('📡 Querying Firestore for users with role=client');
+      // Simplified query without orderBy to avoid composite index requirement
       const clientsQuery = query(
         collection(this.db, 'users'),
-        where('role', '==', 'client'),
-        orderBy('createdAt', 'desc')
+        where('role', '==', 'client')
       );
       
-      console.log('⏳ Executing Firestore query...');
       const snapshot = await getDocs(clientsQuery);
-      console.log('✅ Query completed. Documents found:', snapshot.docs.length);
       
       const clients = snapshot.docs.map(doc => {
         const data = doc.data();
-        console.log('📄 Client doc:', doc.id, data);
         return {
           id: doc.id,
           ...data,
@@ -1633,14 +1620,23 @@ To enable full file storage, configure Firebase Storage in your project.`;
         };
       });
       
-      console.log('✅ Processed clients:', clients);
+      // Sort on client side to avoid composite index requirement
+      clients.sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return dateB - dateA; // Most recent first
+      });
+      
       return clients;
     } catch (error) {
-      console.error('❌ Error getting clients:', error);
-      console.error('❌ Error details:', error.message, error.code);
+      console.error('Error getting clients:', error);
       
-      // Fallback to mock data on error
-      console.log('🔄 Falling back to mock data');
+      // In production mode, return empty array instead of mock data
+      if (!this.useMockData) {
+        throw error; // Let the caller handle the error
+      }
+      
+      // Only use mock data fallback in mock mode
       return [
         { id: '1', name: 'John Smith', company: 'TechCorp Inc.', contactPerson: 'John Smith' },
         { id: '2', name: 'Sarah Johnson', company: 'Marketing Plus', contactPerson: 'Sarah Johnson' },

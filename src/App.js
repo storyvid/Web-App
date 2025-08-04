@@ -43,6 +43,16 @@ import ServicesTest from './components/services/ServicesTest';
 import FirebaseDebug from './components/services/FirebaseDebug';
 import SimpleTest from './components/services/SimpleTest';
 import NotificationTest from './components/services/NotificationTest';
+import ProductionTest from './components/services/ProductionTest';
+import ComprehensiveTest from './components/services/ComprehensiveTest';
+import ClientDebugTest from './components/services/ClientDebugTest';
+import IndexFixTest from './components/services/IndexFixTest';
+import ProjectDebugTest from './components/services/ProjectDebugTest';
+import ThoroughDebugTest from './components/services/ThoroughDebugTest';
+import ProjectFieldAnalysis from './components/services/ProjectFieldAnalysis';
+import StaffProjectDebug from './components/services/StaffProjectDebug';
+import StaffAssignmentTool from './components/services/StaffAssignmentTool';
+import StaffAssignmentDebug from './components/services/StaffAssignmentDebug';
 
 function App() {
   return (
@@ -155,6 +165,16 @@ function App() {
                   <Route path="/firebase-debug" element={<FirebaseDebug />} />
                   <Route path="/simple-test" element={<SimpleTest />} />
                   <Route path="/notification-test" element={<NotificationTest />} />
+                  <Route path="/production-test" element={<ProductionTest />} />
+                  <Route path="/comprehensive-test" element={<ComprehensiveTest />} />
+                  <Route path="/client-debug" element={<ClientDebugTest />} />
+                  <Route path="/index-fix-test" element={<IndexFixTest />} />
+                  <Route path="/project-debug" element={<ProjectDebugTest />} />
+                  <Route path="/thorough-debug" element={<ThoroughDebugTest />} />
+                  <Route path="/field-analysis" element={<ProjectFieldAnalysis />} />
+                  <Route path="/staff-debug" element={<StaffProjectDebug />} />
+                  <Route path="/staff-assignment" element={<StaffAssignmentTool />} />
+                  <Route path="/staff-assignment-debug" element={<StaffAssignmentDebug />} />
 
                   {/* Redirect root to dashboard for authenticated users, login for others */}
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />

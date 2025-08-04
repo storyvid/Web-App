@@ -37,6 +37,7 @@ import { selectUser } from '../../store/slices/authSlice';
 import RoleBasedNavigation from '../navigation/RoleBasedNavigation';
 import RoleBasedButton from '../common/RoleBasedButton';
 import { useRoleBasedData, useRoleBasedUI } from '../../hooks/useRoleBasedData';
+import firebaseService from '../../services/firebase/firebaseService';
 import { StatsCard } from '../DashboardComponents';
 import { styles } from '../../pages/dashboardStyles';
 
@@ -54,33 +55,72 @@ const ClientDashboard = () => {
 
   // Use role-based hooks
   const { uiConfig } = useRoleBasedUI();
-  const { data: filteredProjects, permissions } = useRoleBasedData(projects, 'projects');
+  // Note: We're doing our own project filtering in useEffect, so no need for useRoleBasedData filtering
+  const permissions = { canView: true, canEdit: true, canDelete: false, canCreate: true };
+
+  // Force refresh mechanism
+  useEffect(() => {
+    const handleForceRefresh = () => {
+      console.log('🔄 Force refresh triggered for ClientDashboard');
+      if (user?.uid) {
+        loadClientProjects();
+      }
+    };
+    
+    window.addEventListener('forceProjectRefresh', handleForceRefresh);
+    return () => window.removeEventListener('forceProjectRefresh', handleForceRefresh);
+  }, [user?.uid]);
+
+  const loadClientProjects = async () => {
+    if (!user?.uid) {
+      console.log('🚫 ClientDashboard: No user.uid, skipping project load');
+      return;
+    }
+    
+    console.log('📊 ClientDashboard: Loading projects for user:', user.uid);
+    setLoading(true);
+    try {
+      // Fetch projects for this specific client
+      const allProjects = await firebaseService.getProjects();
+      console.log('📦 ClientDashboard: All projects from Firebase:', allProjects);
+      console.log('📦 ClientDashboard: Total projects:', allProjects.length);
+      
+      const clientProjects = allProjects.filter(project => {
+        const matches = project.clientId === user.uid;
+        console.log(`🔍 Project "${project.name}": clientId="${project.clientId}" matches user.uid="${user.uid}": ${matches}`);
+        return matches;
+      });
+      
+      console.log('✅ ClientDashboard: Filtered client projects:', clientProjects);
+      console.log('✅ ClientDashboard: Client project count:', clientProjects.length);
+      
+      // Detailed analysis of each project before setting state
+      clientProjects.forEach((project, index) => {
+        console.log(`📋 Project ${index + 1}:`, {
+          name: project.name,
+          id: project.id,
+          status: project.status,
+          progress: project.progress,
+          hasName: !!project.name,
+          hasId: !!project.id,
+          hasStatus: !!project.status,
+          hasProgress: project.progress !== undefined
+        });
+      });
+      
+      setProjects(clientProjects);
+    } catch (error) {
+      console.error('❌ ClientDashboard: Error loading client projects:', error);
+      // Fallback to empty array instead of mock data
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // TODO: Load client-specific data
-    // For now, using mock data
-    setTimeout(() => {
-      setProjects([
-        {
-          id: 1,
-          name: 'Corporate Brand Video',
-          status: 'in_progress',
-          progress: 65,
-          dueDate: '2024-08-15',
-          team: ['John D.', 'Sarah M.']
-        },
-        {
-          id: 2,
-          name: 'Product Demo Series',
-          status: 'review',
-          progress: 90,
-          dueDate: '2024-08-10',
-          team: ['Mike R.', 'Lisa K.']
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, [dispatch]);
+    loadClientProjects();
+  }, [user?.uid]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -235,7 +275,7 @@ const ClientDashboard = () => {
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">
-                  Your Projects ({filteredProjects.length})
+                  Your Projects ({projects.length})
                 </Typography>
                 <RoleBasedButton
                   variant="contained"
@@ -248,7 +288,9 @@ const ClientDashboard = () => {
                 </RoleBasedButton>
               </Box>
               
-              {filteredProjects.map((project) => (
+              {projects.map((project, index) => {
+                console.log(`🎨 Rendering project ${index + 1}:`, project.name, project.id);
+                return (
                 <Card key={project.id} variant="outlined" sx={{ mb: 2, width: '500px' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -273,26 +315,27 @@ const ClientDashboard = () => {
                     
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Progress: {project.progress}%
+                        Progress: {project.progress ?? 0}%
                       </Typography>
                       <LinearProgress 
                         variant="determinate" 
-                        value={project.progress} 
+                        value={project.progress ?? 0} 
                         sx={{ mb: 1 }}
                       />
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography variant="body2" color="text.secondary">
-                        Due: {new Date(project.dueDate).toLocaleDateString()}
+                        Due: {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'Not set'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Team: {project.team.join(', ')}
+                        Team: {project.team ? project.team.join(', ') : 'Not assigned'}
                       </Typography>
                     </Box>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         </Grid>

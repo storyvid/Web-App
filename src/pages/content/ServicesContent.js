@@ -90,40 +90,40 @@ const ServicesContent = () => {
 
   // Fetch clients and pending requests for admin
   useEffect(() => {
-    console.log('🔍 ServicesContent useEffect triggered, user:', user);
-    
     const fetchData = async () => {
       if (user?.role === 'admin') {
-        console.log('👑 User is admin, fetching data...');
         setLoading(true);
         try {
           // Fetch all clients
-          console.log('📞 Calling firebaseService.getClients()...');
           const clientsData = await firebaseService.getClients();
-          console.log('✅ Received clients data:', clientsData);
           
           const processedClients = clientsData.map(client => ({
             id: client.id,
             name: client.name || client.contactPerson || 'Unknown',
             company: client.company || 'No Company'
           }));
-          console.log('✅ Processed clients:', processedClients);
           setClients(processedClients);
 
           // Fetch pending service requests
-          console.log('📞 Calling firebaseService.getProjects()...');
           const projects = await firebaseService.getProjects();
-          console.log('✅ Received projects:', projects);
           const serviceRequests = projects.filter(p => p.status === 'service_request');
-          console.log('✅ Filtered service requests:', serviceRequests);
           setPendingRequests(serviceRequests);
         } catch (error) {
-          console.error('❌ Error fetching data:', error);
+          console.error('Error fetching admin data:', error);
+          
+          // More specific error handling
+          if (error.message.includes('requires an index')) {
+            showFeedback('Firebase index required. Check console for index creation link.', 'warning');
+          } else {
+            showFeedback('Error loading data. Please refresh the page.', 'error');
+          }
+          
+          // Set empty arrays so UI doesn't break
+          setClients([]);
+          setPendingRequests([]);
         } finally {
           setLoading(false);
         }
-      } else {
-        console.log('👤 User is not admin, skipping data fetch. Role:', user?.role);
       }
     };
 
@@ -242,9 +242,15 @@ const ServicesContent = () => {
   };
 
   const handleAdminSubmit = async (data) => {
+    console.log('🏢 Admin creating project with data:', data);
+    console.log('🎯 Selected clientId:', data.clientId);
+    console.log('📝 Available clients:', clients);
+    
     setSubmitting(true);
     try {
       const selectedClient = clients.find(c => c.id === data.clientId);
+      console.log('👤 Selected client:', selectedClient);
+      
       const { startDate, dueDate } = getTimelineStartAndDue(data.timeline);
       
       // Create project directly
@@ -275,7 +281,9 @@ const ServicesContent = () => {
         additionalNotes: data.additionalNotes
       };
 
+      console.log('🏗️ Creating project with data:', projectData);
       const newProject = await firebaseService.createProject(projectData);
+      console.log('✅ Project created:', newProject);
       
       // Create notification for client
       await firebaseService.createNotification({
@@ -531,20 +539,6 @@ const ServicesContent = () => {
           clients={clients}
           submitting={submitting}
         />
-      )}
-      
-      {/* Debug info */}
-      {process.env.NODE_ENV === 'development' && user?.role === 'admin' && (
-        <Box sx={{ position: 'fixed', bottom: 10, right: 10, bgcolor: 'background.paper', p: 1, border: 1, borderColor: 'divider', borderRadius: 1, fontSize: '0.75rem', maxWidth: 300 }}>
-          <Typography variant="caption" component="div">
-            Debug: Clients loaded: {clients.length}
-          </Typography>
-          {clients.slice(0, 2).map(client => (
-            <Typography key={client.id} variant="caption" component="div">
-              • {client.name}
-            </Typography>
-          ))}
-        </Box>
       )}
     </Box>
   );
