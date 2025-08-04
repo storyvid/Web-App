@@ -67,10 +67,6 @@ const DashboardLayout = ({
   const drawer = (
     <RoleBasedNavigation 
       activeItem={activeNavItem}
-      onMenuItemClick={(item) => {
-        console.log('Navigate to:', item);
-        // Handle navigation here
-      }}
     />
   );
 
