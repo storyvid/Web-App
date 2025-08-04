@@ -486,10 +486,23 @@ const FileList = ({
               }
               fullWidth
               size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&:hover fieldset': {
+                    borderColor: '#FFC535',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#FF8C42',
+                  },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#FF8C42',
+                },
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon />
+                    <SearchIcon sx={{ color: '#FFC535' }} />
                   </InputAdornment>
                 ),
                 endAdornment: filters.search && (
@@ -499,6 +512,12 @@ const FileList = ({
                       onClick={() =>
                         setFilters((prev) => ({ ...prev, search: "" }))
                       }
+                      sx={{
+                        color: '#FF8C42',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 197, 53, 0.1)',
+                        },
+                      }}
                     >
                       <ClearIcon />
                     </IconButton>
@@ -509,7 +528,23 @@ const FileList = ({
           </Grid>
 
           <Grid item xs={12} sm={3} md={2}>
-            <FormControl size="small" sx={{ width: "150px" }}>
+            <FormControl 
+              size="small" 
+              sx={{ 
+                width: "150px",
+                '& .MuiOutlinedInput-root': {
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#FFC535',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#FF8C42',
+                  },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#FF8C42',
+                },
+              }}
+            >
               <InputLabel>Type</InputLabel>
               <Select
                 value={filters.type}
@@ -528,7 +563,23 @@ const FileList = ({
           </Grid>
 
           <Grid item xs={12} sm={3} md={2}>
-            <FormControl size="small" sx={{ width: "150px" }}>
+            <FormControl 
+              size="small" 
+              sx={{ 
+                width: "150px",
+                '& .MuiOutlinedInput-root': {
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#FFC535',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#FF8C42',
+                  },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#FF8C42',
+                },
+              }}
+            >
               <InputLabel>Category</InputLabel>
               <Select
                 value={filters.category}
@@ -553,6 +604,14 @@ const FileList = ({
                 startIcon={<ClearIcon />}
                 onClick={clearFilters}
                 size="small"
+                sx={{
+                  borderColor: '#FFC535',
+                  color: '#FF8C42',
+                  '&:hover': {
+                    borderColor: '#FF8C42',
+                    backgroundColor: 'rgba(255, 197, 53, 0.1)',
+                  },
+                }}
               >
                 Clear
               </Button>
@@ -567,7 +626,20 @@ const FileList = ({
                 onClick={onRefresh}
                 disabled={refreshLoading}
                 size="small"
-                sx={{ height: "40px", minWidth: "100px" }} // Match dropdown height and width
+                sx={{ 
+                  height: "40px", 
+                  minWidth: "100px",
+                  borderColor: '#FFC535',
+                  color: '#FF8C42',
+                  '&:hover': {
+                    borderColor: '#FF8C42',
+                    backgroundColor: 'rgba(255, 197, 53, 0.1)',
+                  },
+                  '&:disabled': {
+                    borderColor: '#ccc',
+                    color: '#666',
+                  },
+                }}
               >
                 Refresh
               </Button>
@@ -593,14 +665,18 @@ const FileList = ({
             mb={3}
             sx={{
               border: "2px dashed",
-              borderColor: dragActive ? "primary.main" : "divider",
+              borderColor: dragActive ? "#FFC535" : "rgba(255, 197, 53, 0.3)",
               borderRadius: 2,
-              backgroundColor: dragActive ? "primary.50" : "grey.50",
+              background: dragActive 
+                ? "linear-gradient(135deg, rgba(255, 197, 53, 0.1) 0%, rgba(255, 140, 66, 0.05) 100%)"
+                : "linear-gradient(135deg, rgba(255, 197, 53, 0.02) 0%, rgba(255, 140, 66, 0.01) 100%)",
               cursor: "pointer",
-              transition: "all 0.2s ease-in-out",
+              transition: "all 0.3s ease-in-out",
               "&:hover": {
-                borderColor: "primary.main",
-                backgroundColor: "primary.50",
+                borderColor: "#FFC535",
+                background: "linear-gradient(135deg, rgba(255, 197, 53, 0.08) 0%, rgba(255, 140, 66, 0.04) 100%)",
+                transform: "translateY(-2px)",
+                boxShadow: "0 4px 15px rgba(255, 197, 53, 0.1)",
               },
             }}
             onClick={handleUploadClick}
@@ -629,8 +705,9 @@ const FileList = ({
                 <UploadIcon
                   sx={{
                     fontSize: 48,
-                    color: "primary.main",
-                    transition: "color 0.2s ease-in-out",
+                    color: dragActive ? "#FF8C42" : "#FFC535",
+                    transition: "all 0.3s ease-in-out",
+                    filter: dragActive ? "drop-shadow(0 2px 8px rgba(255, 140, 66, 0.3))" : "none",
                   }}
                 />
               </IconButton>
@@ -666,10 +743,14 @@ const FileList = ({
                     height: "100%",
                     display: "flex",
                     flexDirection: "column",
-                    transition: "all 0.2s ease",
+                    transition: "all 0.3s ease-in-out",
+                    border: '1px solid rgba(255, 197, 53, 0.1)',
+                    background: 'linear-gradient(135deg, rgba(255, 197, 53, 0.02) 0%, rgba(255, 140, 66, 0.01) 100%)',
                     "&:hover": {
-                      boxShadow: 3,
-                      transform: "translateY(-2px)",
+                      boxShadow: '0 8px 25px rgba(255, 197, 53, 0.15)',
+                      transform: "translateY(-4px)",
+                      borderColor: 'rgba(255, 197, 53, 0.3)',
+                      background: 'linear-gradient(135deg, rgba(255, 197, 53, 0.05) 0%, rgba(255, 140, 66, 0.02) 100%)',
                     },
                   }}
                 >
@@ -780,14 +861,29 @@ const FileList = ({
                       size="small"
                       startIcon={
                         downloadingFiles.has(file.id) ? (
-                          <CircularProgress size={16} />
+                          <CircularProgress size={16} sx={{ color: '#FFC535' }} />
                         ) : (
                           <DownloadIcon />
                         )
                       }
                       onClick={() => handleDownload(file)}
                       disabled={downloadingFiles.has(file.id)}
-                      sx={{ flex: 1 }}
+                      sx={{ 
+                        flex: 1,
+                        background: 'linear-gradient(135deg, #FFC535 0%, #FF8C42 100%)',
+                        color: 'white',
+                        fontWeight: 600,
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #FFB020 0%, #FF7A30 100%)',
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 4px 12px rgba(255, 197, 53, 0.3)',
+                        },
+                        '&:disabled': {
+                          background: '#ccc',
+                          color: '#666',
+                        },
+                        transition: 'all 0.2s ease-in-out',
+                      }}
                     >
                       {downloadingFiles.has(file.id)
                         ? "Downloading..."

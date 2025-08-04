@@ -10,6 +10,7 @@ import {
   Card,
   CardContent
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import {
   Add as AddIcon
 } from '@mui/icons-material';
@@ -19,6 +20,30 @@ import firebaseService from '../../services/firebase/firebaseService';
 import FileList from '../files/FileList';
 import FileUploadDropzone from '../files/FileUploadDropzone';
 import FilePreview from '../files/FilePreview';
+
+// Styled components with brand colors
+const BrandFab = styled(Fab)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #FFC535 0%, #FF8C42 100%)',
+  color: 'white',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #FFB020 0%, #FF7A30 100%)',
+    transform: 'scale(1.05)',
+    boxShadow: '0 6px 20px rgba(255, 197, 53, 0.4)',
+  },
+  '&:disabled': {
+    background: '#ccc',
+    color: '#666',
+  },
+  transition: 'all 0.3s ease-in-out',
+}));
+
+const BrandCard = styled(Card)(({ theme }) => ({
+  background: 'linear-gradient(135deg, rgba(255, 197, 53, 0.05) 0%, rgba(255, 140, 66, 0.05) 100%)',
+  border: '1px solid rgba(255, 197, 53, 0.2)',
+  borderRadius: theme.spacing(2),
+  backdropFilter: 'blur(10px)',
+  transition: 'all 0.3s ease-in-out',
+}));
 
 const AssetManager = ({ 
   userId, 
@@ -206,8 +231,7 @@ const AssetManager = ({
 
       {/* Floating Action Button for Upload - Primary upload method */}
       {allowUpload && (
-        <Fab
-          color="primary"
+        <BrandFab
           aria-label="upload assets"
           disabled={uploading}
           sx={{
@@ -218,7 +242,7 @@ const AssetManager = ({
           onClick={() => setShowUpload(!showUpload)}
         >
           {uploading ? <CircularProgress size={24} color="inherit" /> : <AddIcon />}
-        </Fab>
+        </BrandFab>
       )}
 
       {/* Upload Loading Overlay */}
@@ -232,22 +256,28 @@ const AssetManager = ({
         open={uploading}
       >
         <Fade in={uploading}>
-          <Card sx={{ minWidth: 300, textAlign: 'center' }}>
+          <BrandCard sx={{ minWidth: 300, textAlign: 'center' }}>
             <CardContent>
               <CircularProgress 
                 variant="determinate" 
                 value={uploadProgress} 
                 size={60}
-                sx={{ mb: 2 }}
+                sx={{ 
+                  mb: 2,
+                  color: '#FFC535',
+                  '& .MuiCircularProgress-circle': {
+                    strokeLinecap: 'round',
+                  }
+                }}
               />
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ color: '#FF8C42', fontWeight: 700 }}>
                 Uploading Asset...
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {uploadProgress}% complete
               </Typography>
             </CardContent>
-          </Card>
+          </BrandCard>
         </Fade>
       </Backdrop>
     </Box>

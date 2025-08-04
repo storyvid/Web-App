@@ -221,14 +221,19 @@ const FileUploadDropzone = ({
         sx={{
           border: 2,
           borderStyle: 'dashed',
-          borderColor: dragActive ? 'primary.main' : 'divider',
-          bgcolor: dragActive ? 'primary.50' : 'background.paper',
-          transition: 'all 0.2s ease-in-out',
+          borderColor: dragActive ? '#FFC535' : 'rgba(255, 197, 53, 0.3)',
+          bgcolor: dragActive ? 'rgba(255, 197, 53, 0.1)' : 'rgba(255, 197, 53, 0.02)',
+          background: dragActive 
+            ? 'linear-gradient(135deg, rgba(255, 197, 53, 0.1) 0%, rgba(255, 140, 66, 0.05) 100%)'
+            : 'linear-gradient(135deg, rgba(255, 197, 53, 0.02) 0%, rgba(255, 140, 66, 0.01) 100%)',
+          transition: 'all 0.3s ease-in-out',
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.6 : 1,
           '&:hover': disabled ? {} : {
-            borderColor: 'primary.main',
-            bgcolor: 'primary.50'
+            borderColor: '#FFC535',
+            background: 'linear-gradient(135deg, rgba(255, 197, 53, 0.08) 0%, rgba(255, 140, 66, 0.04) 100%)',
+            transform: 'translateY(-2px)',
+            boxShadow: '0 4px 20px rgba(255, 197, 53, 0.15)',
           }
         }}
         onDragEnter={handleDrag}
@@ -241,16 +246,33 @@ const FileUploadDropzone = ({
           <UploadIcon 
             sx={{ 
               fontSize: 48, 
-              color: dragActive ? 'primary.main' : 'text.secondary',
-              mb: 2 
+              color: dragActive ? '#FF8C42' : '#FFC535',
+              mb: 2,
+              transition: 'all 0.3s ease-in-out',
+              filter: dragActive ? 'drop-shadow(0 2px 8px rgba(255, 140, 66, 0.3))' : 'none',
             }} 
           />
           
-          <Typography variant="h6" gutterBottom>
+          <Typography 
+            variant="h6" 
+            gutterBottom
+            sx={{ 
+              color: dragActive ? '#FF8C42' : 'text.primary',
+              fontWeight: 600,
+              transition: 'color 0.3s ease-in-out'
+            }}
+          >
             {dragActive ? 'Drop files here' : 'Drag & drop files here'}
           </Typography>
           
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography 
+            variant="body2" 
+            color="text.secondary" 
+            sx={{ 
+              mb: 2,
+              fontSize: '0.95rem'
+            }}
+          >
             or click anywhere to browse files
           </Typography>
           

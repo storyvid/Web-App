@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Typography, Grid, Alert, Box } from "@mui/material";
+import { styled } from '@mui/material/styles';
 import {
   Folder as FolderIcon,
   Storage as StorageIcon,
@@ -16,6 +17,32 @@ import { StatsCard } from "../../components/DashboardComponents";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import firebaseService from "../../services/firebase/firebaseService";
 import AssetManager from "../../components/assets/AssetManager";
+
+// Enhanced styling components
+const BrandHeader = styled(Box)(({ theme }) => ({
+  background: 'linear-gradient(135deg, rgba(255, 197, 53, 0.1) 0%, rgba(255, 140, 66, 0.05) 100%)',
+  borderRadius: theme.spacing(2),
+  padding: theme.spacing(3),
+  marginBottom: theme.spacing(4),
+  border: '1px solid rgba(255, 197, 53, 0.2)',
+}));
+
+const BrandTitle = styled(Typography)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #FF8C42 0%, #FFC535 100%)',
+  backgroundClip: 'text',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  fontWeight: 700,
+}));
+
+const EnhancedStatsGrid = styled(Grid)(({ theme }) => ({
+  '& .MuiGrid-item': {
+    transition: 'transform 0.2s ease-in-out',
+    '&:hover': {
+      transform: 'translateY(-4px)',
+    },
+  },
+}));
 
 const AssetsContent = () => {
   const { user } = useAuth();
@@ -212,21 +239,21 @@ const AssetsContent = () => {
   return (
     <>
       {/* Page Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h2" fontWeight={600} gutterBottom>
+      <BrandHeader>
+        <BrandTitle variant="h2" gutterBottom>
           {data.user.role === "admin"
             ? `Asset Management`
             : `Your Assets`}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
+        </BrandTitle>
+        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
           {data.user.role === "admin"
             ? "Manage all user assets and storage across the platform"
             : "Upload, organize, and manage your files and media assets"}
         </Typography>
-      </Box>
+      </BrandHeader>
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <EnhancedStatsGrid container spacing={3} sx={{ mb: 4 }}>
         {data.stats &&
           data.stats.map((stat, index) => (
             <Grid
@@ -244,14 +271,34 @@ const AssetsContent = () => {
                 seeAll={stat.seeAll}
                 onSeeAllClick={() => handleSeeAllClick(stat.section)}
                 statKey={stat.statKey}
+                sx={{
+                  background: 'linear-gradient(135deg, rgba(255, 197, 53, 0.05) 0%, rgba(255, 140, 66, 0.02) 100%)',
+                  border: '1px solid rgba(255, 197, 53, 0.15)',
+                  '&:hover': {
+                    borderColor: 'rgba(255, 197, 53, 0.3)',
+                    boxShadow: '0 4px 20px rgba(255, 197, 53, 0.1)',
+                  },
+                }}
               />
             </Grid>
           ))}
-      </Grid>
+      </EnhancedStatsGrid>
 
       {/* Main Assets Manager */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>
+        <Typography 
+          variant="h5" 
+          fontWeight={600} 
+          gutterBottom
+          sx={{
+            color: '#FF8C42',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            mb: 3,
+          }}
+        >
+          <FolderIcon sx={{ color: '#FFC535' }} />
           File Manager
         </Typography>
         <AssetManager
