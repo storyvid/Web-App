@@ -349,34 +349,22 @@ const ServicesContent = () => {
   return (
     <Box sx={{ py: 3 }}>
       <Container maxWidth="lg">
-        {/* Header Section */}
-        <Box sx={{ mb: 6, textAlign: 'center' }}>
+        {/* Header Section - matching Dashboard style */}
+        <Box sx={{ mb: 4 }}>
           <Typography 
-            variant="h4" 
+            variant="h2" 
+            fontWeight={600}
             gutterBottom
-            sx={{
-              background: 'linear-gradient(135deg, #FFC535 0%, #FF8C42 50%, #2563EB 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontWeight: 'bold',
-              mb: 2
-            }}
           >
-            Video Production Services
+            Our Video Products
           </Typography>
           <Typography 
-            variant="h6" 
-            sx={{
-              color: 'text.secondary',
-              maxWidth: '600px',
-              margin: '0 auto',
-              lineHeight: 1.5
-            }}
+            variant="body1" 
+            color="text.secondary"
           >
             {user?.role === 'admin' 
               ? 'Create projects directly or manage client requests' 
-              : 'Choose a service to start your next video project'}
+              : 'Browse our packages to find the perfect fit for your campaign'}
           </Typography>
         </Box>
 
@@ -411,14 +399,8 @@ const ServicesContent = () => {
           <Box sx={{ mt: 6 }}>
             <Typography 
               variant="h5" 
+              fontWeight={600}
               gutterBottom
-              sx={{
-                background: 'linear-gradient(135deg, #2563EB 0%, #FFC535 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontWeight: 'bold'
-              }}
             >
               Pending Service Requests ({pendingRequests.length})
             </Typography>

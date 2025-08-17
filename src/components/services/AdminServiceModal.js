@@ -41,7 +41,7 @@ const GradientButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const AdminServiceModal = ({ open, onClose, service, onSubmit }) => {
+const AdminServiceModal = ({ open, onClose, service, onSubmit, clients = [], submitting }) => {
   const [formData, setFormData] = useState({
     projectTitle: '',
     description: '',
@@ -51,36 +51,22 @@ const AdminServiceModal = ({ open, onClose, service, onSubmit }) => {
     additionalRequirements: ''
   });
   
-  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (open) {
-      loadClients();
-      if (service) {
-        setFormData({
-          projectTitle: `${service.title} Project`,
-          description: '',
-          timeline: '',
-          budget: '',
-          clientId: '',
-          additionalRequirements: ''
-        });
-      }
+    if (open && service) {
+      setFormData({
+        projectTitle: `${service.name} Project`,
+        description: '',
+        timeline: '',
+        budget: '',
+        clientId: '',
+        additionalRequirements: ''
+      });
       setError('');
     }
   }, [open, service]);
-
-  const loadClients = async () => {
-    try {
-      const clientsData = await firebaseService.getClients();
-      setClients(clientsData);
-    } catch (error) {
-      console.error('Error loading clients:', error);
-      setError('Failed to load clients');
-    }
-  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -100,15 +86,20 @@ const AdminServiceModal = ({ open, onClose, service, onSubmit }) => {
 
     try {
       await onSubmit({
-        ...formData,
-        serviceType: service.type,
-        serviceTitle: service.title,
-        servicePricing: service.price
+        projectName: formData.projectTitle,
+        description: formData.description,
+        timeline: formData.timeline,
+        clientId: formData.clientId,
+        budget: formData.budget || 0,
+        additionalNotes: formData.additionalRequirements,
+        serviceType: service?.id,
+        serviceName: service?.name,
+        basePrice: service?.price,
+        skipApproval: false
       });
-      onClose();
+      // Don't close here - let parent handle it after success
     } catch (error) {
       setError(error.message || 'Failed to create project');
-    } finally {
       setLoading(false);
     }
   };
@@ -125,7 +116,7 @@ const AdminServiceModal = ({ open, onClose, service, onSubmit }) => {
     <StyledDialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Typography variant="h5" fontWeight={700}>
-          Create {service?.title} Project
+          Create {service?.name} Project
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Create a new project directly for a client
@@ -148,8 +139,8 @@ const AdminServiceModal = ({ open, onClose, service, onSubmit }) => {
               label="Select Client"
             >
               {clients.map(client => (
-                <MenuItem key={client.uid} value={client.uid}>
-                  {client.name} ({client.email})
+                <MenuItem key={client.id} value={client.id}>
+                  {client.name} {client.company ? `(${client.company})` : ''}
                 </MenuItem>
               ))}
             </Select>
@@ -212,17 +203,17 @@ const AdminServiceModal = ({ open, onClose, service, onSubmit }) => {
       <DialogActions sx={{ p: 3, pt: 1 }}>
         <Button 
           onClick={onClose} 
-          disabled={loading}
+          disabled={loading || submitting}
           sx={{ color: '#666' }}
         >
           Cancel
         </Button>
         <GradientButton
           onClick={handleSubmit}
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+          disabled={loading || submitting}
+          startIcon={(loading || submitting) ? <CircularProgress size={20} color="inherit" /> : null}
         >
-          {loading ? 'Creating...' : 'Create Project'}
+          {(loading || submitting) ? 'Creating...' : 'Create Project'}
         </GradientButton>
       </DialogActions>
     </StyledDialog>

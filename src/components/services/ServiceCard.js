@@ -59,7 +59,7 @@ const ServiceCard = ({ service, onClick }) => {
         </IconContainer>
         
         <Typography variant="h5" fontWeight={700} gutterBottom sx={{ color: '#333' }}>
-          {service.title}
+          {service.name}
         </Typography>
         
         <Typography 
