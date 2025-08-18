@@ -25,21 +25,6 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
   },
 }));
 
-const GradientButton = styled(Button)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #FFC535 0%, #FF8C42 100%)',
-  color: 'white',
-  fontWeight: 600,
-  padding: '12px 24px',
-  borderRadius: theme.spacing(1),
-  textTransform: 'capitalize',
-  '&:hover': {
-    background: 'linear-gradient(135deg, #FFB020 0%, #FF7A30 100%)',
-  },
-  '&:disabled': {
-    background: '#ccc',
-    color: '#666',
-  },
-}));
 
 const AdminServiceModal = ({ open, onClose, service, onSubmit, clients = [], submitting }) => {
   const [formData, setFormData] = useState({
@@ -208,13 +193,23 @@ const AdminServiceModal = ({ open, onClose, service, onSubmit, clients = [], sub
         >
           Cancel
         </Button>
-        <GradientButton
+        <Button
+          variant="contained"
           onClick={handleSubmit}
           disabled={loading || submitting}
           startIcon={(loading || submitting) ? <CircularProgress size={20} color="inherit" /> : null}
+          sx={{
+            backgroundColor: '#FFC535',
+            color: 'white',
+            textTransform: 'none',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: '#FFB020',
+            }
+          }}
         >
           {(loading || submitting) ? 'Creating...' : 'Create Project'}
-        </GradientButton>
+        </Button>
       </DialogActions>
     </StyledDialog>
   );

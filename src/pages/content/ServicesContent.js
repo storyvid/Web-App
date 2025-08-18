@@ -12,6 +12,7 @@ import {
   Backdrop,
   CircularProgress
 } from '@mui/material';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../store/slices/authSlice';
 import firebaseService from '../../services/firebase/firebaseService';
@@ -321,29 +322,7 @@ const ServicesContent = () => {
   };
 
   if (loading) {
-    return (
-      <Box 
-        sx={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '80vh',
-          gap: 2
-        }}
-      >
-        <CircularProgress 
-          size={60}
-          sx={{ 
-            color: '#FFC535',
-            '& .MuiCircularProgress-circle': {
-              strokeLinecap: 'round'
-            }
-          }} 
-        />
-        <Typography color="text.secondary">Loading services...</Typography>
-      </Box>
-    );
+    return <LoadingSpinner message="Loading services..." />;
   }
 
   return (
@@ -464,31 +443,11 @@ const ServicesContent = () => {
       <Backdrop 
         sx={{ 
           color: '#fff', 
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          background: 'rgba(0, 0, 0, 0.8)'
+          zIndex: (theme) => theme.zIndex.drawer + 1
         }}
         open={submitting}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <CircularProgress 
-            sx={{ 
-              color: '#FFC535',
-              '& .MuiCircularProgress-circle': {
-                strokeLinecap: 'round'
-              }
-            }} 
-          />
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              mt: 2,
-              color: '#FFC535',
-              fontWeight: 500
-            }}
-          >
-            {user?.role === 'admin' ? 'Creating project...' : 'Submitting request...'}
-          </Typography>
-        </Box>
+        <CircularProgress color="inherit" />
       </Backdrop>
 
       {/* Feedback Snackbar */}
@@ -502,16 +461,7 @@ const ServicesContent = () => {
           onClose={handleFeedbackClose} 
           severity={feedback.severity}
           variant="filled"
-          sx={{ 
-            width: '100%',
-            ...(feedback.severity === 'success' && {
-              background: 'linear-gradient(135deg, #FFC535 0%, #FF8C42 100%)',
-              color: 'white',
-              '& .MuiAlert-icon': {
-                color: 'white'
-              }
-            })
-          }}
+          sx={{ width: '100%' }}
         >
           {feedback.message}
         </Alert>

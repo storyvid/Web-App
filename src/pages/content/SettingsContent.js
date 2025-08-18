@@ -176,9 +176,9 @@ const SettingsContent = () => {
 
   return (
     <>
-      {/* Page Header */}
+      {/* Page Header - matching Dashboard style */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>
+        <Typography variant="h2" fontWeight={600} gutterBottom>
           Settings
         </Typography>
         <Typography variant="body1" color="text.secondary">

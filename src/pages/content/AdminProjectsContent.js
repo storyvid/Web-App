@@ -380,12 +380,17 @@ const AdminProjectsContent = () => {
 
   return (
     <>
-      {/* Page Header */}
+      {/* Page Header - matching Dashboard style */}
       <Box sx={{ mb: 4 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h5" fontWeight={600}>
-            Project Management
-          </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Typography variant="h2" fontWeight={600} gutterBottom>
+              Project Management
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Manage all client projects and track progress
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={loading ? (

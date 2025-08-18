@@ -184,10 +184,15 @@ const AdminUsersContent = () => {
     <>
       {/* Page Header */}
       <Box sx={{ mb: 4 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h5" fontWeight={600}>
-            User Management
-          </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Typography variant="h2" fontWeight={600} gutterBottom>
+              User Management
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Manage user accounts and permissions
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={<RefreshIcon />}

@@ -127,16 +127,27 @@ const ProjectsListContent = () => {
 
   return (
     <>
+      {/* Page Header - matching Dashboard style */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h2" fontWeight={600} gutterBottom>
+          {data.user.role === "admin"
+            ? "All Projects"
+            : data.user.role === "staff"
+            ? "Assigned Projects"
+            : "Your Projects"}
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          {data.user.role === "admin"
+            ? "Manage and oversee all client projects"
+            : data.user.role === "staff"
+            ? "View and work on your assigned projects"
+            : "Track progress and manage your video projects"}
+        </Typography>
+      </Box>
+
       {/* Projects Grid */}
       <Grid container spacing={3}>
-        <Grid item>
-          <Typography variant="h5" fontWeight={600} gutterBottom>
-            {data.user.role === "admin"
-              ? "All Projects"
-              : data.user.role === "staff"
-              ? "Assigned Projects"
-              : "Your Projects"}
-          </Typography>
+        <Grid item xs={12}>
 
           <Grid container spacing={3}>
             {projects.map((project) => (

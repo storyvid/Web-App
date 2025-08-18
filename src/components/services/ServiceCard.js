@@ -1,64 +1,44 @@
 import React from 'react';
 import { Card, CardContent, Typography, Button, Box } from '@mui/material';
-import { styled } from '@mui/material/styles';
-
-const GradientCard = styled(Card)(({ theme }) => ({
-  width: 350, // FIXED WIDTH FOR ALL CARDS
-  height: 380, // FIXED HEIGHT FOR ALL CARDS
-  border: '2px solid',
-  borderColor: 'rgba(255, 197, 53, 0.2)', // Subtle brand color border
-  borderRadius: theme.spacing(2),
-  transition: 'all 0.3s ease-in-out',
-  cursor: 'pointer',
-  background: 'linear-gradient(135deg, rgba(255, 197, 53, 0.05) 0%, rgba(255, 140, 66, 0.05) 100%)',
-  '&:hover': {
-    borderColor: '#FFC535',
-    transform: 'translateY(-4px)',
-    boxShadow: `0 8px 25px rgba(255, 197, 53, 0.2)`,
-  },
-}));
-
-const IconContainer = styled(Box)({
-  width: 60,
-  height: 60,
-  borderRadius: '50%',
-  background: 'linear-gradient(135deg, #FFC535 0%, #FF8C42 100%)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginBottom: 16,
-  '& svg': {
-    fontSize: 30,
-    color: 'white',
-  },
-});
-
-const ServiceButton = styled(Button)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #FFC535 0%, #FF8C42 100%)',
-  color: 'white',
-  fontWeight: 600,
-  padding: '12px 24px',
-  borderRadius: theme.spacing(1),
-  textTransform: 'capitalize',
-  fontSize: '1rem',
-  '&:hover': {
-    background: 'linear-gradient(135deg, #FFB020 0%, #FF7A30 100%)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 15px rgba(255, 197, 53, 0.3)',
-  },
-}));
 
 const ServiceCard = ({ service, onClick }) => {
   const IconComponent = service.icon;
 
   return (
-    <GradientCard onClick={() => onClick(service)}>
+    <Card 
+      onClick={() => onClick(service)}
+      sx={{
+        width: 350,
+        height: 380,
+        border: '1px solid',
+        borderColor: 'rgba(0, 0, 0, 0.12)',
+        borderRadius: 1,
+        transition: 'all 0.2s ease-in-out',
+        cursor: 'pointer',
+        backgroundColor: 'white',
+        '&:hover': {
+          boxShadow: 3,
+          transform: 'translateY(-2px)',
+        },
+      }}
+    >
       <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <IconContainer>
-          <IconComponent />
-        </IconContainer>
+        <Box
+          sx={{
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            backgroundColor: '#FFC535',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 2,
+          }}
+        >
+          <IconComponent sx={{ fontSize: 30, color: 'white' }} />
+        </Box>
         
-        <Typography variant="h5" fontWeight={700} gutterBottom sx={{ color: '#333' }}>
+        <Typography variant="h5" fontWeight={600} gutterBottom>
           {service.name}
         </Typography>
         
@@ -80,24 +60,33 @@ const ServiceCard = ({ service, onClick }) => {
         
         <Typography 
           variant="h6" 
-          fontWeight={700} 
+          fontWeight={600} 
           sx={{ 
-            color: '#FF8C42',
+            color: '#FFC535',
             mb: 2
           }}
         >
           {service.price}
         </Typography>
         
-        <ServiceButton
+        <Button
           variant="contained"
           fullWidth
-          sx={{ mt: 'auto' }}
+          sx={{ 
+            mt: 'auto',
+            backgroundColor: '#FFC535',
+            color: 'white',
+            textTransform: 'none',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: '#FFB020',
+            }
+          }}
         >
           Request Service
-        </ServiceButton>
+        </Button>
       </CardContent>
-    </GradientCard>
+    </Card>
   );
 };
 
