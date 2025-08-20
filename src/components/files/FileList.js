@@ -250,15 +250,41 @@ const FileList = ({
         console.log("📁 Downloading file with direct URL");
 
         if (downloadData.downloadURL && downloadData.downloadURL.includes('firebasestorage.googleapis.com')) {
-          console.log("🔗 Firebase Storage URL detected - using navigation click for proper download");
-          // For Firebase Storage URLs with query parameter override, use navigation (not fetch)
-          const link = document.createElement("a");
-          link.href = downloadData.downloadURL;
-          // Don't set download attribute for Firebase URLs - let the response-content-disposition handle it
-          link.style.display = "none";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          console.log("🔗 Firebase Storage URL detected - using fetch + blob approach");
+          console.log("🔗 Final download URL:", downloadData.downloadURL);
+          
+          try {
+            // Fetch the file and force download via blob
+            const response = await fetch(downloadData.downloadURL);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            
+            // Create download link
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.download = downloadData.fileName;
+            link.style.display = "none";
+            
+            document.body.appendChild(link);
+            console.log("🖱️ Triggering blob download for:", downloadData.fileName);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up blob URL after delay
+            setTimeout(() => {
+              URL.revokeObjectURL(blobUrl);
+            }, 1000);
+            
+          } catch (fetchError) {
+            console.error("❌ Fetch + blob download failed:", fetchError);
+            console.log("🔄 Falling back to direct window.location");
+            window.location.href = downloadData.downloadURL;
+          }
         } else {
           console.log("📁 Non-Firebase URL - using standard download approach");
           // For other files (base64, etc.), use standard download with download attribute
