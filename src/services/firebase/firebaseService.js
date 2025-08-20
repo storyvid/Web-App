@@ -1427,10 +1427,13 @@ To enable full file storage, configure Firebase Storage in your project.`;
         console.log('📁 File is base64-stored, using data URL directly');
         // For base64 files, the downloadURL is already a data URL that can be used directly
       } else if (fileData.downloadURL && fileData.downloadURL.includes('firebasestorage.googleapis.com')) {
-        console.log('📁 File is in Firebase Storage, using original URL for proxy download');
-        // Use the original Firebase Storage URL - the proxy server will handle downloading
-        downloadURL = fileData.downloadURL;
+        console.log('📁 File is in Firebase Storage, adding response-content-disposition override');
+        // Force download using query parameter override (works for all files regardless of stored metadata)
+        const fileName = fileData.name || fileData.originalName || 'download';
+        const dispositionParam = encodeURIComponent(`attachment; filename="${fileName}"`);
+        downloadURL = fileData.downloadURL + '&response-content-disposition=' + dispositionParam;
         forceDownload = true;
+        console.log('✅ Download URL with forced attachment:', downloadURL.substring(0, 100) + '...');
       } else {
         console.log('📁 File has download URL, using direct URL');
       }

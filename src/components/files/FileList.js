@@ -249,14 +249,27 @@ const FileList = ({
       } else {
         console.log("📁 Downloading file with direct URL");
 
-        // Direct download - Firebase Storage files now have proper Content-Disposition metadata
-        const link = document.createElement("a");
-        link.href = downloadData.downloadURL;
-        link.download = downloadData.fileName;
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        if (downloadData.downloadURL && downloadData.downloadURL.includes('firebasestorage.googleapis.com')) {
+          console.log("🔗 Firebase Storage URL detected - using navigation click for proper download");
+          // For Firebase Storage URLs with query parameter override, use navigation (not fetch)
+          const link = document.createElement("a");
+          link.href = downloadData.downloadURL;
+          // Don't set download attribute for Firebase URLs - let the response-content-disposition handle it
+          link.style.display = "none";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else {
+          console.log("📁 Non-Firebase URL - using standard download approach");
+          // For other files (base64, etc.), use standard download with download attribute
+          const link = document.createElement("a");
+          link.href = downloadData.downloadURL;
+          link.download = downloadData.fileName;
+          link.style.display = "none";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
       }
 
       // Update download count in UI
