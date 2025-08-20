@@ -33,7 +33,8 @@ import {
   uploadBytes, 
   getDownloadURL,
   deleteObject,
-  getBlob
+  getBlob,
+  updateMetadata
 } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 
@@ -1179,7 +1180,19 @@ class FirebaseService {
         console.log('✅ File uploaded to Firebase Storage');
 
         if (onProgress) {
-          onProgress(50); // Upload complete, getting URL
+          onProgress(50); // Upload complete, setting metadata
+        }
+
+        // Set metadata to force file download instead of opening in browser
+        console.log('🔧 Setting Content-Disposition metadata for download');
+        await updateMetadata(snapshot.ref, {
+          contentDisposition: `attachment; filename="${sanitizedFileName}"`,
+          contentType: file.type || 'application/octet-stream'
+        });
+        console.log('✅ Metadata updated with Content-Disposition: attachment');
+
+        if (onProgress) {
+          onProgress(70); // Metadata set, getting URL
         }
 
         // Get download URL
@@ -1200,7 +1213,7 @@ class FirebaseService {
       }
 
       if (onProgress) {
-        onProgress(80); // URL obtained, saving metadata
+        onProgress(90); // URL obtained, saving metadata
       }
 
       // Create file document in Firestore with actual storage data
@@ -1414,13 +1427,10 @@ To enable full file storage, configure Firebase Storage in your project.`;
         console.log('📁 File is base64-stored, using data URL directly');
         // For base64 files, the downloadURL is already a data URL that can be used directly
       } else if (fileData.downloadURL && fileData.downloadURL.includes('firebasestorage.googleapis.com')) {
-        console.log('📁 File is in Firebase Storage, modifying URL for download');
-        // For Firebase Storage URLs, add response-content-disposition parameter
-        const separator = fileData.downloadURL.includes('?') ? '&' : '?';
-        const encodedFilename = encodeURIComponent(fileData.name);
-        downloadURL = `${fileData.downloadURL}${separator}response-content-disposition=attachment%3B%20filename%3D"${encodedFilename}"`;
+        console.log('📁 File is in Firebase Storage, using original URL for proxy download');
+        // Use the original Firebase Storage URL - the proxy server will handle downloading
+        downloadURL = fileData.downloadURL;
         forceDownload = true;
-        console.log('✅ Modified Firebase Storage URL for forced download');
       } else {
         console.log('📁 File has download URL, using direct URL');
       }

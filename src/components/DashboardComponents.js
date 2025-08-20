@@ -58,13 +58,19 @@ const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, us
   const [teamMenuAnchor, setTeamMenuAnchor] = useState(null);
   
   const getRoleMenuItems = (role) => {
+    // Base menu items that all roles can see
     const baseMenuItems = [
       { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
       { id: 'projects', label: 'Projects', icon: FolderIcon },
       { id: 'assets', label: 'Assets', icon: AssetsIcon },
-      { id: 'services', label: 'Services', icon: ServicesIcon },
       { id: 'settings', label: 'Settings', icon: SettingsIcon }
     ];
+
+    // Add Services for clients and admins only (staff should not see Services)
+    if (role === 'client' || role === 'admin') {
+      const servicesIndex = baseMenuItems.findIndex(item => item.id === 'assets');
+      baseMenuItems.splice(servicesIndex + 1, 0, { id: 'services', label: 'Services', icon: ServicesIcon });
+    }
 
     // Add admin-specific menu items
     if (role === 'admin') {

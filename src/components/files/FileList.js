@@ -246,33 +246,10 @@ const FileList = ({
 
         // Clean up blob URL
         setTimeout(() => URL.revokeObjectURL(downloadData.downloadURL), 1000);
-      } else if (
-        downloadData.downloadURL &&
-        downloadData.downloadURL.includes("firebasestorage.googleapis.com")
-      ) {
-        console.log("📁 Handling Firebase Storage file download");
-
-        // Use Firebase Storage URL with response-content-disposition parameter
-        let downloadUrl = downloadData.downloadURL;
-        const separator = downloadUrl.includes("?") ? "&" : "?";
-        const encodedFilename = encodeURIComponent(downloadData.fileName);
-        downloadUrl += `${separator}response-content-disposition=attachment%3B%20filename%3D"${encodedFilename}"`;
-
-        console.log("🔄 Opening download URL:", downloadUrl);
-
-        // Open the download URL directly in a new window
-        // This bypasses CORS issues and respects content-disposition headers
-        const downloadWindow = window.open(downloadUrl, "_blank");
-
-        // For browsers that block popups, provide fallback
-        if (!downloadWindow) {
-          console.log("🔄 Popup blocked, using direct navigation");
-          window.location.href = downloadUrl;
-        }
       } else {
         console.log("📁 Downloading file with direct URL");
 
-        // For other files (base64, etc.), use direct download
+        // Direct download - Firebase Storage files now have proper Content-Disposition metadata
         const link = document.createElement("a");
         link.href = downloadData.downloadURL;
         link.download = downloadData.fileName;
