@@ -28,7 +28,7 @@ const ServiceCard = ({ service, onClick }) => {
             width: 60,
             height: 60,
             borderRadius: '50%',
-            backgroundColor: '#FFC535',
+            backgroundColor: '#E4B949',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -62,7 +62,7 @@ const ServiceCard = ({ service, onClick }) => {
           variant="h6" 
           fontWeight={600} 
           sx={{ 
-            color: '#FFC535',
+            color: '#E4B949',
             mb: 2
           }}
         >
@@ -74,12 +74,12 @@ const ServiceCard = ({ service, onClick }) => {
           fullWidth
           sx={{ 
             mt: 'auto',
-            backgroundColor: '#FFC535',
+            backgroundColor: '#E4B949',
             color: 'white',
             textTransform: 'none',
             fontWeight: 600,
             '&:hover': {
-              backgroundColor: '#FFB020',
+              backgroundColor: '#D4A639',
             }
           }}
         >

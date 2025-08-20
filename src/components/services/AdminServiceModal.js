@@ -199,12 +199,12 @@ const AdminServiceModal = ({ open, onClose, service, onSubmit, clients = [], sub
           disabled={loading || submitting}
           startIcon={(loading || submitting) ? <CircularProgress size={20} color="inherit" /> : null}
           sx={{
-            backgroundColor: '#FFC535',
+            backgroundColor: '#E4B949',
             color: 'white',
             textTransform: 'none',
             fontWeight: 600,
             '&:hover': {
-              backgroundColor: '#FFB020',
+              backgroundColor: '#D4A639',
             }
           }}
         >
