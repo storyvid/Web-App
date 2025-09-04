@@ -160,6 +160,7 @@ export const styles = {
   dashboardContainer: {
     display: 'flex',
     height: '100vh',
+    width:"100%",
     bgcolor: 'background.default',
     flexDirection: { xs: 'column', md: 'row' },
   },

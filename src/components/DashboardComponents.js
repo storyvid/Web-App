@@ -264,14 +264,15 @@ export const Header = ({ user, currentPageName }) => {
   const getUserDisplayText = (user) => {
     if (!user) return { primary: 'User', secondary: '' };
 
-    const displayName = user.display_name || user.full_name;
+    const displayName = user.display_name || user.full_name || user.email?.split('@')[0];
+    const userRole = user.user_type || user.role;
 
-    if (user.user_type === 'client') {
+    if (userRole === 'client') {
       return {
         primary: user.company || 'Company',
         secondary: displayName || 'User'
       };
-    } else if (user.user_type === 'staff') {
+    } else if (userRole === 'staff') {
       const roleDisplay = user.sub_role
         ? user.sub_role.replace('staff_', '').replace('_', ' ')
         : 'Staff Member';
@@ -279,10 +280,10 @@ export const Header = ({ user, currentPageName }) => {
         primary: roleDisplay.charAt(0).toUpperCase() + roleDisplay.slice(1),
         secondary: displayName || 'User'
       };
-    } else if (user.user_type === 'admin') {
+    } else if (userRole === 'admin') {
       return {
         primary: 'Administrator',
-        secondary: displayName || 'User'
+        secondary: displayName || 'Administrator'
       };
     }
 
@@ -309,7 +310,7 @@ export const Header = ({ user, currentPageName }) => {
               <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#F8F5F0]"></div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
+          <DropdownMenuContent align="end" className="w-80 bg-white">
             <div className="p-4">
               <h3 className="font-semibold text-sm text-stone-800 mb-3">Notifications</h3>
               <p className="text-sm text-stone-500">No new notifications</p>
@@ -333,18 +334,13 @@ export const Header = ({ user, currentPageName }) => {
                 <ChevronRight className="w-4 h-4 text-stone-400 rotate-90 transition-transform data-[state=open]:rotate-90" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 mr-2">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-medium text-stone-900">{userDisplayText.primary}</p>
-                <p className="text-xs text-stone-500">{userDisplayText.secondary}</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
+            <DropdownMenuContent align="end" className="w-56 mr-2 bg-white">
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer hover:bg-[#F8F5F0] focus:bg-[#F8F5F0]">
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-600 focus:text-red-600">
+              <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-600 focus:text-red-600 hover:bg-[#F8F5F0] focus:bg-[#F8F5F0]">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </DropdownMenuItem>

@@ -99,7 +99,7 @@ export default function DashboardContent() {
     };
 
     return (
-        <div className="bg-[#F8F5F0] min-h-full -m-8">
+        <div className="bg-[#F8F5F0] min-h-full -m-8" >
             <div className="max-w-full mx-auto space-y-8 p-6 sm:p-10">
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="pl-2">
                     <h1 className="text-5xl font-serif-display text-stone-900">Admin Dashboard</h1>
@@ -128,10 +128,13 @@ export default function DashboardContent() {
                         <CardContent>
                            <div className="space-y-4">
                                 {recentRequests.map(req => (
-                                    <div key={req.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-stone-50">
+                                    <div 
+                                        key={req.id} 
+                                        className="flex items-center justify-between p-3 rounded-lg hover:bg-stone-50 cursor-pointer"
+                                        onClick={() => navigate(`/project/${req.id}`)}
+                                    >
                                         <div>
                                             <p className="font-semibold text-stone-800">{req.title || req.name}</p>
-                                            <p className="text-sm text-stone-500">Budget: ${req.budget?.toLocaleString() || 'Not specified'}</p>
                                         </div>
                                         <Badge className={`${requestStatusConfig[req.status]?.color || 'bg-gray-100 text-gray-800'} border-0`}>
                                             {requestStatusConfig[req.status]?.label || req.status}
