@@ -119,7 +119,8 @@ export default function DashboardContent() {
                             <CardTitle>Recent Project Requests</CardTitle>
                              <Button 
                                 variant="ghost" 
-                                className="text-sm font-semibold h-auto p-1 text-orange-500"
+                                className="text-sm font-semibold h-auto p-1"
+                                style={{ color: '#D97707' }}
                                 onClick={() => navigate("/admin/projects")}
                              >
                                 View All
@@ -146,10 +147,11 @@ export default function DashboardContent() {
                     </Card>
                     <Card className="bg-white border border-stone-200/80 shadow-none">
                         <CardHeader className="flex flex-row items-center justify-between">
-                           <CardTitle className="flex items-center gap-2"><UserX className="w-5 h-5 text-orange-500"/>Unassigned Users</CardTitle>
+                           <CardTitle className="flex items-center gap-2"><UserX className="w-5 h-5" style={{ color: '#D97707' }}/>Unassigned Users</CardTitle>
                            <Button 
                              variant="ghost" 
-                             className="text-sm font-semibold h-auto p-1 text-orange-500"
+                             className="text-sm font-semibold h-auto p-1"
+                             style={{ color: '#D97707' }}
                              onClick={() => navigate("/admin/users")}
                            >
                              Manage
