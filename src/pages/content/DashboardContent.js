@@ -1,373 +1,181 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Typography, Grid, Alert, Box } from "@mui/material";
-import {
-  Folder as FolderIcon,
-  Schedule as ScheduleIcon,
-  CheckCircle as CheckCircleIcon,
-  Assignment as AssignmentIcon,
-  Group as GroupIcon,
-  Warning as WarningIcon,
-} from "@mui/icons-material";
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Users, Building2, FolderOpen, FileText, UserX } from 'lucide-react';
+import AdminStatsCard from '../../components/dashboards/AdminStatsCard';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { Badge } from '../../components/ui/badge';
 import { useAuth } from "../../contexts/AuthContext";
-import {
-  StatsCard,
-  ProjectCard,
-  MilestoneCard,
-  TeamSection,
-} from "../../components/DashboardComponents";
-import LoadingSpinner from "../../components/LoadingSpinner";
 import firebaseService from "../../services/firebase/firebaseService";
 
-const DashboardContent = () => {
-  const { user } = useAuth();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function DashboardContent() {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const [stats, setStats] = useState({
+        users: 0,
+        companies: 0,
+        activeProjects: 0,
+        pendingRequests: 0,
+    });
+    const [unassignedUsers, setUnassignedUsers] = useState([]);
+    const [recentRequests, setRecentRequests] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-  const loadDashboardData = async () => {
-    // Don't load data if user authentication is not ready
-    if (!user || !user.uid || !user.role) {
-      console.log('⏳ Waiting for user authentication to complete before loading dashboard content...');
-      return;
-    }
+    useEffect(() => {
+        const fetchData = async () => {
+            if (!user || !user.uid || !user.role) {
+                console.log('⏳ Waiting for user authentication...');
+                return;
+            }
+            
+            setIsLoading(true);
+            try {
+                let userProjects = [];
+                let allUsers = [];
 
-    try {
-      setLoading(true);
-      console.log(`📊 Loading dashboard content for authenticated user: ${user.email} (${user.role})`);
+                if (user.role === "admin") {
+                    try {
+                        userProjects = await firebaseService.getProjects();
+                        allUsers = await firebaseService.getAllUsers();
+                    } catch (error) {
+                        console.warn("Admin data unavailable:", error);
+                        userProjects = [];
+                        allUsers = [];
+                    }
 
-      // FirebaseService doesn't need user context setup
+                    setStats({
+                        users: allUsers.filter(u => u.role === "client" || u.role === "staff").length,
+                        companies: allUsers.filter(u => u.company).length,
+                        activeProjects: userProjects.filter(p => p.status === "in-progress").length,
+                        pendingRequests: userProjects.filter(p => p.status === "awaiting-feedback" || p.status === "review").length,
+                    });
 
-      // For admins, use project management service to get all projects
-      // For clients/staff, fetch their actual assigned projects
-      let userProjects = [];
-      let totalUsers = 0;
+                    const fetchedUnassigned = allUsers.filter(u => !u.role || !['client', 'staff', 'admin'].includes(u.role));
+                    if (fetchedUnassigned.length === 0) {
+                        // Keep mock users when no real unassigned users
+                        setUnassignedUsers([
+                            { id: 1, full_name: "John Smith", name: "John Smith", email: "john.smith@example.com" },
+                            { id: 2, full_name: "Sarah Johnson", name: "Sarah Johnson", email: "sarah.j@company.com" },
+                            { id: 3, full_name: "Mike Wilson", name: "Mike Wilson", email: "m.wilson@startup.io" }
+                        ]);
+                    } else {
+                        setUnassignedUsers(fetchedUnassigned);
+                    }
+                    setRecentRequests(userProjects.slice(0, 5));
+                }
 
-      if (user.role === "admin") {
-        // Admins see all projects from Firebase
-        try {
-          userProjects = await firebaseService.getProjects();
-          // Also get all users for admin stats
-          const allUsers = await firebaseService.getAllUsers();
-          totalUsers = allUsers.filter(
-            (u) => u.role === "client" || u.role === "staff"
-          ).length;
-        } catch (error) {
-          console.warn("Admin projects unavailable, showing empty:", error);
-          userProjects = [];
-        }
-      } else if (user?.uid) {
-        // Clients/staff only see their assigned projects
-        try {
-          console.log("🔍 DEBUG: Dashboard fetching projects for user:", {
-            uid: user.uid,
-            email: user.email,
-            role: user.role,
-            name: user.name,
-          });
-          // Get all projects and filter by clientId for clients
-          const allProjects = await firebaseService.getProjects();
-          if (user.role === 'client') {
-            userProjects = allProjects.filter(project => project.clientId === user.uid);
-          } else if (user.role === 'staff') {
-            // Staff ONLY see projects they are assigned to - NO fallback for security
-            userProjects = allProjects.filter(project => 
-              project.assignedStaff?.includes(user.uid) || 
-              project.projectManager === user.uid
-            );
-            console.log(`👥 Staff found ${userProjects.length} assigned projects (out of ${allProjects.length} total)`);
-          } else {
-            userProjects = allProjects;
-          }
-          console.log(
-            "🔍 DEBUG: Dashboard found projects for user:",
-            userProjects
-          );
+            } catch (error) {
+                console.error("Error loading admin dashboard data:", error);
+            }
+            setIsLoading(false);
+        };
+        fetchData();
+    }, [user?.role, user?.uid]);
 
-          // Debug: Log if no projects found for user
-          if (userProjects.length === 0) {
-            console.log("🔍 No projects found for user:", user.uid, user.role);
-          }
-        } catch (error) {
-          console.warn("User projects unavailable, showing empty:", error);
-          userProjects = [];
-        }
-      }
-
-      // Calculate real stats from user's actual projects
-      const realStats = [];
-
-      if (user?.role === "admin") {
-        // Admin sees all projects
-        realStats.push(
-          {
-            icon: GroupIcon,
-            title: "Total Clients",
-            value: totalUsers,
-            subtitle: "Active accounts",
-            seeAll: true,
-            section: "totalClients",
-            statKey: "totalClients",
-          },
-          {
-            icon: FolderIcon,
-            title: "Active Projects",
-            value: userProjects.filter((p) => p.status === "in-progress")
-              .length,
-            subtitle: "In progress",
-            seeAll: true,
-            section: "activeProjects",
-            statKey: "activeProjects",
-          },
-          {
-            icon: ScheduleIcon,
-            title: "Pending Approvals",
-            value: userProjects.filter(
-              (p) => p.status === "awaiting-feedback" || p.status === "review"
-            ).length,
-            subtitle: "Awaiting review",
-            seeAll: true,
-            section: "pendingApprovals",
-            statKey: "pendingApprovals",
-          }
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+            </div>
         );
-      } else {
-        // Client/staff sees only their assigned projects
-        realStats.push(
-          {
-            icon: FolderIcon,
-            title: "My Projects",
-            value: userProjects.length,
-            subtitle: "Assigned to you",
-            seeAll: true,
-            section: "myProjects",
-            statKey: "myProjects",
-          },
-          {
-            icon: AssignmentIcon,
-            title: "In Progress",
-            value: userProjects.filter((p) => p.status === "in-progress")
-              .length,
-            subtitle: "Active work",
-            seeAll: true,
-            section: "inProgress",
-            statKey: "inProgress",
-          },
-          {
-            icon: CheckCircleIcon,
-            title: "Completed",
-            value: userProjects.filter((p) => p.status === "completed").length,
-            subtitle: "Finished projects",
-            seeAll: false,
-            section: "completed",
-            statKey: "completed",
-          }
+    }
+    
+    if (!user || user.role !== "admin") {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <h2 className="text-xl font-semibold text-gray-900">Access Restricted</h2>
+                    <p className="text-gray-500">This dashboard is only available to administrators.</p>
+                </div>
+            </div>
         );
-      }
-
-      // Merge with real user data
-      const finalData = {
-        user: {
-          name: user?.name || "User",
-          company: user?.company || "",
-          email: user?.email || "",
-          avatar: user?.avatar || "",
-          role: user?.role || "client",
-        },
-        projects: userProjects, // Use actual user projects
-        stats: realStats, // Use calculated stats from real data
-        todaysMilestones: [], // No mock milestones for real accounts
-        milestones: [], // No mock milestones for real accounts
-        team: [], // No mock team for real accounts
-        teamMembers: { projects: [], crew: [] }, // No mock team members
-        recentActivity: [], // No mock activity
-        activities: [], // No mock activities
-        notifications: [], // No mock notifications
-      };
-
-      setData(finalData);
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
-
-      // Fallback to minimal data with real user info - no mock data
-      const fallbackData = {
-        user: {
-          name: user?.name || "User",
-          company: user?.company || "",
-          email: user?.email || "",
-          avatar: user?.avatar || "",
-          role: user?.role || "client",
-        },
-        projects: [], // Show empty projects on error
-        stats: [
-          {
-            icon: null,
-            title: "My Projects",
-            value: 0,
-            subtitle: "No projects available",
-            seeAll: false,
-            section: "myProjects",
-            statKey: "myProjects",
-          },
-        ],
-        todaysMilestones: [],
-        milestones: [],
-        team: [],
-        teamMembers: { projects: [], crew: [] },
-        recentActivity: [],
-        activities: [],
-        notifications: [],
-      };
-
-      setData(fallbackData);
-    } finally {
-      setLoading(false);
     }
-  };
+    
+    const requestStatusConfig = {
+      submitted: { label: "New", color: "bg-blue-100 text-blue-800" },
+      under_review: { label: "In Review", color: "bg-yellow-100 text-yellow-800" },
+      approved: { label: "Approved", color: "bg-green-100 text-green-800" },
+    };
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [user?.role, user?.uid]); // Only depend on essential authentication fields
-
-  const navigate = useNavigate();
-
-  const handleSeeAllClick = (section) => {
-    console.log("See all clicked for:", section);
-
-    // Navigate to appropriate pages based on section
-    switch (section) {
-      case "current-productions":
-      case "myProjects":
-      case "assignedTasks":
-      case "activeProjects":
-        navigate("/projects");
-        break;
-      case "pendingApprovals":
-        // TODO: Navigate to approvals page or filter projects by pending approvals
-        navigate("/projects?filter=pending-approvals");
-        break;
-      case "upcomingDeadlines":
-        // TODO: Navigate to deadlines page or filter projects by upcoming deadlines
-        navigate("/projects?filter=upcoming-deadlines");
-        break;
-      default:
-        break;
-    }
-  };
-
-  if (loading) {
-    return <LoadingSpinner message="Loading dashboard..." />;
-  }
-
-  if (!data) {
     return (
-      <Alert severity="error" sx={{ mt: 2 }}>
-        Failed to load dashboard data. Please refresh the page.
-      </Alert>
+        <div className="bg-[#F8F5F0] min-h-full -m-8">
+            <div className="max-w-full mx-auto space-y-8 p-6 sm:p-10">
+                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="pl-2">
+                    <h1 className="text-5xl font-serif-display text-stone-900">Admin Dashboard</h1>
+                    <p className="text-base font-medium text-[#7D7A73] mt-2">Platform overview and key metrics.</p>
+                </motion.div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <AdminStatsCard title="Total Users" value={stats.users} icon={Users} delay={0.1} />
+                    <AdminStatsCard title="Total Companies" value={stats.companies} icon={Building2} delay={0.2} />
+                    <AdminStatsCard title="Active Projects" value={stats.activeProjects} icon={FolderOpen} delay={0.3} />
+                    <AdminStatsCard title="Pending Requests" value={stats.pendingRequests} icon={FileText} delay={0.4} />
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <Card className="lg:col-span-2 bg-white border border-stone-200/80 shadow-none">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle>Recent Project Requests</CardTitle>
+                             <Button 
+                                variant="ghost" 
+                                className="text-sm font-semibold h-auto p-1 text-orange-500"
+                                onClick={() => navigate("/admin/projects")}
+                             >
+                                View All
+                             </Button>
+                        </CardHeader>
+                        <CardContent>
+                           <div className="space-y-4">
+                                {recentRequests.map(req => (
+                                    <div key={req.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-stone-50">
+                                        <div>
+                                            <p className="font-semibold text-stone-800">{req.title || req.name}</p>
+                                            <p className="text-sm text-stone-500">Budget: ${req.budget?.toLocaleString() || 'Not specified'}</p>
+                                        </div>
+                                        <Badge className={`${requestStatusConfig[req.status]?.color || 'bg-gray-100 text-gray-800'} border-0`}>
+                                            {requestStatusConfig[req.status]?.label || req.status}
+                                        </Badge>
+                                    </div>
+                                ))}
+                           </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-white border border-stone-200/80 shadow-none">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                           <CardTitle className="flex items-center gap-2"><UserX className="w-5 h-5 text-orange-500"/>Unassigned Users</CardTitle>
+                           <Button 
+                             variant="ghost" 
+                             className="text-sm font-semibold h-auto p-1 text-orange-500"
+                             onClick={() => navigate("/admin/users")}
+                           >
+                             Manage
+                           </Button>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                {unassignedUsers.slice(0, 5).map(user => (
+                                    <div key={user.id} className="flex items-center justify-between text-sm">
+                                        <div>
+                                            <p className="font-medium">{user.full_name || user.name}</p>
+                                            <p className="text-xs text-stone-500">{user.email}</p>
+                                        </div>
+                                        <Button 
+                                          size="sm" 
+                                          variant="outline"
+                                          onClick={() => navigate("/admin/users")}
+                                        >
+                                          Assign Role
+                                        </Button>
+                                    </div>
+                                ))}
+                                {unassignedUsers.length === 0 && <p className="text-sm text-center py-8 text-stone-500">No unassigned users!</p>}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+            </div>
+        </div>
     );
-  }
-
-  return (
-    <>
-      {/* Page Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h2" fontWeight={600} gutterBottom>
-          {data.user.role === "admin"
-            ? `Hi, ${data.user.name || "Admin"}!`
-            : data.user.role === "staff"
-            ? `Hi, ${data.user.name || "there"}!`
-            : `Hi, ${data.user.name || "there"}!`}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {data.user.role === "admin"
-            ? "Manage projects and oversee team performance"
-            : data.user.role === "staff"
-            ? "Track your assigned projects and deadlines"
-            : `Here's what's happening with your projects today.`}
-        </Typography>
-      </Box>
-
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {data.stats &&
-          data.stats.map((stat, index) => (
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={4}
-              lg={4}
-              xl={4}
-              key={index}
-              sx={{ width: { md: "30%", lg: "30%", xl: "30%" } }}
-            >
-              <StatsCard
-                icon={stat.icon}
-                title={stat.title}
-                value={stat.value}
-                subtitle={stat.subtitle}
-                seeAll={stat.seeAll}
-                onSeeAllClick={() => handleSeeAllClick(stat.section)}
-                statKey={stat.statKey}
-              />
-            </Grid>
-          ))}
-      </Grid>
-
-      {/* Main Content Grid */}
-      <Grid container spacing={3}>
-        {/* Projects Section */}
-        <Grid item>
-          <Typography variant="h5" fontWeight={600} gutterBottom>
-            {data.user.role === "admin"
-              ? "Recent Projects"
-              : data.user.role === "staff"
-              ? "Your Assigned Projects"
-              : "Current Productions"}
-          </Typography>
-
-          <Grid container spacing={2}>
-            {data.projects &&
-              data.projects.map((project) => (
-                <Grid item key={project.id} style={{ width: "400px" }}>
-                  <ProjectCard
-                    project={project}
-                    onClick={() => navigate(`/project/${project.id}`)}
-                  />
-                </Grid>
-              ))}
-          </Grid>
-        </Grid>
-
-        {/* Right Sidebar */}
-        <Grid item xs={12} lg={4}>
-          {/* Today's Milestones - Only show if there are real milestones */}
-          {data.todaysMilestones && data.todaysMilestones.length > 0 && (
-            <Box mb={3}>
-              <Typography variant="h6" fontWeight={600} gutterBottom>
-                Today's Milestones
-              </Typography>
-              <Grid container spacing={1}>
-                {data.todaysMilestones.map((milestone) => (
-                  <Grid item xs={12} key={milestone.id}>
-                    <MilestoneCard milestone={milestone} />
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-
-          {/* Team Section - Only show if there are real team members */}
-          {data.team && data.team.length > 0 && (
-            <TeamSection
-              title="Your Team"
-              items={data.team.members || data.team}
-              type="crew"
-            />
-          )}
-        </Grid>
-      </Grid>
-    </>
-  );
-};
-
-export default DashboardContent;
+}

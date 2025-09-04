@@ -28,22 +28,22 @@ import {
 } from "@mui/material";
 import {
   Download as DownloadIcon,
-  MoreVert as MoreVertIcon,
-  Delete as DeleteIcon,
-  Preview as PreviewIcon,
-  FilterList as FilterIcon,
+  MoreVertical as MoreVertIcon,
+  Trash2 as DeleteIcon,
+  Eye as PreviewIcon,
+  Filter as FilterIcon,
   Search as SearchIcon,
-  Clear as ClearIcon,
-  InsertDriveFile as DocumentIcon,
-  VideoFile as VideoIcon,
-  AudioFile as AudioIcon,
+  X as ClearIcon,
+  FileText as DocumentIcon,
+  Video as VideoIcon,
+  Music as AudioIcon,
   Image as ImageIcon,
-  AttachFile as FileIcon,
-  Person as PersonIcon,
-  AccessTime as TimeIcon,
-  CloudUpload as UploadIcon,
-  Refresh as RefreshIcon,
-} from "@mui/icons-material";
+  Paperclip as FileIcon,
+  User as PersonIcon,
+  Clock as TimeIcon,
+  Upload as UploadIcon,
+  RefreshCw as RefreshIcon,
+} from "lucide-react";
 import firebaseService from "../../services/firebase/firebaseService";
 import { useAuth } from "../../contexts/AuthContext";
 

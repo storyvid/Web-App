@@ -36,19 +36,19 @@ import {
   CssBaseline
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  MoreVert as MoreIcon,
-  Edit as EditIcon,
-  Person as PersonIcon,
-  Business as BusinessIcon,
-  Schedule as ScheduleIcon,
-  AttachMoney as BudgetIcon,
+  Plus as AddIcon,
+  MoreVertical as MoreIcon,
+  Pencil as EditIcon,
+  User as PersonIcon,
+  Building as BusinessIcon,
+  Clock as ScheduleIcon,
+  DollarSign as BudgetIcon,
   TrendingUp as ProgressIcon,
-  Refresh as RefreshIcon,
+  RefreshCw as RefreshIcon,
   Check as CheckIcon,
-  Close as CloseIcon,
-  Timeline as TimelineIcon
-} from '@mui/icons-material';
+  X as CloseIcon,
+  BarChart3 as TimelineIcon
+} from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 import { Sidebar, Header } from '../components/DashboardComponents';

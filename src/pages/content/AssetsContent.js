@@ -2,15 +2,15 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Typography, Grid, Alert, Box } from "@mui/material";
 import {
   Folder as FolderIcon,
-  Storage as StorageIcon,
+  Database as StorageIcon,
   Upload as UploadIcon,
-  Category as CategoryIcon,
-  VideoLibrary as VideoIcon,
-  Description as DocumentIcon,
+  Tag as CategoryIcon,
+  Video as VideoIcon,
+  FileText as DocumentIcon,
   Image as ImageIcon,
-  AudioFile as AudioIcon,
-  AttachFile as FileIcon,
-} from "@mui/icons-material";
+  Music as AudioIcon,
+  Paperclip as FileIcon,
+} from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { StatsCard } from "../../components/DashboardComponents";
 import LoadingSpinner from "../../components/LoadingSpinner";

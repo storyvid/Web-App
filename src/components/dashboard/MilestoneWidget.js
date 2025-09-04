@@ -20,14 +20,14 @@ import {
   LinearProgress
 } from '@mui/material';
 import {
-  Schedule as ScheduleIcon,
+  Clock as ScheduleIcon,
   CheckCircle as CheckCircleIcon,
-  Feedback as FeedbackIcon,
-  Warning as WarningIcon,
-  PlayArrow as PlayIcon,
-  MoreVert as MoreIcon,
+  MessageSquare as FeedbackIcon,
+  AlertTriangle as WarningIcon,
+  Play as PlayIcon,
+  MoreVertical as MoreIcon,
   TrendingUp as TrendingIcon
-} from '@mui/icons-material';
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import firebaseService from '../../services/firebase/firebaseService';
 

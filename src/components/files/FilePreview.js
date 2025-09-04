@@ -18,18 +18,18 @@ import {
   Divider
 } from '@mui/material';
 import {
-  Close as CloseIcon,
+  X as CloseIcon,
   Download as DownloadIcon,
-  Edit as EditIcon,
+  Pencil as EditIcon,
   Share as ShareIcon,
-  Fullscreen as FullscreenIcon,
-  PictureAsPdf as PdfIcon,
-  VideoFile as VideoIcon,
-  AudioFile as AudioIcon,
+  Maximize as FullscreenIcon,
+  FileText as PdfIcon,
+  Video as VideoIcon,
+  Music as AudioIcon,
   Image as ImageIcon,
-  Description as DocumentIcon,
-  InsertDriveFile as FileIcon
-} from '@mui/icons-material';
+  FileText as DocumentIcon,
+  Paperclip as FileIcon
+} from 'lucide-react';
 
 import { formatFileSize, getFileIcon } from '../../utils/fileValidation';
 import { canPreviewFile } from '../../utils/fileCategorization';

@@ -18,10 +18,10 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  ViewList as ListIcon,
-  ViewModule as GridIcon,
-  FilterList as FilterIcon
-} from '@mui/icons-material';
+  List as ListIcon,
+  Grid as GridIcon,
+  Filter as FilterIcon
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import firebaseService from '../services/firebase/firebaseService';
 import { getRoleBasedData } from '../data/mockData';

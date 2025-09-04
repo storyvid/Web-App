@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Box, Container, Typography, Button } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import { LogOut as ExitToAppIcon } from 'lucide-react';
 
 import OnboardingFlow from '../components/onboarding/OnboardingFlow';
 import { selectUser, selectIsAuthenticated } from '../store/slices/authSlice';

@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box, Typography, Button, Paper, Stack, Fade, Zoom, keyframes } from '@mui/material';
 import { 
-  Error as ErrorIcon, 
-  Refresh as RefreshIcon, 
+  AlertTriangle as ErrorIcon, 
+  RefreshCw as RefreshIcon, 
   Home as HomeIcon,
-  SentimentDissatisfied as SadIcon 
-} from '@mui/icons-material';
+  Frown as SadIcon 
+} from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {

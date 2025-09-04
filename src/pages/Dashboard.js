@@ -9,14 +9,14 @@ import {
   CssBaseline
 } from '@mui/material';
 import {
-  Folder as FolderIcon,
+  FolderOpen as FolderIcon,
   CheckCircle as CheckCircleIcon,
-  Assignment as AssignmentIcon,
-  Schedule as ScheduleIcon,
-  People as PeopleIcon,
+  FileText as AssignmentIcon,
+  Clock as ScheduleIcon,
+  Users as PeopleIcon,
   PlayCircle as PlayCircleIcon,
-  Notifications as NotificationsIcon
-} from '@mui/icons-material';
+  Bell as NotificationsIcon
+} from 'lucide-react';
 import { theme, styles } from './dashboardStyles';
 import { useAuth } from '../contexts/AuthContext';
 import { getRoleBasedData } from '../data/mockData';

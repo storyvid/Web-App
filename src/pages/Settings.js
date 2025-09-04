@@ -25,19 +25,19 @@ import {
   CssBaseline
 } from '@mui/material';
 import {
-  PhotoCamera as PhotoCameraIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-  Person as PersonIcon,
-  Security as SecurityIcon,
-  Notifications as NotificationsIcon,
+  Camera as PhotoCameraIcon,
+  Eye as VisibilityIcon,
+  EyeOff as VisibilityOffIcon,
+  User as PersonIcon,
+  Shield as SecurityIcon,
+  Bell as NotificationsIcon,
   Palette as PaletteIcon,
-  Language as LanguageIcon,
-  Email as EmailIcon,
-  Business as BusinessIcon,
+  Globe as LanguageIcon,
+  Mail as EmailIcon,
+  Building as BusinessIcon,
   Phone as PhoneIcon,
   Badge as BadgeIcon
-} from '@mui/icons-material';
+} from 'lucide-react';
 import { 
   updateUserProfile, 
   updateUserSettings,

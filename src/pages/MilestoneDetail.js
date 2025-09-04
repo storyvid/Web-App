@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import { ArrowLeft as ArrowBackIcon } from 'lucide-react';
 import TimelineManager from '../components/Admin/TimelineManager';
 import projectManagementService from '../services/projectManagementService';
 import LoadingSpinner from '../components/LoadingSpinner';

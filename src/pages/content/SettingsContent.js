@@ -20,12 +20,12 @@ import {
   InputAdornment
 } from '@mui/material';
 import {
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-  Edit as EditIcon,
+  Eye as VisibilityIcon,
+  EyeOff as VisibilityOffIcon,
+  Pencil as EditIcon,
   Save as SaveIcon,
-  Cancel as CancelIcon
-} from '@mui/icons-material';
+  X as CancelIcon
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import firebaseService from '../../services/firebase/firebaseService';
 

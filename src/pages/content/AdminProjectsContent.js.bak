@@ -34,16 +34,16 @@ import {
   Box
 } from '@mui/material';
 import {
-  Plus as AddIcon,
-  MoreVertical as MoreIcon,
-  Pencil as EditIcon,
-  User as PersonIcon,
-  Clock as ScheduleIcon,
-  RefreshCw as RefreshIcon,
+  Add as AddIcon,
+  MoreVert as MoreIcon,
+  Edit as EditIcon,
+  Person as PersonIcon,
+  Schedule as ScheduleIcon,
+  Refresh as RefreshIcon,
   Check as CheckIcon,
-  X as CloseIcon,
-  BarChart3 as TimelineIcon
-} from 'lucide-react';
+  Close as CloseIcon,
+  Timeline as TimelineIcon
+} from '@mui/icons-material';
 
 import { useAuth } from '../../contexts/AuthContext';
 import projectManagementService from '../../services/projectManagementService';

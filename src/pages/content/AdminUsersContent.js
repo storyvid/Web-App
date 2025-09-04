@@ -26,13 +26,13 @@ import {
   DialogActions
 } from '@mui/material';
 import {
-  Person as PersonIcon,
-  Email as EmailIcon,
-  Business as BusinessIcon,
-  AssignmentInd as RoleIcon,
-  Refresh as RefreshIcon,
-  Delete as DeleteIcon
-} from '@mui/icons-material';
+  User as PersonIcon,
+  Mail as EmailIcon,
+  Building as BusinessIcon,
+  UserCheck as RoleIcon,
+  RefreshCw as RefreshIcon,
+  Trash2 as DeleteIcon
+} from 'lucide-react';
 
 import { useAuth } from '../../contexts/AuthContext';
 import projectManagementService from '../../services/projectManagementService';

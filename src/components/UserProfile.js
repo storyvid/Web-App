@@ -24,10 +24,10 @@ import {
   InputAdornment
 } from '@mui/material';
 import {
-  PhotoCamera as PhotoCameraIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon
-} from '@mui/icons-material';
+  Camera as PhotoCameraIcon,
+  Eye as VisibilityIcon,
+  EyeOff as VisibilityOffIcon
+} from 'lucide-react';
 import { 
   updateUserProfile, 
   updateUserSettings,

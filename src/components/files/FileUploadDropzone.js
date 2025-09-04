@@ -17,19 +17,19 @@ import {
   Collapse
 } from '@mui/material';
 import {
-  CloudUpload as UploadIcon,
-  Delete as DeleteIcon,
+  Upload as UploadIcon,
+  Trash2 as DeleteIcon,
   CheckCircle as CheckIcon,
-  Error as ErrorIcon,
+  AlertTriangle as ErrorIcon,
   Folder as FolderIcon,
-  VideoLibrary as VideoIcon,
-  Receipt as InvoiceIcon,
-  Gavel as LicenseIcon,
-  Description as DocumentIcon,
+  Video as VideoIcon,
+  FileText as InvoiceIcon,
+  Scale as LicenseIcon,
+  FileText as DocumentIcon,
   Image as ImageIcon,
-  ExpandMore as ExpandIcon,
-  ExpandLess as CollapseIcon
-} from '@mui/icons-material';
+  ChevronDown as ExpandIcon,
+  ChevronUp as CollapseIcon
+} from 'lucide-react';
 
 import { validateFiles } from '../../utils/fileValidation';
 import { categorizeFiles, FILE_CATEGORIES } from '../../utils/fileCategorization';

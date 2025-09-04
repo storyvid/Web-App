@@ -3,7 +3,7 @@ import { Box, Typography, TextField, Button, Link, Divider, Alert, Fade, Circula
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import GoogleIcon from '@mui/icons-material/Google';
+import { FaGoogle as GoogleIcon } from 'react-icons/fa';
 
 // Same theme as Login page
 const loginTheme = createTheme({

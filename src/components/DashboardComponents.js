@@ -1,443 +1,434 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Button, 
-  TextField, 
-  InputAdornment,
-  IconButton,
-  Avatar,
-  AvatarGroup,
-  Chip,
-  LinearProgress,
-  Card,
-  CardContent,
-  Divider,
-  Stack,
-  Menu,
-  MenuItem,
-  Badge,
-  Popover,
-  List,
-  ListItem,
-  ListItemText,
-  Drawer,
-  useMediaQuery,
-  useTheme
-} from '@mui/material';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Search as SearchIcon,
-  Notifications as NotificationsIcon,
-  KeyboardArrowDown as ArrowDownIcon,
-  Home as HomeIcon,
-  Folder as FolderIcon,
-  CalendarMonth as CalendarIcon,
-  Description as ReportsIcon,
-  Settings as SettingsIcon,
-  FilterList as FilterIcon,
-  Menu as MenuIcon,
-  BusinessCenter as ServicesIcon,
-  PermMedia as AssetsIcon,
-  Schedule as ScheduleIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Assignment as AssignmentIcon,
-  AttachFile as FileIcon,
-  CloudUpload as UploadIcon,
-  VideoFile as VideoIcon,
-  PictureAsPdf as PdfIcon,
-  OpenInNew as OpenInNewIcon,
-  Person as PersonIcon
-} from '@mui/icons-material';
+  LayoutDashboard,
+  FolderOpen,
+  Image,
+  Palette,
+  Users2,
+  FileText,
+  LogOut,
+  Bell,
+  ChevronRight,
+  Shield,
+  Settings,
+  KeyRound,
+  Building2,
+  Briefcase,
+  Filter as FilterIcon,
+  ExternalLink as OpenInNewIcon
+} from "lucide-react";
+import {
+  Sidebar as ShadcnSidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader,
+  SidebarTrigger
+} from "../components/ui/sidebar";
+import { Button } from "../components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
 import { useAuth } from '../contexts/AuthContext';
-import { styles } from '../pages/dashboardStyles';
 
-// Sidebar Content Component (reusable for both desktop and mobile)
-const SidebarContent = ({ activeItem, onMenuItemClick, userRole, onItemClick, user }) => {
-  const [teamMenuAnchor, setTeamMenuAnchor] = useState(null);
+const clientNavItems = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard
+  },
+  {
+    title: "Projects",
+    url: "/projects",
+    icon: FolderOpen
+  }
+];
+
+const clientResourceItems = [
+  {
+    title: "Asset Library",
+    url: "/assets",
+    icon: Image
+  },
+  {
+    title: "Brand Assets",
+    url: "/brand-assets",
+    icon: Palette
+  }
+];
+
+const clientAccountItems = [
+  {
+    title: "Team",
+    url: "/team",
+    icon: Users2
+  },
+  {
+    title: "Billing & Documents",
+    url: "/billing",
+    icon: FileText
+  },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings
+  }
+];
+
+const adminItems = [
+  {
+    title: "Admin Dashboard",
+    url: "/dashboard",
+    icon: Shield,
+  },
+  {
+    title: "Projects",
+    url: "/projects",
+    icon: FolderOpen,
+  },
+  {
+    title: "Project Management",
+    url: "/admin/projects",
+    icon: FolderOpen,
+  },
+  {
+    title: "User Management",
+    url: "/admin/users",
+    icon: Users2,
+  },
+  {
+    title: "Assets",
+    url: "/assets",
+    icon: Image,
+  },
+  {
+    title: "Services", 
+    url: "/services",
+    icon: Briefcase,
+  },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings
+  }
+];
+
+const staffItems = [
+  {
+    title: "Staff Dashboard",
+    url: "/staff-dashboard",
+    icon: LayoutDashboard
+  }
+];
+
+const NavMenu = ({ items }) => {
+  const location = useLocation();
   
-  const getRoleMenuItems = (role) => {
-    // Base menu items that all roles can see
-    const baseMenuItems = [
-      { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-      { id: 'projects', label: 'Projects', icon: FolderIcon },
-      { id: 'assets', label: 'Assets', icon: AssetsIcon },
-      { id: 'settings', label: 'Settings', icon: SettingsIcon }
-    ];
-
-    // Add Services for clients and admins only (staff should not see Services)
-    if (role === 'client' || role === 'admin') {
-      const servicesIndex = baseMenuItems.findIndex(item => item.id === 'assets');
-      baseMenuItems.splice(servicesIndex + 1, 0, { id: 'services', label: 'Services', icon: ServicesIcon });
-    }
-
-    // Add admin-specific menu items
-    if (role === 'admin') {
-      const adminItems = [
-        { id: 'admin-projects', label: 'Manage Projects', icon: FolderIcon },
-        { id: 'admin-users', label: 'Manage Users', icon: PersonIcon }
-      ];
-      
-      // Insert admin items after projects but before assets
-      const projectsIndex = baseMenuItems.findIndex(item => item.id === 'projects');
-      baseMenuItems.splice(projectsIndex + 1, 0, ...adminItems);
-    }
-    
-    return baseMenuItems;
-  };
-
-  const menuItems = getRoleMenuItems(userRole);
-
-  const handleMenuClick = (itemId) => {
-    onMenuItemClick(itemId);
-    if (onItemClick) onItemClick(); // Close mobile drawer
-  };
-
   return (
-    <Box sx={{ pt: 0, mt: 0 }}>
-      {/* Logo - container height matches header, logo vertically centered */}
-      <Box sx={{ 
-        px: 3, 
-        py: 0, 
-        mt: 0,
-        mb: '10px',
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'flex-start',
-        height: 100, // Increase container height to accommodate larger logo
-        overflow: 'hidden'
-      }}>
-        <img 
-          src="/storyvid_logo_optimized.svg" 
-          alt="StoryVid" 
-          style={{ 
-            width: '162.12px',
-            height: '162.12px'
-          }} 
-        />
-      </Box>
-      
-      
-      <Stack spacing={0.5} sx={{ px: 2, flex: 1 }}>
-        {menuItems.map(item => {
-          const Icon = item.icon;
-          const isActive = item.id === activeItem;
-          return (
-            <Button
-              key={item.id}
-              startIcon={<Icon />}
-              sx={styles.menuItem(isActive)}
-              fullWidth
-              onClick={() => handleMenuClick(item.id)}
-            >
-              <Typography variant="body1" fontWeight={500}>
-                {item.label}
-              </Typography>
-            </Button>
-          );
-        })}
-      </Stack>
-      
-      {/* Mobile app promotion removed */}
-      
-      {/* Workspace selector - Hidden as requested */}
-      {/* <Box sx={{ mt: 'auto', p: 2 }}>
-        <Paper 
-          sx={{
-            ...styles.teamSelector,
-            width: '100%',
-            justifyContent: 'center'
-          }} 
-          onClick={(e) => setTeamMenuAnchor(e.currentTarget)}
-        >
-          <Typography variant="body2" fontWeight={500}>
-            {user?.company || 'My Workspace'}
-          </Typography>
-          <ArrowDownIcon fontSize="small" />
-        </Paper>
-
-        <Menu
-          anchorEl={teamMenuAnchor}
-          open={Boolean(teamMenuAnchor)}
-          onClose={() => setTeamMenuAnchor(null)}
-        >
-          <MenuItem onClick={() => setTeamMenuAnchor(null)}>Switch Workspace</MenuItem>
-          <MenuItem onClick={() => setTeamMenuAnchor(null)}>Production Settings</MenuItem>
-          <MenuItem onClick={() => setTeamMenuAnchor(null)}>Invite Collaborators</MenuItem>
-        </Menu>
-      </Box> */}
-    </Box>
+    <SidebarMenu>
+      {items.map((item) =>
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton
+            asChild
+            className={`w-full justify-start hover:bg-[#EFEBE6]/80 transition-all duration-200 rounded-lg mb-1 ${
+              location.pathname === item.url ? 'bg-[#EFEBE6]' : ''
+            }`}
+          >
+            <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-stone-700">
+              <item.icon className="w-5 h-5 text-stone-600" />
+              <span>{item.title}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
+    </SidebarMenu>
   );
 };
 
-// Sidebar Component with Mobile Drawer
-export const Sidebar = ({ activeItem, onMenuItemClick, userRole, mobileOpen, onMobileClose, user }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+// Sidebar Content Component - Now using shadcn design
+const SidebarInner = ({ userRole, user, onLogout }) => {
+  return (
+    <>
+      {/* DO NOT CHANGE: py-5 and gap-2 are required for proper logo positioning and divider alignment */}
+      <SidebarHeader className="px-4 py-5 flex flex-col gap-2 border-b border-[#C2BEBA]/30">
+        <div className="flex items-center pl-3">
+          <img
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/688f5b86519e678c31bc82a2/906c4d4cf_Asset23x-8.png"
+            alt="StoryVid"
+            className="h-8 w-auto"
+          />
+        </div>
+      </SidebarHeader>
 
-  if (isMobile) {
-    return (
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={onMobileClose}
-        ModalProps={{ keepMounted: true }}
-        sx={{
-          '& .MuiDrawer-paper': {
-            ...styles.mobileSidebar,
-          },
-        }}
-      >
-        <SidebarContent 
-          activeItem={activeItem} 
-          onMenuItemClick={onMenuItemClick} 
-          userRole={userRole}
-          onItemClick={onMobileClose}
-          user={user}
-        />
-      </Drawer>
-    );
-  }
+      <SidebarContent className="my-3 pt-1 pb-4 px-4 min-h-0 gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden flex flex-col justify-between flex-1">
+        {userRole === 'admin' ? (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-xs font-semibold text-[#7D7A73]/60 uppercase tracking-wider px-3 py-4">
+              Admin
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <NavMenu items={adminItems} />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : userRole === 'staff' ? (
+           <SidebarGroup>
+            <SidebarGroupLabel className="text-xs font-semibold text-[#7D7A73]/60 uppercase tracking-wider px-3 py-4">
+              Staff
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <NavMenu items={staffItems} />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : (
+          <div>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <NavMenu items={clientNavItems} />
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs font-semibold text-[#7D7A73]/60 uppercase tracking-wider px-3 py-4">
+                Resources
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <NavMenu items={clientResourceItems} />
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs font-semibold text-[#7D7A73]/60 uppercase tracking-wider px-3 py-4">
+                Account
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <NavMenu items={clientAccountItems} />
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
+        )}
+
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={onLogout}
+              className="w-full justify-start hover:bg-[#EFEBE6]/80 transition-all duration-200 rounded-lg mb-1 text-sm font-medium text-[#7D7A73]/80">
+              <div className="flex items-center gap-3 px-3 py-2.5">
+                <LogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarContent>
+    </>
+  );
+};
+
+// Sidebar Component using shadcn design
+export const Sidebar = ({ userRole, user }) => {
+  const { logout } = useAuth();
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
-    <Box sx={styles.sidebar}>
-      <SidebarContent 
-        activeItem={activeItem} 
-        onMenuItemClick={onMenuItemClick} 
+    <ShadcnSidebar className="bg-white fixed inset-y-0 z-10 h-svh transition-[left,right,width] duration-200 ease-linear md:flex left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l hidden lg:flex lg:flex-col w-[268px] border-[#C2BEBA]/30">
+      <SidebarInner 
         userRole={userRole}
         user={user}
+        onLogout={handleLogout}
       />
-    </Box>
+    </ShadcnSidebar>
   );
 };
 
-// Header Component
-export const Header = ({ user, notifications, onMobileMenuClick }) => {
+// Header Component (using new design)
+export const Header = ({ user, currentPageName }) => {
+  const navigate = useNavigate();
   const { logout } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
-  const [notificationAnchor, setNotificationAnchor] = useState(null);
-  const [searchValue, setSearchValue] = useState('');
+  const getUserDisplayText = (user) => {
+    if (!user) return { primary: 'User', secondary: '' };
 
-  const unreadNotifications = notifications?.filter(n => n.unread).length || 0;
+    const displayName = user.display_name || user.full_name;
 
+    if (user.user_type === 'client') {
+      return {
+        primary: user.company || 'Company',
+        secondary: displayName || 'User'
+      };
+    } else if (user.user_type === 'staff') {
+      const roleDisplay = user.sub_role
+        ? user.sub_role.replace('staff_', '').replace('_', ' ')
+        : 'Staff Member';
+      return {
+        primary: roleDisplay.charAt(0).toUpperCase() + roleDisplay.slice(1),
+        secondary: displayName || 'User'
+      };
+    } else if (user.user_type === 'admin') {
+      return {
+        primary: 'Administrator',
+        secondary: displayName || 'User'
+      };
+    }
 
-  const handleUserMenuClick = (event) => {
-    setUserMenuAnchor(event.currentTarget);
+    return {
+      primary: displayName || 'User',
+      secondary: ''
+    };
   };
 
-  const handleNotificationClick = (event) => {
-    setNotificationAnchor(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setUserMenuAnchor(null);
-    setNotificationAnchor(null);
-  };
-
-  const handleSearch = (event) => {
-    setSearchValue(event.target.value);
-    console.log('Searching for:', event.target.value);
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    handleClose();
-  };
+  const userDisplayText = getUserDisplayText(user);
 
   return (
-    <Box sx={styles.header}>
-      <IconButton 
-        size="small" 
-        onClick={onMobileMenuClick}
-        sx={{ display: { xs: 'block', md: 'none' }, mr: 2 }}
-      >
-        <MenuIcon />
-      </IconButton>
-      
-      {/* Search field hidden as requested */}
-      {/* <TextField
-        placeholder="Search"
-        size="small"
-        value={searchValue}
-        onChange={handleSearch}
-        fullWidth
-        sx={{
-          ...styles.searchField,
-          display: { xs: 'none', sm: 'block' },
-          maxWidth: { sm: 400, md: 600, lg: 800 },
-          mx: 2
-        }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" />
-            </InputAdornment>
-          ),
-        }}
-      />
-      
-      <IconButton onClick={handleSearch} sx={{ display: { xs: 'block', sm: 'none' }, mr: 2 }}>
-        <SearchIcon />
-      </IconButton> */}
-      
-      <Stack direction="row" alignItems="center" spacing={isMobile ? 1 : 2} sx={{ ml: 'auto' }}>
-        
-        <IconButton onClick={handleNotificationClick}>
-          <Badge badgeContent={unreadNotifications} color="primary">
-            <NotificationsIcon />
-          </Badge>
-        </IconButton>
-
-        <Popover
-          open={Boolean(notificationAnchor)}
-          anchorEl={notificationAnchor}
-          onClose={handleClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-        >
-          <Box sx={{ width: 320, maxHeight: 400 }}>
-            <Typography variant="h6" sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-              Notifications
-            </Typography>
-            <List>
-              {notifications?.map((notification) => (
-                <ListItem
-                  key={notification.id}
-                  sx={{
-                    bgcolor: notification.unread ? 'action.hover' : 'transparent',
-                    borderLeft: notification.unread ? 3 : 0,
-                    borderColor: 'primary.main'
-                  }}
-                >
-                  <ListItemText
-                    primary={notification.title}
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {notification.message}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {notification.time}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Popover>
-        
-        <Button sx={styles.userButton} onClick={handleUserMenuClick}>
-          <Avatar src={user.avatar} sx={{ width: 32, height: 32 }} />
-          <Box sx={{ textAlign: 'left', ml: 1, lineHeight: 1.2 }}>
-            <Typography variant="caption" display="block" fontWeight={500} sx={{ lineHeight: 1.3 }}>
-              {user.company}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.3 }}>
-              {user.name}
-            </Typography>
-          </Box>
-          <ArrowDownIcon fontSize="small" />
-        </Button>
-
-        <Menu
-          anchorEl={userMenuAnchor}
-          open={Boolean(userMenuAnchor)}
-          onClose={handleClose}
-        >
-          <MenuItem onClick={() => { handleClose(); window.location.href = '/settings'; }}>Account Settings</MenuItem>
-          <Divider />
-          <MenuItem onClick={handleLogout}>Logout</MenuItem>
-        </Menu>
-      </Stack>
-    </Box>
+    <header className="bg-[#F8F5F0] border-b border-[#C2BEBA]/30 px-4 sm:px-8 h-[73px] flex items-center justify-between">{/* DO NOT CHANGE: h-[73px] is required for perfect divider alignment with sidebar */}
+      <div className="flex items-center gap-2 text-sm text-stone-500">
+        <SidebarTrigger className="lg:hidden -ml-2 mr-2 p-1.5 rounded-md hover:bg-stone-200/50" />
+        <ChevronRight className="w-4 h-4 hidden sm:block" />
+        <span className="font-medium text-stone-800 capitalize hidden sm:block">{currentPageName || 'Dashboard'}</span>
+      </div>
+      <div className="flex items-center gap-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative text-stone-600 hover:bg-stone-200/50">
+              <Bell className="w-5 h-5" />
+              <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#F8F5F0]"></div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <div className="p-4">
+              <h3 className="font-semibold text-sm text-stone-800 mb-3">Notifications</h3>
+              <p className="text-sm text-stone-500">No new notifications</p>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {user &&
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-stone-200/50 transition-colors focus:outline-none focus:bg-stone-200/50 data-[state=open]:bg-stone-200/50">
+                <Avatar className="w-8 h-8 border-2 border-white shadow-sm">
+                  <AvatarImage src={user.profile_picture} />
+                  <AvatarFallback className="bg-amber-500 text-white font-semibold">
+                    {(user.display_name || user.full_name)?.charAt(0) || 'A'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-sm text-left">
+                  <p className="font-semibold text-stone-800">{userDisplayText.primary}</p>
+                  <p className="text-xs text-stone-500">{userDisplayText.secondary}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-stone-400 rotate-90 transition-transform data-[state=open]:rotate-90" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 mr-2">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium text-stone-900">{userDisplayText.primary}</p>
+                <p className="text-xs text-stone-500">{userDisplayText.secondary}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => logout()} className="cursor-pointer text-red-600 focus:text-red-600">
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
+      </div>
+    </header>
   );
 };
 
-// Stats Card Component
+// Stats Card Component (converted to Tailwind)
 export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAllClick, statKey }) => {
-  // Enhanced styling for urgent stats
   const getStatStyle = (statKey, value) => {
     const styles = {
       pendingApprovals: {
-        iconColor: value > 0 ? 'warning.main' : 'text.secondary',
-        valueColor: value > 0 ? 'warning.main' : 'text.primary',
+        iconColor: value > 0 ? 'text-yellow-600' : 'text-gray-500',
+        valueColor: value > 0 ? 'text-yellow-600' : 'text-gray-900',
         showBadge: value > 0,
-        badgeColor: 'warning'
+        badgeColor: 'yellow'
       },
       inProgress: {
-        iconColor: 'warning.main',
-        valueColor: 'warning.main',
+        iconColor: 'text-yellow-600',
+        valueColor: 'text-yellow-600',
         showBadge: false,
-        badgeColor: 'warning'
+        badgeColor: 'yellow'
       },
       completed: {
-        iconColor: 'success.main',
-        valueColor: 'success.main',
+        iconColor: 'text-green-600',
+        valueColor: 'text-green-600',
         showBadge: false,
-        badgeColor: 'success'
+        badgeColor: 'green'
       },
       myProjects: {
-        iconColor: 'primary.main',
-        valueColor: 'primary.main',
+        iconColor: 'text-blue-600',
+        valueColor: 'text-blue-600',
         showBadge: false,
-        badgeColor: 'primary'
+        badgeColor: 'blue'
       },
       totalClients: {
-        iconColor: 'info.main',
-        valueColor: 'info.main',
+        iconColor: 'text-blue-500',
+        valueColor: 'text-blue-500',
         showBadge: false,
-        badgeColor: 'info'
+        badgeColor: 'blue'
       },
       upcomingDeadlines: {
-        iconColor: value > 5 ? 'error.main' : value > 0 ? 'warning.main' : 'text.secondary',
-        valueColor: value > 5 ? 'error.main' : value > 0 ? 'warning.main' : 'text.primary',
+        iconColor: value > 5 ? 'text-red-600' : value > 0 ? 'text-yellow-600' : 'text-gray-500',
+        valueColor: value > 5 ? 'text-red-600' : value > 0 ? 'text-yellow-600' : 'text-gray-900',
         showBadge: value > 5,
-        badgeColor: value > 5 ? 'error' : 'warning'
+        badgeColor: value > 5 ? 'red' : 'yellow'
       },
       activeProjects: {
-        iconColor: 'primary.main',
-        valueColor: 'primary.main',
+        iconColor: 'text-blue-600',
+        valueColor: 'text-blue-600',
         showBadge: false,
-        badgeColor: 'primary'
+        badgeColor: 'blue'
       },
       weeklyHours: {
-        iconColor: 'warning.main',
-        valueColor: 'warning.main',
+        iconColor: 'text-yellow-600',
+        valueColor: 'text-yellow-600',
         showBadge: false,
-        badgeColor: 'warning'
+        badgeColor: 'yellow'
       },
       avgProgress: {
-        iconColor: 'success.main',
-        valueColor: 'success.main',
+        iconColor: 'text-green-600',
+        valueColor: 'text-green-600',
         showBadge: false,
-        badgeColor: 'success'
+        badgeColor: 'green'
       },
       weeklyCapacity: {
-        iconColor: 'info.main',
-        valueColor: 'info.main',
+        iconColor: 'text-blue-500',
+        valueColor: 'text-blue-500',
         showBadge: false,
-        badgeColor: 'info'
+        badgeColor: 'blue'
       },
       newMessages: {
-        iconColor: 'info.main',
-        valueColor: 'info.main',
+        iconColor: 'text-blue-500',
+        valueColor: 'text-blue-500',
         showBadge: false,
-        badgeColor: 'info'
+        badgeColor: 'blue'
       },
       default: {
-        iconColor: 'text.secondary',
-        valueColor: 'text.primary',
+        iconColor: 'text-gray-500',
+        valueColor: 'text-gray-900',
         showBadge: false,
         badgeColor: 'default'
       }
@@ -449,182 +440,145 @@ export const StatsCard = ({ icon: Icon, title, value, subtitle, seeAll, onSeeAll
   const statStyle = getStatStyle(statKey, value);
 
   return (
-    <Card sx={styles.statsCard}>
-      <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Box sx={{
-              ...styles.statsIcon,
-              color: statStyle.iconColor,
-              backgroundColor: statStyle.showBadge ? `${statStyle.badgeColor}.50` : 'grey.50'
-            }}>
-              <Icon fontSize="small" />
-            </Box>
-            <Typography variant="subtitle1" color="text.secondary" fontWeight={500}>
-              {title}
-            </Typography>
-          </Stack>
-          {seeAll && (
-            <IconButton size="small" onClick={onSeeAllClick} sx={{ color: 'text.secondary' }}>
-              <OpenInNewIcon fontSize="small" />
-            </IconButton>
-          )}
-        </Stack>
-        
-        <Stack direction="row" alignItems="baseline" spacing={0.5}>
-          <Typography 
-            variant="h3" 
-            fontWeight={600}
-            sx={{ color: statStyle.valueColor }}
-          >
-            {value}
-          </Typography>
-          {subtitle && (
-            <Typography variant="body2" color="text.secondary">
-              /{subtitle}
-            </Typography>
-          )}
-          {statStyle.showBadge && (
-            <Box sx={{ ml: 1 }}>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: statStyle.badgeColor === 'error' ? 'error.main' : 'warning.main',
-                  fontWeight: 600
-                }}
-              >
-                {statKey === 'upcomingDeadlines' && value > 5 ? 'Urgent!' : 
-                 statKey === 'pendingApprovals' && value > 0 ? 'Action needed' : ''}
-              </Typography>
-            </Box>
-          )}
-        </Stack>
-      </CardContent>
-    </Card>
+    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${statStyle.showBadge ? 'bg-gray-100' : 'bg-gray-50'}`}>
+            <Icon className={`w-5 h-5 ${statStyle.iconColor}`} />
+          </div>
+          <h3 className="text-sm font-medium text-gray-600">{title}</h3>
+        </div>
+        {seeAll && (
+          <button onClick={onSeeAllClick} className="text-gray-500 hover:text-gray-700">
+            <OpenInNewIcon className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+      
+      <div className="flex items-baseline gap-1">
+        <span className={`text-3xl font-semibold ${statStyle.valueColor}`}>
+          {value}
+        </span>
+        {subtitle && (
+          <span className="text-sm text-gray-500">/{subtitle}</span>
+        )}
+        {statStyle.showBadge && (
+          <span className={`ml-2 text-xs font-semibold ${
+            statStyle.badgeColor === 'red' ? 'text-red-600' : 'text-yellow-600'
+          }`}>
+            {statKey === 'upcomingDeadlines' && value > 5 ? 'Urgent!' : 
+             statKey === 'pendingApprovals' && value > 0 ? 'Action needed' : ''}
+          </span>
+        )}
+      </div>
+    </div>
   );
 };
 
-// Project Card Component
+// Project Card Component (converted to Tailwind)
 export const ProjectCard = ({ project, onClick }) => {
   const statusColors = {
     'todo': {
-      bg: 'grey.100',
-      color: 'grey.700',
+      bg: 'bg-gray-100',
+      color: 'text-gray-700',
       label: 'To Do'
     },
     'in-progress': {
-      bg: 'info.50',
-      color: 'info.dark',
+      bg: 'bg-blue-50',
+      color: 'text-blue-800',
       label: 'In Progress'
     },
     'awaiting-feedback': {
-      bg: 'warning.50',
-      color: 'warning.dark',
+      bg: 'bg-yellow-50',
+      color: 'text-yellow-800',
       label: 'Awaiting Feedback'
     },
     'completed': {
-      bg: 'success.50',
-      color: 'success.dark',
+      bg: 'bg-green-50',
+      color: 'text-green-800',
       label: 'Completed'
     }
   };
   
   const status = statusColors[project.status] || statusColors['todo'];
   
+  const getProgressColor = (progress) => {
+    if (progress >= 90) return 'bg-green-500';
+    if (progress >= 70) return 'bg-green-400';
+    if (progress >= 50) return 'bg-yellow-500';
+    if (progress >= 30) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
   
   return (
-    <Card 
-      sx={{
-        ...styles.projectCard,
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'all 0.2s ease-in-out',
-        '&:hover': {
-          ...(onClick && {
-            transform: 'translateY(-1px)',
-            boxShadow: 2
-          })
-        }
-      }}
+    <div 
+      className={`bg-white rounded-lg border border-gray-200 p-6 shadow-sm transition-all duration-200 ease-in-out ${
+        onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : 'cursor-default'
+      }`}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
         if (onClick) onClick(project);
       }}
     >
-      <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
-          <Box flex={1}>
-            <Typography variant="h6" fontWeight={600} gutterBottom>
-              {project.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" fontSize="0.875rem">
-              for {project.client}
-            </Typography>
-          </Box>
-          <Chip 
-            label={status.label} 
-            size="small"
-            sx={{
-              bgcolor: status.bg,
-              color: status.color,
-              fontWeight: 500
-            }}
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            {project.name}
+          </h3>
+          <p className="text-sm text-gray-500">
+            for {project.client}
+          </p>
+        </div>
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.bg} ${status.color}`}>
+          {status.label}
+        </span>
+      </div>
+      
+      <div>
+        <div className="flex justify-between mb-1">
+          <span className="text-sm font-medium text-gray-900">
+            {project.progress}%
+          </span>
+          <span className="text-xs text-gray-500">
+            {project.nextMilestone}
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(project.progress)}`}
+            style={{ width: `${project.progress}%` }}
           />
-        </Stack>
-        
-        <Box>
-          <Stack direction="row" justifyContent="space-between" mb={0.5}>
-            <Typography variant="body2" fontWeight={500}>
-              {project.progress}%
-            </Typography>
-            <Typography variant="caption" color="text.secondary" fontSize="0.75rem">
-              {project.nextMilestone}
-            </Typography>
-          </Stack>
-          <LinearProgress 
-            variant="determinate" 
-            value={project.progress} 
-            sx={{
-              ...styles.progressBar,
-              '& .MuiLinearProgress-bar': {
-                backgroundColor: project.progress >= 90 ? '#4caf50' : // Green for 90%+
-                               project.progress >= 70 ? '#8bc34a' : // Light green for 70-89%
-                               project.progress >= 50 ? '#ffc107' : // Amber for 50-69%
-                               project.progress >= 30 ? '#ff9800' : // Orange for 30-49%
-                               '#f44336' // Red for <30%
-              }
-            }}
-          />
-        </Box>
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 
-// Milestone Card Component
+// Milestone Card Component (converted to Tailwind)
 export const MilestoneCard = ({ milestone }) => {
   const typeColors = {
-    draft: 'grey.100',
-    review: 'warning.100',
-    final: 'success.100'
+    draft: 'bg-gray-100',
+    review: 'bg-yellow-100',
+    final: 'bg-green-100'
   };
   
   return (
-    <Paper sx={styles.milestoneCard(typeColors[milestone.type])}>
-      <Typography variant="body2" fontWeight={500} gutterBottom>
+    <div className={`rounded-lg border p-4 ${typeColors[milestone.type] || 'bg-gray-100'}`}>
+      <p className="text-sm font-medium text-gray-900 mb-1">
         {milestone.title}
-      </Typography>
-      <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+      </p>
+      <p className="text-xs text-gray-500 mb-2">
         on {milestone.project} project
-      </Typography>
-      <Typography variant="caption" fontWeight={500}>
+      </p>
+      <p className="text-xs font-medium text-gray-900">
         {milestone.time}
-      </Typography>
-    </Paper>
+      </p>
+    </div>
   );
 };
 
-// Team Section Component
+// Team Section Component (converted to Tailwind)
 export const TeamSection = ({ title, items, type }) => {
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -638,82 +592,89 @@ export const TeamSection = ({ title, items, type }) => {
   };
 
   return (
-    <Box mb={3}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="subtitle1" fontWeight={600}>
+    <div className="mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-base font-semibold text-gray-900">
           {title}
-        </Typography>
+        </h3>
         {type === 'projects' && (
           <Button 
-            size="small" 
-            startIcon={<FilterIcon fontSize="small" />}
-            sx={styles.filterButton}
+            variant="outline"
+            size="sm"
             onClick={handleFilter}
+            className="flex items-center gap-2"
           >
+            <FilterIcon className="w-4 h-4" />
             Filter
           </Button>
         )}
-      </Stack>
+      </div>
       
-      <Stack spacing={1}>
+      <div className="space-y-2">
         {type === 'projects' ? (
           items.map(project => (
-            <Box 
-              key={project.id} 
-              sx={styles.teamItem}
+            <div 
+              key={project.id}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
               onClick={() => handleItemClick(project)}
             >
-              <Typography fontSize={24}>{project.logo}</Typography>
-              <Box flex={1}>
-                <Typography variant="body2" fontWeight={500}>
+              <span className="text-2xl">{project.logo}</span>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">
                   {project.name}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
+                </p>
+                <p className="text-xs text-gray-500">
                   {project.members} team members
-                </Typography>
-              </Box>
-            </Box>
+                </p>
+              </div>
+            </div>
           ))
         ) : (
           items.map(crewMember => (
-            <Box 
-              key={crewMember.id} 
-              sx={styles.teamItem}
+            <div 
+              key={crewMember.id}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
               onClick={() => handleItemClick(crewMember)}
             >
-              <Avatar src={crewMember.avatar} sx={{ width: 40, height: 40 }} />
-              <Box flex={1}>
-                <Typography variant="body2" fontWeight={500}>
+              <Avatar className="w-10 h-10">
+                <AvatarImage src={crewMember.avatar} />
+                <AvatarFallback>{crewMember.name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">
                   {crewMember.name}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
+                </p>
+                <p className="text-xs text-gray-500">
                   {crewMember.role}
-                </Typography>
-              </Box>
-            </Box>
+                </p>
+              </div>
+            </div>
           ))
         )}
-      </Stack>
-    </Box>
+      </div>
+    </div>
   );
 };
 
-// Activity Item Component
+// Activity Item Component (converted to Tailwind)
 export const ActivityItem = ({ activity }) => {
   return (
-    <Box sx={styles.activityItem}>
-      <Avatar src={activity.user.avatar} sx={{ width: 32, height: 32 }} />
-      <Box flex={1}>
-        <Typography variant="body2">
+    <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <Avatar className="w-8 h-8">
+        <AvatarImage src={activity.user.avatar} />
+        <AvatarFallback>{activity.user.name?.charAt(0)}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1">
+        <p className="text-sm text-gray-700">
           {activity.action}{' '}
-          <Box component="span" fontWeight={600}>
+          <span className="font-semibold">
             {activity.target}
-          </Box>
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
+          </span>
+        </p>
+        <p className="text-xs text-gray-500">
           {activity.time}
-        </Typography>
-      </Box>
-    </Box>
+        </p>
+      </div>
+    </div>
   );
 };

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import AdminStatsCard from './AdminStatsCard';
 
-const AdminDashboard = () => {
+const AdminDashboardNew = () => {
   console.log('🚀 NEW TAILWIND ADMIN DASHBOARD LOADED');
   const user = useSelector(selectUser);
   const [stats, setStats] = useState({
@@ -183,4 +183,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default AdminDashboardNew;

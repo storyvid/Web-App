@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSelector } from 'react-redux';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import GoogleIcon from '@mui/icons-material/Google';
+import { FaGoogle as GoogleIcon } from 'react-icons/fa';
 
 // Superside-inspired theme
 const loginTheme = createTheme({

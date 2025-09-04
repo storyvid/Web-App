@@ -22,16 +22,16 @@ import {
   MenuItem
 } from '@mui/material';
 import {
-  InsertDriveFile as DocumentIcon,
-  VideoFile as VideoIcon,
-  AudioFile as AudioIcon,
+  FileText as DocumentIcon,
+  Video as VideoIcon,
+  Music as AudioIcon,
   Image as ImageIcon,
-  AttachFile as FileIcon,
+  Paperclip as FileIcon,
   Download as DownloadIcon,
-  MoreVert as MoreIcon,
+  MoreVertical as MoreIcon,
   Folder as FolderIcon,
-  AccessTime as TimeIcon
-} from '@mui/icons-material';
+  Clock as TimeIcon
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import firebaseService from '../../services/firebase/firebaseService';
 

@@ -1,12 +1,12 @@
 // Role-Specific Mock Data for StoryVid Dashboard
 import { 
-  Folder as FolderIcon,
-  Schedule as ScheduleIcon,
+  FolderOpen as FolderIcon,
+  Clock as ScheduleIcon,
   CheckCircle as CheckCircleIcon,
-  Assignment as AssignmentIcon,
-  Group as GroupIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
+  FileText as AssignmentIcon,
+  Users as GroupIcon,
+  AlertTriangle as WarningIcon
+} from 'lucide-react';
 
 export const getRoleBasedData = (userRole) => {
   const baseUser = {

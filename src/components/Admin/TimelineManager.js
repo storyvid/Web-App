@@ -32,17 +32,17 @@ import {
   Menu
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  Timeline as TimelineIcon,
+  Plus as AddIcon,
+  Clock as TimelineIcon,
   CheckCircle as CompletedIcon,
-  Schedule as PendingIcon,
-  Warning as OverdueIcon,
+  Clock as PendingIcon,
+  AlertTriangle as OverdueIcon,
   Flag as FlagIcon,
-  MoreVert as MoreIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  PlayArrow as StartIcon
-} from '@mui/icons-material';
+  MoreVertical as MoreIcon,
+  Pencil as EditIcon,
+  Trash2 as DeleteIcon,
+  Play as StartIcon
+} from 'lucide-react';
 
 import milestoneService from '../../services/milestoneService';
 import { useAuth } from '../../contexts/AuthContext';

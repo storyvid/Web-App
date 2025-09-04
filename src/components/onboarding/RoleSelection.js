@@ -15,11 +15,11 @@ import {
   TextField
 } from '@mui/material';
 import {
-  Business as BusinessIcon,
-  Group as TeamIcon,
-  Person as ClientIcon,
-  ArrowForward as ArrowIcon
-} from '@mui/icons-material';
+  Building as BusinessIcon,
+  Users as TeamIcon,
+  User as ClientIcon,
+  ArrowRight as ArrowIcon
+} from 'lucide-react';
 
 const RoleSelection = ({ onRoleSelect, onSkip, loading = false, error = null }) => {
   const [selectedRole, setSelectedRole] = useState(null);

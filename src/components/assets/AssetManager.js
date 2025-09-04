@@ -12,8 +12,8 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import {
-  Add as AddIcon
-} from '@mui/icons-material';
+  Plus as AddIcon
+} from 'lucide-react';
 
 import { useAuth } from '../../contexts/AuthContext';
 import firebaseService from '../../services/firebase/firebaseService';

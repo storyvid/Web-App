@@ -1,10 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import theme from './styles/theme';
 import { store, persistor } from './store';
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
@@ -40,8 +37,6 @@ function App() {
     <ErrorBoundary>
       <Provider store={store}>
         <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
             <DataMigrationHandler>
               <AuthProvider>
                 <Router>
@@ -145,7 +140,6 @@ function App() {
               </Router>
             </AuthProvider>
           </DataMigrationHandler>
-        </ThemeProvider>
       </PersistGate>
     </Provider>
   </ErrorBoundary>
