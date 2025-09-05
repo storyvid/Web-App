@@ -153,7 +153,6 @@ export const theme = createTheme({
     },
   },
 });
-
 // Component Styles
 export const styles = {
   // Dashboard Container
